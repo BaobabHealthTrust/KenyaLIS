@@ -1,4 +1,4 @@
-BLIS-Kenya
+BLIS-Malawi
 ====
 
-BLIS-Kenya is a customized version of C4G BLIS, specifically for Kenyan Public Hospital Laboratories.
+BLIS-Malawi is a customized version of C4G BLIS, specifically for Malawian Public Hospital Laboratories.
