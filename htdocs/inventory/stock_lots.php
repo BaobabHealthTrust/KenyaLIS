@@ -7,6 +7,7 @@ include("includes/header.php");
 include("includes/stats_lib.php");
 include("lang/lang_xml2php.php");
 include("barcode/barcode_lib.php");
+include("includes/scripts.php");
 LangUtil::setPageId("stocks");
 
 $script_elems->enableFlotBasic();

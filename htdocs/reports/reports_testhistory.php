@@ -21,15 +21,10 @@ $page_start = $load_time;
 
 
 include("redirect.php");
-
-include("includes/db_lib.php");
-
 include("includes/script_elems.php");
-
+include("includes/db_lib.php");
 include("includes/page_elems.php");
-
 include("barcode/barcode_lib.php");
-
 include("includes/user_lib.php");
 
 
@@ -43,9 +38,58 @@ include("../users/accesslist.php");
  if(!(isLoggedIn(get_user_by_id($_SESSION['user_id']))))
 
 	header( 'Location: home.php' );
+?>
 
 
+<link rel="stylesheet" type="text/css" media="all" href="jsdatepick-calendar/jsDatePick_ltr.min.css" />
+<script type="text/javascript" src="jsdatepick-calendar/jsDatePick.min.1.3.js"></script>
+<script type="text/javascript" src="js/check_date_format.js"></script>
+<script type="text/javascript">
+	window.onload = function(){
+		new JsDatePick({
+			useMode:2,
+			target:"date_to",
+			dateFormat:"%Y-%m-%d"
+			/*selectedDate:{				This is an example of what the full configuration offers.
+				day:5,						For full documentation about these settings please see the full version of the code.
+				month:9,
+				year:2006
+			},
+			yearsRange:[1978,2020],
+			limitToToday:false,
+			cellColorScheme:"beige",
+			dateFormat:"%m-%d-%Y",
+			imgPath:"img/",
+			weekStartDay:1*/
+		});
+		new JsDatePick({
+			useMode:2,
+			target:"date_from",
+			dateFormat:"%Y-%m-%d"
+			/*selectedDate:{				This is an example of what the full configuration offers.
+				day:5,						For full documentation about these settings please see the full version of the code.
+				month:9,
+				year:2006
+			},
+			yearsRange:[1978,2020],
+			limitToToday:false,
+			cellColorScheme:"beige",
+			dateFormat:"%m-%d-%Y",
+			imgPath:"img/",
+			weekStartDay:1*/
+		});
+	};
+</script>
 
+</head>
+<body>
+<!--date selection begins-->
+<label for"date_from">From</label>
+ <input type="text" size="12" id="date_from" name="date_from" />
+<label for"date_to">To</label>
+ <input type="text" size="12" id="date_to" name="date_to" />
+ <!--date selection ends-->
+<?php
 $date_from = "";
 
 $date_to = "";
@@ -67,11 +111,11 @@ $chart_column_width = 360;
 
 
 
-if(isset($_REQUEST['yf'])) {
+if(isset($_REQUEST['date_from'])) {
 
-	$date_from = $_REQUEST['yf']."-".$_REQUEST['mf']."-".$_REQUEST['df'];
+	$date_from = $_REQUEST['date_from'];
 
-	$date_to = $_REQUEST['yt']."-".$_REQUEST['mt']."-".$_REQUEST['dt'];
+	$date_to = $_REQUEST['date_to'];
 
 }
 
@@ -599,7 +643,7 @@ function get_records_to_print($lab_config, $patient_id) {
 
 	$retval = array();
 
-	if(isset($_REQUEST['ip']) && $_REQUEST['ip'] == 0) {
+	if(isset($_REQUEST['ip']) && $_REQUEST['ip'] == 1) {
 
 		# Do not include pending tests
 
@@ -613,7 +657,7 @@ function get_records_to_print($lab_config, $patient_id) {
 
 			"AND sp.patient_id=$patient_id ";
 
-		if(isset($_REQUEST['yf']))
+		if(isset($_REQUEST['date_from']))
 
 			$query_string .= "AND (sp.date_collected BETWEEN '$date_from' AND '$date_to') ";
 
@@ -635,7 +679,7 @@ function get_records_to_print($lab_config, $patient_id) {
 
 			"AND sp.patient_id=$patient_id ";
 
-		if(isset($_REQUEST['yf']))
+		if(isset($_REQUEST['date_from']))
 
 			$query_string .= "AND (sp.date_collected BETWEEN '$date_from' AND '$date_to') ";
 
@@ -676,8 +720,6 @@ function get_records_to_print($lab_config, $patient_id) {
 		$retval[] = array($test, $specimen, $hide_patient_name);		
 
 	}
-
-	
 
 	return $retval;
 
@@ -764,7 +806,7 @@ $script_elems = new ScriptElems();
 
 $script_elems->enableJQuery();
 
-$script_elems->enableTableSorter();
+//$script_elems->enableTableSorter();
 
 $script_elems->enableDragTable();
 
@@ -777,9 +819,9 @@ $page_elems = new PageElems();
 ?>
 
 
-
-<script type="text/javascript" src="../js/nicEdit.js"></script>
-<script type="text/javascript" src="../js/jquery-barcode-2.0.2.js"></script>  
+<script type="text/javascript" src="js/table2CSV.js"></script>
+<script type="text/javascript" src="js/nicEdit.js"></script>
+<script type="text/javascript" src="js/jquery-barcode-2.0.2.js"></script>  
 
 <script type='text/javascript'>
 
@@ -801,6 +843,19 @@ function export_as_word(div_id) {
 
 }
 
+function export_as_csv(table_id, table_id2, table_id3)
+{
+	var content = $('#'+table_id).table2CSV({delivery:'value'}) + '\n\n' + $('#'+table_id2).table2CSV({delivery:'value'}) + '\n\n' + $('#'+table_id3).table2CSV({delivery:'value'});
+	$("#csv_data").val(content);
+	$('#csv_format_form').submit();
+}
+
+function export_as_pdf(div_id)
+{
+	var content = $('#'+div_id).html();
+	$('#pdf_data').attr("value", content);
+	$('#pdf_format_form').submit();
+}
 
 
 function print_content(div_id) {
@@ -841,17 +896,35 @@ function print_content(div_id) {
 
 function fetch_report() {
 
-	var yf = $('#yyyy_from').attr("value");
+	var date_from = $('#date_from').attr("value");
+        /*
+        * Call a  function to validate the format of the keyed in format
+        */             
+        if (dt_format_check(date_from, "From Date") == false)
+        {return;}
+        /* execute if the date is ok echiteri*/
 
-	var mf = $('#mm_from').attr("value");
+	var date_to = $('#date_to').attr("value");
+        /*
+        * Call a  function to validate the format of the keyed in format
+        */             
+        if (dt_format_check(date_to, "To Date") == false)
+        {return;}
+        /* execute if the date is ok echiteri*/
 
-	var df = $('#dd_from').attr("value");
-
-	var yt = $('#yyyy_to').attr("value");
-
-	var mt = $('#mm_to').attr("value");
-
-	var dt = $('#dd_to').attr("value");
+// 	var df = $('#dd_from').attr("value");
+// 
+// 	var yt = $('#yyyy_to').attr("value");
+// 
+// 	var mt = $('#mm_to').attr("value");
+// 
+// 	var dt = $('#dd_to').attr("value");
+	
+// 	if ((yf==0) || (mf==0) || (df==0) || (yt==0) || (mt==0) || (dt==0)){
+// 		var msg = (yf==0 ? 'Year From' : (mf==0 ? 'Month From' : (df==0 ? 'Day From' : (yt==0 ? 'Year To' : (mt==0 ? 'Month To' : 'Day To'))))) + ' cannot be zero';
+// 		alert(msg);
+// 		return;
+// 	}
 
 	var ip = 0;
 
@@ -865,7 +938,7 @@ function fetch_report() {
 
 	$('#fetch_progress').show();
 
-	var url_string = "reports_testhistory.php?location=<?php echo $lab_config_id; ?>&patient_id=<?php echo $patient_id; ?>&yf="+yf+"&mf="+mf+"&df="+df+"&yt="+yt+"&mt="+mt+"&dt="+dt+"&ip="+ip+"&viz="+viz;
+	var url_string = "reports_testhistory.php?location=<?php echo $lab_config_id; ?>&patient_id=<?php echo $patient_id; ?>&date_from="+date_from+"&date_to="+date_to+"&ip="+ip+"&viz="+viz;
 
 	window.location=url_string;
 
@@ -906,8 +979,6 @@ $(document).ready(function() {
 
 	?>
 
-	$('#report_content_table1').tablesorter();
-
 	$('.editable').editInPlace({
 
 		callback: function(unused, enteredText) {
@@ -934,7 +1005,7 @@ $(document).ready(function() {
 
     myNicEditor.setPanel('myNicPanel');
 
-    myNicEditor.addInstance('patient_table');
+   // myNicEditor.addInstance('patient_table');
 
 });
 
@@ -974,8 +1045,14 @@ function change_orientation() {
 
 $(document).ready(function(){
 
-  // Reset Font Size
+  change_orientation();
 
+
+  $('#report_content_table1').tablesorter();
+  $('#report_content_table2').tablesorter();
+  
+  // Reset Font Size
+  
   var originalFontSize = $('#report_content').css('font-size');
 
    $(".resetFont").click(function(){
@@ -1069,6 +1146,15 @@ p.main {text-align:justify;}
 	<input type='hidden' name='lab_id' value='<?php echo $lab_config_id; ?>' id='lab_id'>
 
 </form>
+<form name='pdf_format_form' id='pdf_format_form' action='export_pdf.php' method='post' target='_blank'>
+	<input type='hidden' name='data' value='' id='pdf_data' />
+</form>
+<form name='txt_format_form' id='txt_format_form' action='export_txt.php' method='post' target='_blank'>
+	<input type='hidden' name='data' value='' id='txt_data' />
+</form>
+<form name='csv_format_form' id='csv_format_form' action='export_csv.php' method='post' target='_blank'> 
+	<input type='hidden' name='csv_data' id='csv_data'>
+</form>
 
 <?php
 
@@ -1081,40 +1167,18 @@ $monthago_date = date("Y-m-d", strtotime(date("Y-m-d", strtotime($today)) . " -1
 $monthago_array = explode("-", $monthago_date);
 
 ?>
-
 <table class='no_border'>
 
 	<tr valign='top'>
 
 	<td>
 
-		<?php echo LangUtil::$generalTerms['FROM_DATE']; ?>
+		
 
 	</td>
 
 	<td>
 
-			<?php
-
-			$name_list = array("yyyy_from", "mm_from", "dd_from");
-
-			$id_list = $name_list;
-
-			if(!isset($_REQUEST['yf'])) {
-
-				$value_list = $monthago_array;
-
-			}
-
-			else {
-
-				$value_list = array($_REQUEST['yf'], $_REQUEST['mf'], $_REQUEST['df']);
-
-			}
-
-			$page_elems->getDatePickerPlain($name_list, $id_list, $value_list); 
-
-			?>
 
 	</td>
 
@@ -1123,6 +1187,7 @@ $monthago_array = explode("-", $monthago_date);
 	&nbsp;&nbsp;&nbsp;&nbsp;
 
 			<input type='button' onClick="javascript:print_content('report_content');" value='<?php echo LangUtil::$generalTerms['CMD_PRINT']; ?>'></input>
+			
 
 			
 
@@ -1196,45 +1261,23 @@ $monthago_array = explode("-", $monthago_date);
 
 	<td>
 
-			&nbsp;&nbsp;
-
-			<?php echo LangUtil::$generalTerms['TO_DATE']; ?>
+			
 
 	</td>
 
 	<td>
 
-			<?php
-
-			$name_list = array("yyyy_to", "mm_to", "dd_to");
-
-			$id_list = $name_list;
-
-			if(!isset($_REQUEST['yf'])) {
-
-				$value_list = $today_array;
-
-			}
-
-			else {
-
-				$value_list = array($_REQUEST['yt'], $_REQUEST['mt'], $_REQUEST['dt']);
-
-			}
-
-			$page_elems->getDatePickerPlain($name_list, $id_list, $value_list);
-
-			?>
+			
 
 	</td>
 
-	<td>
+	<!--<td>
 
 	&nbsp;&nbsp;
 
 	Font
 
-	</td>
+	</td>-->
 
 	<td>
 
@@ -1242,13 +1285,13 @@ $monthago_array = explode("-", $monthago_date);
 
 	<tr valign='top'><td>
 
-	<input  type='button' class="increaseFont" value='Increase' title="Increase Font-size"></input> <br>
+	<input  type='hidden' class="increaseFont" value='Increase' title="Increase Font-size"></input> <br>
 
 	</td>
 
 	<td>
 
-	<input type='button' class="decreaseFont" value='Decrease' title="Decrease Font-size"></input> <br>
+	<input type='hidden' class="decreaseFont" value='Decrease' title="Decrease Font-size"></input> <br>
 
 	<!--<input type='button' class="bold" value='Bold' title="Bold"></input> <br>-->
 
@@ -1266,7 +1309,14 @@ $monthago_array = explode("-", $monthago_date);
 
 	&nbsp;&nbsp;
 
-	<input type='button' onClick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input>
+	<!-- <input type='button' onClick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input> -->
+	&nbsp;&nbsp;
+	<input type='button' onclick="javascript:export_as_pdf('report_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTPDF']; ?>'></input>
+	&nbsp;&nbsp;
+	<!--input type='button' onclick="javascript:export_as_txt('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTTXT']; ?>'></input>
+	&nbsp;&nbsp;-->
+	<input type='button' onclick="javascript:export_as_csv('report_content_header', 'report_content_table1', 'report_content_table2');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTCSV']; ?>'></input>
+	&nbsp;&nbsp;
 
 	</td>
 
@@ -1274,7 +1324,7 @@ $monthago_array = explode("-", $monthago_date);
 
 	&nbsp;&nbsp;
 
-	<input type='button' onClick="javascript:window.close();" value='Close' title='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input>
+	<!-- <input type='button' onClick="javascript:window.close();" value='Close' title='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
 
 	</td>
 
@@ -1381,40 +1431,38 @@ display:none;
 
 # If hospital logo exists, include it
 
-$logo_path = "../logos/logo_".$lab_config_id.".png";
+$logo_path = "logos/logo_".$lab_config_id.".jpg";
 
-$logo_path2 = "../ajax/logo_".$lab_config_id.".png";
+$logo_path2 = "../ajax/logo_".$lab_config_id.".jpg";
 
-$logo_path1="../../logo_".$lab_config_id.".png";
-
-
+$logo_path1="../../logo_".$lab_config_id.".jpg";
 
 
 
-if(file_exists($logo_path1) === true)
+/*if(file_exists($logo_path1))
 
 {	copy($logo_path1,$logo_path);
 
 	?>
 
-	<img src='<?php echo "logos/logo_".$lab_config_id.".png"; ?>' alt="" height='140px'></src>
+	<!--img src='<?php echo $logo_path; //"logos/logo_".$lab_config_id.".jpg"; ?>' alt="" height='140px'></src-->
 
 	<?php
 
 }
 
-else if(file_exists($logo_path) === true)
+else if(file_exists($logo_path))
 
-{
+{*/
 
 ?>
-<img src='<?php echo "logos/logo_".$lab_config_id.".png"; ?>' alt="" height='140px' style='float:left;' width='140px'></src>
+<img src='<?php echo "logos/logo_".$lab_config_id.".jpg"; ?>' alt="" height='140px' style='float:left;' width='140px'>
 
-	<img src='<?php echo "logos/logo_".$lab_config_id.".png"; ?>' alt="" height='140px' style='float:right; padding-right:10px;' width='140px'></src>
+	<img src='<?php echo "logos/logo_".$lab_config_id.".jpg"; ?>' alt="" height='140px' style='float:right; padding-right:10px;' width='140px'>
 
 	<?php
 
-}
+//}
 
 ?>
 
@@ -1440,7 +1488,7 @@ else if(file_exists($logo_path) === true)
 
 <?php
 
-if(isset($_REQUEST['yf']))
+if(isset($_REQUEST['date_from']))
 
 {
 
@@ -1624,7 +1672,7 @@ else
 
 	</div>
 
-	<table class='print_entry_border' style='width:97%; margin-bottom:5px;'>
+	<table id='report_content_header'  class="print_entry_border" style='width:97%; margin-bottom:5px;'>
 
 		<tbody>
 
@@ -1663,9 +1711,9 @@ else
 
 				<tr valign='top'>
                 
-					<td><strong><?php echo "Patient Number"; ?></strong></td>
+					<td><strong><?php echo "Patient No."; ?></strong></td>
 
-					<td><?php echo $patient->getPatientId(); ?></td>
+					<td><?php echo $patient->addlId;/*getPatientId()*/ ?></td>
 
 				<?php
 
@@ -1700,21 +1748,21 @@ else
 
 			}*/
 
-			if($report_config->usePatientRegistrationDate == 1) {
+// 			if($report_config->usePatientRegistrationDate == 1) {
 
 				?>
 
 				<tr valign='top'>
 
-					<td><?php echo "Registration Date"; ?></td>
+					<td><strong><?php echo "Registration Date"; ?></strong></td>
 
-					<td><?php echo $patient->regDate ?></td>
+					<td><?php echo date("Y-m-d", strtotime($patient->regDate)); ?></td>
 
 				</tr>
 
 				<?php
 
-			}
+// 			}
 
 			/*if($report_config->usePatientAddlId == 1) {
 
@@ -1894,7 +1942,7 @@ else
 
 			<div id="patient_table">
 
-				<table class='print_entry_border draggable' id='report_content_table1' style="width:97%; margin-bottom:5px;margin-top:5px;">
+				<table class='print_entry_border' id='report_content_table1' style="width:97%; margin-bottom:5px;margin-top:5px;">
 
 					<thead>
 
@@ -1902,31 +1950,32 @@ else
 
 						<?php 
 
-				if($report_config->useSpecimenAddlId != 0) {
+		//		if($report_config->useSpecimenAddlId != 0) {
 
 					echo "<th>".LangUtil::$generalTerms['SPECIMEN_ID']."</th>";
 
-				}
+		//		}
 
 				if($report_config->useDailyNum == 1 && $daily_number_same === false) {
 
-					echo "<th>".LangUtil::$generalTerms['PATIENT_DAILYNUM']."</th>";
+				//	echo "<th>".LangUtil::$generalTerms['PATIENT_DAILYNUM']."</th>";
 
 				}
-
+				echo "<th>"."Tests Requested(Lab Section)"."</th>";
 				if($report_config->useSpecimenName == 1) {
 
 					echo "<th>".LangUtil::$generalTerms['TYPE']."</th>";
 
 				}
 				
-				echo "<th>"."Tests Requested(Lab Section)"."</th>";
+				
 
-				if($report_config->useDateRecvd == 1) {
+		//		if($report_config->useDateRecvd == 1) {
 
 					echo "<th>".LangUtil::$generalTerms['R_DATE']."</th>";
 
-				}
+		//		}
+				echo "<th>"."Time Received"."</th>";
 
 				# Specimen Custom fields headers here
 				$patient_type=$patient->getPatientType();
@@ -1948,16 +1997,16 @@ else
 					}
 				}
 				else{
-					echo "<th>"."Collected By"."</th>";
-					echo "<th>"."Date Collected"."</th>";
-					echo "<th>"."Time Collected"."</th>";
+					echo "<th>"."Received By"."</th>";
+					echo "<th>"."Date Tested"."</th>";
+					
 				}
 				
-				if($report_config->useStatus == 1 && $all_tests_completed === false) {
-
-					echo "<th>".LangUtil::$generalTerms['SP_STATUS']."</th>";
-
-				}
+// 				if($report_config->useStatus == 1 && $all_tests_completed === false) {
+// 
+// 					echo "<th>".LangUtil::$generalTerms['SP_STATUS']."</th>";
+// 
+// 				}
 
 				
 
@@ -2018,11 +2067,11 @@ else
 
 				{
 
-					echo "<td>";
+					/*echo "<td>";
 
 					$specimen->getAuxId();
 
-					echo "</td>";
+					echo "</td>";*/
 
 				}
 
@@ -2034,34 +2083,34 @@ else
 
 				}
 
-				if($report_config->useDailyNum == 1 && $daily_number_same === false)
+		//		if($report_config->useDailyNum == 1 && $daily_number_same === false)
 
-				{
+		//		{
 
-					echo "<td>".$specimen->specimenId."</td>";
+					echo "<td>"./*$specimen->specimenId.*/$test->getLabSectionByTest()."</td>";
 
-				}
+		//		}
 
-				
+				echo "<td>".$test->getFullLabSectionByTest()."</td>";
 
-				if($report_config->useSpecimenName == 1)
+		//		if($report_config->useSpecimenName == 1)
 
-				{
+		//		{
 
 					echo "<td>".get_specimen_name_by_id($specimen->specimenTypeId)."</td>";
 
-				}
+		//		}
 				
-				echo "<td>".$test->getFullLabSectionByTest()."</td>";
+				
 
-				if($report_config->useDateRecvd == 1)
+		//		if($report_config->useDateRecvd == 1)
 
-				{
+		//		{
 
-					echo "<td>".DateLib::mysqlToString($specimen->dateRecvd)."</td>";
+					echo "<td>".DateLib::mysqlToString($specimen->dateCollected)."</td>";
 
-				}
-
+		//		}
+				echo "<td>".$specimen->timeCollected."</td>";
 				# Specimen Custom fields here
 				if($patient_type != null || $patient_type != ""){
 				//$custom_field_list = $lab_config->getSpecimenCustomFields();
@@ -2107,16 +2156,16 @@ else
 				}
 				else{
 						echo "<td>".$specimen->getSpecimenCollector()."</td>";
-						echo "<td>".DateLib::mysqlToString($specimen->dateCollected)."</td>";
-						echo "<td>".$specimen->timeCollected."</td>";
+						echo "<td>".DateLib::mysqlToString($specimen->dateRecvd)."</td>";
+						
 
 				}
 #				<!------------------------------------------------------->
-				if($report_config->useStatus == 1 && $all_tests_completed === false) {
-
-					echo "<td>".$test->getStatus()."</td>";
-
-				}
+// 				if($report_config->useStatus == 1 && $all_tests_completed === false) {
+// 
+// 					echo "<td>".$test->getStatus()."</td>";
+// 
+// 				}
 
 				
 
@@ -2187,8 +2236,8 @@ else
 
 		</table>
         <!-------------------------------------------------------BEGIN TESTS TABLE------------------------------------------------------>
-        <strong><?php echo "Results";  ?></strong>
-        <table class='print_entry_border draggable' id='report_content_table1' style="margin-top:5px;margin-bottom:5px; width:97%;">
+   <strong><?php echo "Results";  ?></strong>
+        <table class='print_entry_border' id='report_content_table2' style="margin-top:5px;margin-bottom:5px; width:97%;">
 
 					<thead>
 
@@ -2196,70 +2245,42 @@ else
 
 						<?php 
 
-				if($report_config->useTestName == 1) {
+				
 
-					echo "<th>".LangUtil::$generalTerms['TEST'];
-
-					echo "</th>";
-
-				}
-				echo "<th>"."Date(Time Registered)";
-
-					echo "</th>";
-
-				if($report_config->useComments == 1) {
-
-					echo "<th>".LangUtil::$generalTerms['COMMENTS']."</th>";
-
-				}
-
-				if($report_config->useReferredTo == 1) {
-
-					echo "<th>".LangUtil::$generalTerms['REF_TO']."</th>";
-
-				}
-
-				if($report_config->useDoctor == 1 && $physician_same === false) {
+				
 
 					echo "<th>".LangUtil::$generalTerms['DOCTOR']."</th>";
-
-				}
-
-				if($report_config->useMeasures == 1)
-
-					echo "<th>"."Analyte"."</th>";
-
-				if($report_config->useResults == 1)
-
+					echo "<th>".LangUtil::$generalTerms['SPECIMEN_ID']."</th>";
 					echo "<th>".LangUtil::$generalTerms['RESULTS']."/Value"."</th>";
-
-				if($report_config->useRange == 1)
-
 					echo "<th>".LangUtil::$generalTerms['RANGE']."</th>";
+					echo "<th>"."Measure"."</th>";
 
-				if($report_config->useEntryDate == 1) {
+// 				if($report_config->useRemarks == 1) {
+
+					echo "<th>Interpretation</th>";
+// 				}
+
+					
+
+// 				if($report_config->useEntryDate == 1) {
 
 					echo "<th>".LangUtil::$generalTerms['E_DATE']."</th>";
 
-				}
+// 				}
 
-				if($report_config->useRemarks == 1) {
+				
 
-					echo "<th>".LangUtil::$generalTerms['RESULT_COMMENTS']."</th>";
-
-				}
-
-				if($report_config->useEnteredBy == 1) {
+// 				if($report_config->useEnteredBy == 1) {
 
 					echo "<th>".LangUtil::$generalTerms['ENTERED_BY']."</th>";
 
-				}
+// 				}
 
-				if($report_config->useVerifiedBy == 1) {
+// 				if($report_config->useVerifiedBy == 1) {
 
 					echo "<th>".LangUtil::$generalTerms['VERIFIED_BY']."</th>";
 
-				}
+// 				}
 
 				if($report_config->useStatus == 1 && $all_tests_completed === false) {
 
@@ -2323,58 +2344,14 @@ else
 				<?php
 
 #				<!------------------------------------------------------->
-				if($report_config->useTestName == 1)
-
-				{
-
-					echo "<td >".get_test_name_by_id($test->testTypeId)."</td>";
-
-				}
+				
 				$timestamp = strtotime($test->timestamp);
 				$time=date("H:i:s", $timestamp);
 				
-				echo "<td >".DateLib::mysqlToString($test->timestamp)."(".$time.")"."</td>";
-
-				if($report_config->useComments == 1)
-
-				{
-
-					echo "<td>";
-
-					echo $specimen->getComments();
-
-					echo "</td>";
-
-				}
-
-				if($report_config->useReferredTo == 1)
-
-				{
-
-					echo "<td>".$specimen->getReferredToName()."</td>";
-
-				}
-
-				if($report_config->useDoctor == 1 && $physician_same === false)
-
-				{
-
 					$doc=$specimen->getDoctor();
 
 					echo "<td>".$doc."</td>";
-
-				}
-
-				if($report_config->useMeasures == 1) {
-
-					echo "<td>";
-
-					echo $test->getMeasureList();
-
-					echo "</td>";
-
-				}
-
+echo "<td>".$test->getLabSectionByTest()."</td>";
 				if($report_config->useResults == 1) {
 
 					echo "<td>";
@@ -2394,12 +2371,7 @@ else
 					echo "</td>";
 
 				}
-
 				
-
-				if($report_config->useRange == 1)
-
-				{
 
 					echo "<td>";
 
@@ -2479,7 +2451,7 @@ else
 
 						foreach($measure_list as $measure) {
 
-							echo "<br>";
+// 							echo "<br>";
 
 							$type=$measure->getRangeType();
 
@@ -2594,14 +2566,22 @@ else
 					}
 
 					echo "</td>";
+					  echo "<td>";
 
-				}
+					echo $test->getMeasureList();
 
+					echo "</td>";
+				
+// 				if($report_config->useRemarks == 1) {
+
+					echo "<td>".$test->getComments()."</td>";
+
+// 				}
 				
 
-				if($report_config->useEntryDate == 1)
-
-				{
+// 				if($report_config->useEntryDate == 1)
+// 
+// 				{
 
 					echo "<td>";
 
@@ -2621,37 +2601,56 @@ else
 
 					echo "</td>";
 
-				}
+// 				}
 
 				
 
-				if($report_config->useRemarks == 1) {
-
-					echo "<td>".$test->getComments()."</td>";
-
-				}
+// 				if($report_config->useRemarks == 1) {
+// 
+// 					echo "<td>".$test->getComments()."</td>";
+// 
+// 				}
 
 				
 
-				if($report_config->useEnteredBy == 1) {
+// 				if($report_config->useEnteredBy == 1) {
 
 					echo "<td>".$test->getEnteredBy()."</td>";
 
-				}
+// 				}
 
 				
 
-				if($report_config->useVerifiedBy == 1) {
+// 				if($report_config->useVerifiedBy == 1) {
 
 					echo "<td>".$test->getVerifiedBy()."</td>";
 
-				}
+// 				}
 
 				
 
 				if($report_config->useStatus == 1 && $all_tests_completed === false) {
-
-					echo "<td>".$test->getStatus()."</td>";
+				    
+					echo "<td>";
+					
+				if($admin == 1)
+                                     {
+                                        if(in_array($specimen->specimenId, $rem_specs))
+                                        {
+                                            echo "Removed";
+                                        }
+                                        else
+                                        {
+                                            echo $specimen->getStatus();
+                                        }
+                                     }
+                                     else
+                                     {
+                                         echo $specimen->getStatus();
+                                     }
+                               
+			
+					echo "</td>";
 
 				}
 
@@ -2723,6 +2722,7 @@ else
 			</tbody>
 
 		</table>
+
         <!--------------------------------------------------------END TESTS TABLE------------------------------------------------------->
 
 		</div>
@@ -2733,13 +2733,13 @@ else
 
  		
 
-			if(count($data_list)==1&&count(record_list)==1) {
+			if(count($data_list)==1 && count(record_list)==1) {
 
 				?>
 
 				<b>
 
-				Clinical Data:
+				<!--Clinical Data:-->
 
 				</b>
 
@@ -2859,7 +2859,7 @@ else
 
 					<br><b>
 
-					Clinical Data:
+				<!--	Clinical Data:-->
 
 					</b>
 
@@ -3518,7 +3518,7 @@ if(count($record_list) != 0)
 
 	$earliest_collection_parts = explode("-", $earliest_specimen->dateCollected);
 
-	if(!isset($_REQUEST['yf'])) {
+	if(!isset($_REQUEST['date_from'])) {
 
 		?>
 
@@ -3526,17 +3526,9 @@ if(count($record_list) != 0)
 
 		$(document).ready(function(){
 
-			$('#dd_from').attr("value", "<?php echo $earliest_collection_parts[2]; ?>");
+			$('date_from').attr("value", "<?php echo DateLib::mysqlToString($earliest_specimen->dateCollected); ?>");
 
-			$('#mm_from').attr("value", "<?php echo $earliest_collection_parts[1]; ?>");
-
-			$('#yyyy_from').attr("value", "<?php echo $earliest_collection_parts[0]; ?>");
-
-			$('#dd_to').attr("value", "<?php echo $latest_collection_parts[2]; ?>");
-
-			$('#mm_to').attr("value", "<?php echo $latest_collection_parts[1]; ?>");
-
-			$('#yyyy_to').attr("value", "<?php echo $latest_collection_parts[0]; ?>");
+			$('date_to').attr("value", "<?php echo DateLib::mysqlToString($latest_specimen->dateCollected); ?>");
 
 			var date_from = "<?php echo DateLib::mysqlToString($earliest_specimen->dateCollected); ?>";
 
@@ -3584,7 +3576,7 @@ if(count($record_list) != 0)
 
 ?>
 
-<div class='editable' title='Click to Edit'>
+<!--<div class='editable' title='Click to Edit'>
 
 </div>
 
@@ -3594,7 +3586,7 @@ if(count($record_list) != 0)
 
 <div class='editable' title='Click to Edit'>
 
-</div>
+</div>-->
 
 <!--p class="main">
 
@@ -3673,6 +3665,18 @@ echo("Page generated in " . $page_load_time . " seconds");
 </div>
 
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 <?php include('lab_report_footer.php'); ?>
 

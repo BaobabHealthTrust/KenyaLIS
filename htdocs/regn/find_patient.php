@@ -34,7 +34,7 @@ $lab_config = get_lab_config_by_id($_SESSION['lab_config_id']);
 			<h4><i class="icon-reorder"></i>Sample Collection</h4>
 			<div class="tools">
 			<a href="javascript:;" class="collapse"></a>
-			<a href="javascript:;" class="reload"></a>
+			<a href="javascript:fetch_patient_specimens_accept_reject();" class="reload"></a>
 			</div>
 		</div>
 		<div class="portlet-body form">
@@ -44,7 +44,12 @@ $lab_config = get_lab_config_by_id($_SESSION['lab_config_id']);
                             <strong>You have successfully rejected the specimen.</strong>
                      </div>
 			<div id='sample_collection_body' class="portlet" style='position:relative;left:10px; height: 500px'> 			       
-		</div>	 				
+		</div>
+<div id='Rejection' class='right_pane' style='display:none;margin-left:10px;'>
+                    <ul>
+                        <li>This page facilitates acceptance or rejection of a collected specimen.</li>
+                    </ul>
+                </div>	 				
 		</div>
 	</div>
 </div>
@@ -58,24 +63,19 @@ $lab_config = get_lab_config_by_id($_SESSION['lab_config_id']);
     <h4><i class="icon-reorder"></i>Search Lab Requests</h4>
             <div class="tools">
             <a href="javascript:;" class="collapse"></a>
-            <a href="#portlet-config" data-toggle="modal" class="config"></a>
-            <a href="javascript:;" class="reload"></a>
+            <!--a href="#portlet-config" data-toggle="modal" class="config"></a-->
+            <a href="javascript:load_all_external_requests();" class="reload"></a>
             
             </div>
     </div>
 
     <div class="portlet-body form" >
-				<div class="span1">
-					Refresh:
-					<span>
-					</span> 
-				</div>
             	<p style="text-align: right;"><a rel='facebox' href='#Registration'>Page Help</a></p>
                 
                 <div id='add_anyway_div' >
                     <a class ="btn" id='add_anyway_link' href='javascript:load_patient_reg()'><i class='icon-plus'></i> <?php echo LangUtil::$pageTerms['ADD_NEW_PATIENT']; ?> &raquo;</a>
                 	<a href='javascript:load_all_external_requests();' id="refresh" class="btn blue icn-only">
-                	<i class="icon-refresh m-icon-white"></i>
+                	Refresh <i class="icon-refresh m-icon-white"></i>
 					</a>
                 </div>
                
@@ -117,7 +117,7 @@ $lab_config = get_lab_config_by_id($_SESSION['lab_config_id']);
 			<h4><i class="icon-reorder"></i>Patient Registration</h4>
 			<div class="tools">
 				<a href="javascript:;" class="collapse"></a>
-				<a href="javascript:;" class="reload"></a>
+				<a href="javascript:load_patient_reg();" class="reload"></a>
 				<a href="javascript:;" class="remove"></a>
 			</div>
 		</div>
@@ -160,7 +160,7 @@ $lab_config = get_lab_config_by_id($_SESSION['lab_config_id']);
 
 			<div class="tools">
 				<a href="javascript:;" class="collapse"></a>
-				<a href="javascript:;" class="reload"></a>
+				<a href="javascript:load_specimen_reg(patient_id,is_external_patient);" class="reload"></a>
 			</div>
 		</div>
 		<div class="portlet-body form">
@@ -422,7 +422,6 @@ function fetch_patient_specimens_accept_reject()
 		}
 	);	
 }
-
 function load_patient_reg()
 {
 	$('.reg_subdiv').hide();
@@ -458,6 +457,40 @@ function load_specimen_acceptance(specimen_id)
 	$('#specimen_acceptance_body').load(url, {sid: specimen_id});		
 	$('#specimen_acceptance').show();
 };
+
+function CalcAge(DateElement, AgeElement){
+
+var YearVal = DateElement.value.slice(0, 4);
+var MonthVal = DateElement.value.slice(5, 7);
+var DayVal = DateElement.value.slice(-2);
+var CurrDate = new Date();
+
+if (((MonthVal.length==0) && (DayVal.length==0)) || 
+   ((MonthVal.length>0) && (DayVal.length>0) && (MonthVal-1==CurrDate.getMonth()) &&
+   (DayVal==CurrDate.getDate()))){
+   AgeElement.value=CurrDate.getFullYear()-YearVal;
+} else {
+   //var MSecPerDay = 1000*60*60*24;
+   var BYear = YearVal;
+   var BMonth = MonthVal>0 ? MonthVal : CurrDate.getMonth();
+   var BDay = DayVal>0 ? DayVal : CurrDate.getDate();
+   var RefDate = new Date(BYear, BMonth, BDay);
+   var NumDays = DaysBetween(RefDate, CurrDate)-1;
+   NumLeapYears = 0;
+   ThisYear = CurrDate.getFullYear();
+   for (var CurrYear=YearVal.value; CurrYear<=ThisYear; CurrYear++){
+      var TargetDate = new Date(CurrYear, 2, 1);
+      TargetDate.setHours(TargetDate.getHours()-3);
+      var NumDaysFeb = TargetDate.getDate();
+      NumLeapYears += (NumDaysFeb==29 ? 1 : 0);
+   }
+   alert(AgeElement.value);
+   //AgeElement.value=parseInt((NumDays-NumLeapYears)/365);
+}
+
+}
+
 </script>
 <?php $script_elems->bindEnterToClick('#pq', '#psearch_button'); ?>
 <?php include("includes/footer.php");?>
+

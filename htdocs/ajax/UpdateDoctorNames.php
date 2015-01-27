@@ -12,6 +12,6 @@ $query = "UPDATE specimen SET doctor = '$newDoctorName' ".
 		 "WHERE doctor like '$originalDoctorName' ";
 query_update($query);
 
-header("Location: ../");
+header("Location: ../doctor_stats.php?location=".$_REQUEST['location']."&from-report-date=".$_REQUEST['dateFrom']."&to-report-date=".$_REQUEST['dateTo']);
 
 ?>

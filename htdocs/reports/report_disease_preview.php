@@ -16,15 +16,15 @@ $script_elems = new ScriptElems();
 $script_elems->enableJQuery();
 ?>
 <script type='text/javascript'>
-function export_as_word()
+function export_as_word(div_id)
 {
-	var html_data = $('#report_content').html();
+	var html_data = $('#'+div_id).html();
 	$('#word_data').attr("value", html_data);
 	$('#export_word_form').submit();
 }
 </script>
 <form name='word_format_form' id='word_format_form' action='export_word.php' method='post' target='_blank'>
-	<input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPREVIEW']; ?>'></input>
+	<!-- <input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPREVIEW']; ?>'></input> -->
 </form>
 <hr>
 <form name='export_word_form' id='export_word_form' action='export_word.php' method='post' target='_blank'>

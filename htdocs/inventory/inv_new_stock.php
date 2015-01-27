@@ -29,7 +29,10 @@ putUILog('inv_new_stock', 'X', basename($_SERVER['REQUEST_URI'], ".php"), 'X', '
 $(document).ready(function() {
             $('#lot_error').hide();
             $('#lot_u_error').hide();
+			$('#expiry_date_error').hide();
             $('#quant_error').hide();
+			$('#receive_date_error').hide();
+			$('#receive_date_high_error').hide();
 
 //$("#changeText").click(function() {
     var url_string = "inventory/get_reagent_unit.php?lid="+"<?php echo $lid; ?>"+"&id="+"<?php echo $sel_id; ?>";
@@ -90,7 +93,18 @@ function validateRow() {
 	{
 		$('#lot_error').hide();
 	}   
-        if($('#quant').attr("value") == "")
+    
+	if ($('#expiry_date').attr('value') == '')
+	{
+		$('#expiry_date_error').show();
+		return;
+	}
+	else
+	{
+		$('#expiry_date_error').hide();
+	}
+	
+	if($('#quant').attr("value") == "")
 	{
 		$('#quant_error').show();
 		return;
@@ -98,9 +112,29 @@ function validateRow() {
 	else
 	{
 		$('#quant_error').hide();
-	}   
-        if(gcheck == 1)
-	$('#new_test_form').submit();
+	}
+    
+	if ($('#receive_date').attr('value') == '')
+	{
+		$('#receive_date_error').show();
+		return;
+	}
+	else
+	{
+		$('#receive_date_error').hide();
+		var curr_date = new Date();
+		var receive_date = $('#receive_date').val();
+		var rec_date = new Date(receive_date.slice(0, 4), parseInt(receive_date.slice(5, 7))-1, receive_date.slice(-2));
+		if (curr_date<rec_date){
+			$('#receive_date_high_error').show();
+			return;
+		} else {
+			$('#receive_date_high_error').hide();
+		}
+	}
+	
+    if(gcheck == 1)
+		$('#new_test_form').submit();
 }
 
 function display_unit()
@@ -121,7 +155,7 @@ function display_unit()
 
 <div class="span4" style="position: absolute;top: 100px;right: 30px;">
 <?php
-$tips_string = "Add new stocks (lots) for existing reagents by completing this form. Lot number, Expiry Date, Quantity and Date of Reception are compulsory fields.";
+$tips_string = "Add new stocks (lots) for existing reagents by completing this form. Lot number, Expiry Date, Quantity and Date Received are compulsory fields.";
 $page_elems->getSideTip("Tips", $tips_string);
 ?>
 </div>
@@ -185,8 +219,9 @@ $page_elems->getSideTip("Tips", $tips_string);
 					<td></td>
 					<td>
 					<div class="input-append date date-picker" data-date="<?php echo date("Y-m-d"); ?>" data-date-format="yyyy-mm-dd"> 
-					<input class="m-wrap m-ctrl-medium" size="16" name="expiry_date" id="expiry_date" type="text"><span class="add-on"><i class="icon-calendar"></i></span>
+					<input class="m-wrap m-ctrl-medium" size="16" name="expiry_date" id="expiry_date" type="text" required><span class="add-on"><i class="icon-calendar"></i></span>
 					</div>
+                    <label class="error" for="expiry_date" id="expiry_date_error"><small><font color="red"><?php echo LangUtil::getGeneralTerm("MSG_REQDFIELD"); ?></font></small></label>
 						<!--<input type="date" name="txtRow13" id="txtRow13" class='uniform_width'/>-->
 						<?php
                                                 /*$name_list1 = array("yyyy_e", "mm_e", "dd_e");
@@ -220,7 +255,7 @@ $page_elems->getSideTip("Tips", $tips_string);
 					<td></td>
 					<td>
 						<input type="text" name="quant" id="quant" class='uniform_width'/>
-                                                <label class="error" for="quant" id="quant_error"><small><font color="red"><?php echo LangUtil::getGeneralTerm("MSG_REQDFIELD"); ?></font></small></label>
+                        <label class="error" for="quant" id="quant_error"><small><font color="red"><?php echo LangUtil::getGeneralTerm("MSG_REQDFIELD"); ?></font></small></label>
 					</td>
 				</tr>
 				
@@ -244,6 +279,8 @@ $page_elems->getSideTip("Tips", $tips_string);
 					<div class="input-append date date-picker" data-date="<?php echo date("Y-m-d"); ?>" data-date-format="yyyy-mm-dd"> 
 					<input class="m-wrap m-ctrl-medium" size="16" name="receive_date" id="receive_date" type="text"><span class="add-on"><i class="icon-calendar"></i></span>
 					</div>
+                    <label class="error" for="receive_date" id="receive_date_error"><small><font color="red"><?php echo LangUtil::getGeneralTerm("MSG_REQDFIELD"); ?></font></small></label>
+					<label class="error" for="receive_date" id="receive_date_high_error"><small><font color="red"><?php echo 'Date received cannot be after today'; ?></font></small></label>
 							<?php
                                                          /*$name_list2 = array("yyyy_r", "mm_r", "dd_r");
                                                          $id_list2 = $name_list2;

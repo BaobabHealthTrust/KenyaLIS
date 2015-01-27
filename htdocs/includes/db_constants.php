@@ -1,3 +1,4 @@
+
 <?php
 # (c) C4G, Santosh Vempala, Ruban Monu and Amol Shintre
 # Contains DB connection parameters
@@ -27,24 +28,22 @@ if($SERVER == $ON_ARC)
  */
 
 $DB_HOST = "localhost";
-$DB_USER = "root";
-$GLOBAL_DB_NAME="blis_127";
-
+$DB_USER = "1234";
+$GLOBAL_DB_NAME="blis";
 $DB_NAME = $GLOBAL_DB_NAME;	
 
-$DB_PASS = "root.letusout!";
-
+$DB_PASS = "1234";
 if($SERVER == $ON_DEV)
 {
-	$DB_PASS = "root.letusout!";
+$DB_PASS = "1234";
 }
 else if($SERVER == $ON_ARC)
 {
-	$DB_PASS = "root.letusout!";
+$DB_PASS = "1234";
 }
 else if($SERVER == $ON_PORTABLE)
 {
-	$DB_PASS = "root.letusout!";
+$DB_PASS = "1234";
 }
 
 if(isset($_SESSION['username']))
@@ -58,3 +57,4 @@ if(isset($_SESSION['username']))
 		$DB_NAME = $_SESSION['db_name'];*/
 }
 ?>
+

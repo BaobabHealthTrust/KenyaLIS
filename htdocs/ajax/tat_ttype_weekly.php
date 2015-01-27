@@ -139,7 +139,7 @@ foreach($stat_lists as $stat_list) {
 # Build chart with time series
 $div_id = "tplaceholder_".$testTypeId;
 $ylabel_id = "tylabel_".$testTypeId;
-$legend_id = "tlegend_".$testTypeId;
+//$legend_id = "tlegend_".$testTypeId;
 
 ?>
 <div id="trendsDiv" style="width: 800px; height: 400px; margin: 0 auto"></div>
@@ -193,13 +193,13 @@ $legend_id = "tlegend_".$testTypeId;
 				 }
 			  },
 			  series: [{
-				name: ' ',
-				data: []
-			  }]
+				name: namesArray[0], //' ',
+				data: progressTrendsData[0] //[]
+			  }],
+			  plotOptions: {series: {showInLegend: false}}
 		   };
 	   
-			
-			for(var i=0;i<namesArray.length;i++) {
+			for(var i=1;i<namesArray.length;i++) {
 
 				options.series.push({
 					name: namesArray[i],
@@ -395,3 +395,9 @@ if($testTypeId != 0) {
 	}
 }
 ?>
+<script type="text/javascript">
+$(document).ready(function(){
+$('g path').css('stroke-opacity', '0.8');
+$('g path').css('stroke-width', '1');
+});
+</script>

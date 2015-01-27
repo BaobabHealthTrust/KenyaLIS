@@ -76,11 +76,11 @@ foreach($measure_list as $measure)
 		
 		}
 	?>
-	<table id='remarks_table_<?php echo $measure->measureId; ?>' class='hor-minimalist-c'>
+	<table id='remarks_table_<?php echo $measure->measureId; ?>' class='hor-minimalist-c' style='text-align:center'>
 		<thead>
 			<tr>
 			<?php if($range_type == Measure::$RANGE_NUMERIC) {?>
-				<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo LangUtil::$generalTerms['RANGE'];?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Age Range&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Gender</th>
+				<th><?php echo LangUtil::$generalTerms['RANGE'];?></th><th>Age Range</th><th>Gender</th>
 				<?php } else {?>
 				<th><?php echo LangUtil::$generalTerms['RANGE'];?></th>
 				<?php }?>
@@ -99,11 +99,11 @@ foreach($measure_list as $measure)
 		echo "<tr>";
 		 echo "<td>";
 		 echo "<input type='hidden' name='id_".$measure->measureId."[]' value='".$remark[6]."' class='uniform_width_less numeric_range' ></input>";
-		 echo "<input type='text' name='range_l_".$measure->measureId."[]' value='".$remark[0]."' class='uniform_width_less numeric_range'></input>-";
-		 echo "<input type='text' name='range_u_".$measure->measureId."[]' value='".$remark[1]."' class='uniform_width_less numeric_range'></input>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		 echo "<input type='text' name='age_l_".$measure->measureId."[]' value='".$remark[2]."' class='uniform_width_less numeric_range'></input>-";
-		 echo "<input type='text' name='age_u_".$measure->measureId."[]' value='".$remark[3]."' class='uniform_width_less numeric_range'></input>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		 echo "<input type='text' name='gender_".$measure->measureId."[]' value='".$remark[4]."' size='1px'></input>";
+		 echo "<input type='text' name='range_l_".$measure->measureId."[]' value='".$remark[0]."' class='uniform_width_less numeric_range' style='width:50px'></input>-";
+		 echo "<input type='text' name='range_u_".$measure->measureId."[]' value='".$remark[1]."' class='uniform_width_less numeric_range' style='width:50px'></input></td><td>";
+		 echo "<input type='text' name='age_l_".$measure->measureId."[]' value='".$remark[2]."' class='uniform_width_less numeric_range' style='width:30px'></input>-";
+		 echo "<input type='text' name='age_u_".$measure->measureId."[]' value='".$remark[3]."' class='uniform_width_less numeric_range' style='width:30px'></input></td><td>";
+		 echo "<input type='text' name='gender_".$measure->measureId."[]' value='".$remark[4]."' style='width:10px'></input>";
 		 echo "</td>";
 		 echo "<td>";
 		 echo "<input type='text' name='remarks_".$measure->measureId."[]' value='".$remark[5]."' class='uniform_width'></input>";
@@ -115,11 +115,11 @@ foreach($measure_list as $measure)
 		echo "<tr>";
 		 echo "<td>";
 		  echo "<input type='hidden' name='id_".$measure->measureId."[]' value=-1 class='uniform_width_less numeric_range' ></input>";
-		  echo "<input type='text' name='range_l_".$measure->measureId."[]' value='' class='uniform_width_less numeric_range'></input>-";
-		 echo "<input type='text' name='range_u_".$measure->measureId."[]' value='' class='uniform_width_less numeric_range'></input>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		 echo "<input type='text' name='age_l_".$measure->measureId."[]' value='' class='uniform_width_less numeric_range'></input>-";
-		 echo "<input type='text' name='age_u_".$measure->measureId."[]' value='' class='uniform_width_less numeric_range'></input>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		 echo "<input type='text' name='gender_".$measure->measureId."[]' value='' size='1px'></input>";
+		  echo "<input type='text' name='range_l_".$measure->measureId."[]' value='' class='uniform_width_less numeric_range' style='width:50px'></input>-";
+		 echo "<input type='text' name='range_u_".$measure->measureId."[]' value='' class='uniform_width_less numeric_range' style='width:50px'></input></td><td>";
+		 echo "<input type='text' name='age_l_".$measure->measureId."[]' value='' class='uniform_width_less numeric_range' style='width:30px'></input>-";
+		 echo "<input type='text' name='age_u_".$measure->measureId."[]' value='' class='uniform_width_less numeric_range' style='width:30px'></input></td><td>";
+		 echo "<input type='text' name='gender_".$measure->measureId."[]' value='' style='width:10px'></input>";
 		 echo "</td>";
 		 echo "<td>";
 		 echo "<input type='text' name='remarks_".$measure->measureId."[]' value='' class='uniform_width'></input>";

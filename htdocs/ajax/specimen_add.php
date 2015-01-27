@@ -60,6 +60,7 @@ $doctor = preg_replace("/[^a-zA-Z\s]/", "", $doctor);
 $title=$_REQUEST['title'];
 $tests_list = $_REQUEST['t_type_list'];
 $external_lab_no = $_REQUEST['external_lab_no'];
+$facility_code=$_REQUEST['MFL_Code'];
 //die('Nini hii?');
 
 
@@ -79,6 +80,7 @@ $specimen->userId = $_SESSION['user_id'];
 $specimen->statusCodeId = Specimen::$STATUS_NOT_COLLECTED;
 $specimen->dailyNum = $prefixed_dnum;
 $specimen->external_lab_no=$external_lab_no;
+$specimen->referral_fac_code = $facility_code;
 # If marked for referral, set appropriate status and store hospital/lab name
 if(isset($_REQUEST['ref_out']) && $_REQUEST['ref_out'] == "Y")
 {

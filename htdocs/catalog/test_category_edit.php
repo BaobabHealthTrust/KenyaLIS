@@ -26,7 +26,7 @@ if($test_category == null)
 	include("includes/footer.php");
 	return;
 }
-$page_elems->getTestCategoryInfo($test_category->name, true);
+//$page_elems->getTestCategoryInfo($test_category->name, true);
 ?>
 <br>
 <br>

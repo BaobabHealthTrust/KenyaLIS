@@ -91,7 +91,7 @@ $font_size = $barcodeSettings['textsize']; //11;
 <script type='text/javascript'>
 $(document).ready(function(){
     var code = $('#patientID').val();
-    $("#patientBarcodeDiv").barcode(code, '<?php echo $code_type; ?>',{barWidth:<?php echo $bar_width; ?>, barHeight:<?php echo $bar_height; ?>, fontSize:<?php echo $font_size; ?>, output:'bmp'});         
+    $("#patientBarcodeDiv").barcode(code, '<?php echo $code_type; ?>',{barWidth:<?php echo $bar_width; ?>, barHeight:<?php echo $bar_height; ?>, fontSize:<?php echo $font_size; ?>, output:'css'});         
     
 });
 function toggle_profile_divs()
@@ -114,7 +114,7 @@ function print_specimen_barcode(pid, sid)
 
         }
     });
-    $("#specimenBarcodeDiv").barcode(code, '<?php echo $code_type; ?>',{barWidth:<?php echo $bar_width; ?>, barHeight:<?php echo $bar_height; ?>, fontSize:<?php echo $font_size; ?>, output:'bmp'});         
+    $("#specimenBarcodeDiv").barcode(code, '<?php echo $code_type; ?>',{barWidth:<?php echo $bar_width; ?>, barHeight:<?php echo $bar_height; ?>, fontSize:<?php echo $font_size; ?>, output:'css'});//initially as output:'bmp'         
     Popup($('#specimenBarcodeDiv').html());
 }
 

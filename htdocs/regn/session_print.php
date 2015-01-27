@@ -44,7 +44,7 @@ function print_content(div_id)
 	<input type='hidden' name='data' value='' id='word_data'></input>
 	<input type='button' onclick="javascript:print_content('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_PRINT']; ?>'></input>
 	&nbsp;&nbsp;&nbsp;&nbsp;
-	<input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input>
+	<!-- <input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
 </form>
 <hr>
 <div id='export_content'>

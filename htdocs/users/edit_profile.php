@@ -113,12 +113,12 @@ $user_profile = get_user_by_id($_SESSION['user_id']);
                 <td><?php echo LangUtil::$generalTerms['PHONE']; ?>&nbsp;&nbsp;&nbsp;&nbsp;</td>
                 <td><input type="text" name="phone" id="phone" value="<?php echo $user_profile->phone; ?>"  class='uniform_width' /></td>
                 </tr>
-                <tr>
-                    <td>Upload your image</td>
+                <tr><!-- TODO: disable the display of image upload until the functionality is enhanced.
+                    <!-- <td>Upload your image</td>
                     <td>
                               <div class="controls">
                                         <?php
-                                        if ($user_profile->img == null){
+                                        /*if ($user_profile->img == null){
                                             echo '
                                             <div class="fileupload fileupload-new" data-provides="fileupload">
                                             <div class="fileupload-new thumbnail" style="width: 200px; height: 150px;">
@@ -132,7 +132,7 @@ $user_profile = get_user_by_id($_SESSION['user_id']);
                                             <div class="fileupload-preview fileupload-exists thumbnail" style="width: 200px; height: 150px;">
                                             <img src="img/'.$user_profile->img.'" alt="no image" />
                                             </div>';
-                                        }
+                                        }*/
                                        ?>
                                     <div>
                                        <span class="btn btn-file"><span class="fileupload-new">Select image</span>
@@ -143,7 +143,7 @@ $user_profile = get_user_by_id($_SESSION['user_id']);
                                  </div>
                               </div>
                          
-                     </td>
+                     </td> : echiteri -->
                 </tr>
                 <tr>
                 <td><br></td>

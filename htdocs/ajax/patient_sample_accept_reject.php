@@ -101,7 +101,7 @@ $specimen_id_list_rj = array_values(array_unique($specimen_id_list_rj));
                             }
                                 else { 
                     ?>
-                <table class="table tale-striped table-condensed" id="<?php echo $attrib_type; ?>">
+                <table class="tablesorter table tale-striped table-condensed" id="<?php echo $attrib_type; ?>">
                 <thead>
                     <tr>
                     	<?php 
@@ -122,7 +122,7 @@ $specimen_id_list_rj = array_values(array_unique($specimen_id_list_rj));
                         if(false) //Not displaying Lab no
                         {
                         ?>
-                            <th style='width:100px;'><?php echo "Lab. No"; ?></th>
+                            <th style='width:100px;'><?php echo "Visit No"; ?></th>
                         <?php
                         }
                         if($_SESSION['p_addl'] != 0)
@@ -233,7 +233,7 @@ $specimen_id_list_rj = array_values(array_unique($specimen_id_list_rj));
                         <td style='width:130px;'><a href="specimen_acceptance.php?sid=<?php echo $specimen->specimenId; ?>&pid=<?php echo $patient->patientId; ?>" class="btn mini green"><i class="icon-thumbs-up"></i> Accept</a>
                         <a href="javascript:load_specimen_rejection(<?php echo $specimen->specimenId; ?>)" class="btn mini yellow"><i class="icon-thumbs-down"></i> Reject</a>
                         </td>
-                        <td style="width:250px;"><a href="javascript:specimen_info(<?php echo $specimen->specimenId; ?>);" title="View test details" class="btn mini">
+                        <td style="width:250px;"><a href="javascript:specimen_info(<?php echo $specimen->specimenId; ?>);" title="View test details" class="btn blue mini">
 							<i class="icon-search"></i> View Details</a>
 						</td>
                         <?php }?>
@@ -281,7 +281,7 @@ $specimen_id_list_rj = array_values(array_unique($specimen_id_list_rj));
                             }
                                 else { 
                     ?>
-                <table class="table table-striped table-bordered table-condensed" id="rejct_samples">
+                <table class="table tablesorter table-striped table-bordered table-condensed" id="rejct_samples">
                 <thead>
                     <tr>
                         <?php

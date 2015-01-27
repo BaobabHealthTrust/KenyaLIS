@@ -15,6 +15,8 @@ include("../users/accesslist.php");
 include("redirect.php");
 include("includes/header.php");
 include("includes/stats_lib.php");
+include("includes/scripts.php");
+require_once("includes/script_elems.php");
 LangUtil::setPageId("stocks");
 $script_elems->enableTableSorter();
 $script_elems->enableDatePicker();
@@ -26,13 +28,12 @@ putUILog('edit_stock', 'X', basename($_SERVER['REQUEST_URI'], ".php"), 'X', 'X',
 ?> 
 <script type='text/javascript'>
 $(document).ready(function(){
-	
 	$('#reagent').keydown(function() {
 		prefetch_pname();
-	});
-        
-        $('#reagent_error').hide();
-        $('#reagent_u_error').hide();
+	});       
+	
+	$('#reagent_error').hide();
+	$('#reagent_u_error').hide();
 	
 });
 function add_specimenbox(){	
@@ -94,11 +95,13 @@ function prefetch_pname()
 <a href='view_stock.php'>&laquo; <?php echo LangUtil::$generalTerms['CMD_BACK']; ?></a>&nbsp;|&nbsp;<b><?php echo "Edit Reagent"; ?></b>
 <br><br>
 
+<div class="span4" style="position: absolute;top: 100px;right: 30px;">
 <?php
 $tips_string = " Edit reagent details by completing this form. If you wish to edit lot details for the selected reagent then click on 'Edit' link next to the specific lot.";
 $page_elems->getSideTip("Tips", $tips_string);
 $reag = Inventory::getReagentById($lid, $r_id);
 ?>
+</div>
 
 <form name='new_test_form' id='new_test_form' action='inventory/update_reagent.php'  method='post'>
     <div class="pretty_box" style="width:450px;">

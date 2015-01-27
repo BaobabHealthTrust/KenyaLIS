@@ -58,15 +58,15 @@ $specimen_list = get_specimens_by_session($session_num);
 							echo "Once a specimen has been registered, we can use this page to get the specimen number for labelling of the specimen.";
 							echo "</li>";
 						
-							echo "<li>"; 
+							/*echo "<li>"; 
 							echo "The specimen number is indicated in in bigger fonts than the other details (e.g. MIC-5210).";
-							echo "</li>";
+							echo "</li>";*/
 							?>
 						</div><?php } ?>				
 					</div>
             <div id='specimen_added_body'> </div>           
             
-            Lab_No. <?php echo $session_num; ?>
+            Visit Number <?php echo $session_num; ?>
             <?php
             if(count($specimen_list) > 1)
             {

@@ -41,7 +41,7 @@ if ($_REQUEST){
 			//echo 'Buf='.$buffer.'<br>';
 			$currline .= $buffer;
 			//echo 'Sub='.substr($buffer, -3, 1);
-			if (substr($buffer, -3, 1)==';'){
+			if (substr($buffer, -2, 1)==';'){
 				mysql_query($currline);
 				$currline = '';
 			}

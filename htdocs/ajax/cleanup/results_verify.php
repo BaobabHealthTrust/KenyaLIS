@@ -191,9 +191,9 @@ if(count($test_list) == 0)
 			<td><?php echo $test_entry->test_category; ?></td>
 			<td><?php echo $test_entry->test_type; ?></td>
 			<td><?php echo get_username_by_id($test_entry->userId); ?></td>
-			<td> <a href="javascript:;" title='Click to Enter Results for this Specimen'class="btn mini">
+			<td> <a href="javascript:;" title='Click to Enter Results for this Specimen' class="btn blue mini">
 			<i class="icon-search"></i> <?php echo "View Results"; ?></a></td>
-			<td> <a href="javascript:;" title='Click to Enter Results for this Specimen'class="btn green mini">
+			<td> <a href="javascript:;" title='Click to Enter Results for this Specimen' class="btn green mini">
 			<i class="icon-ok"></i> <?php echo "Verify" ?></a></td>
 			
 		</tr>

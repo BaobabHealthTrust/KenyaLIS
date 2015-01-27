@@ -7,15 +7,23 @@ include("redirect.php");
 include("includes/db_lib.php");
 include("includes/stats_lib.php");
 include("includes/script_elems.php");
+include("includes/page_elems.php");
 LangUtil::setPageId("reports");
 
 $script_elems = new ScriptElems();
 $script_elems->enableJQuery();
+$script_elems->enableTableSorter();
+
 ?>
+<html>
+<head>	
+<script type="text/javascript" src="js/table2CSV.js"></script>
+
 <script type='text/javascript'>
-function export_as_word()
+var curr_orientation = 0;
+function export_as_word(div_id)
 {
-	var html_data = $('#report_content').html();
+	var html_data = $('#'+div_id).html();
 	$('#word_data').attr("value", html_data);
 	//$('#export_word_form').submit();
 	$('#word_format_form').submit();
@@ -35,6 +43,13 @@ function export_as_txt(div_id)
 	$('#txt_format_form').submit();
 }
 
+function export_as_csv(table_id, table_id2)
+{
+	var content = $('#'+table_id).table2CSV({delivery:'value'}) + '\n' + $('#'+table_id2).table2CSV({delivery:'value'});
+	$("#csv_data").val(content);
+	$('#csv_format_form').submit();
+}
+
 function print_content(div_id)
 {
 	var DocumentContainer = document.getElementById(div_id);
@@ -46,26 +61,144 @@ function print_content(div_id)
 	WindowObject.close();
 	//javascript:window.print();
 }
+
+
+$(document).ready(function(){
+	$('#report_content_table5').tablesorter();
+	$('#report_content_table6').tablesorter();
+	$("input[name='do_landscape']").click( function() {
+		change_orientation();
+	});
+});
+
+function change_orientation()
+{
+	var do_landscape = $("input[name='do_landscape']:checked").attr("value");
+	if(do_landscape == "Y" && curr_orientation == 0)
+	{
+		$('#report_config_content').removeClass("portrait_content");
+		$('#report_config_content').addClass("landscape_content");
+		curr_orientation = 1;
+	}
+	if(do_landscape == "N" && curr_orientation == 1)
+	{
+		$('#report_config_content').removeClass("landscape_content");
+		$('#report_config_content').addClass("portrait_content");
+		curr_orientation = 0;
+	}
+}
+
 </script>
+</head>
+<body>
+<div id='report_content'>
+
+<link rel='stylesheet' type='text/css' href='css/table_print.css' />
+
+<style type='text/css'>
+
+div.editable {
+
+	/*padding: 2px 2px 2px 2px;*/
+
+	margin-top: 2px;
+
+	width:900px;
+
+	height:20px;
+
+}
+
+
+
+div.editable input {
+
+	width:700px;
+
+}
+
+div#printhead {
+
+position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+
+padding-bottom: 5em;
+
+margin-bottom: 100px;
+
+display:none;
+
+}
+
+
+
+@media all
+
+{
+
+  .page-break { display:none; }
+
+}
+
+@media print
+
+{
+
+	#options_header { display:none; }
+
+	/* div#printhead {	display: block;
+
+  } */
+
+  div#docbody {
+
+  margin-top: 5em;
+
+  }
+
+}
+
+
+
+.landscape_content {-moz-transform: rotate(90deg) translate(300px); }
+
+
+
+.portrait_content {-moz-transform: translate(1px); rotate(-90deg) }
+
+</style>
 <form name='word_format_form' id='word_format_form' action='export_word.php' method='post' target='_blank'>
 	<input type='hidden' name='data' value='' id='word_data' />
 	<input type='hidden' name='lab_id' value='<?php echo $lab_config_id; ?>' id='lab_id'>
 </form>
-<!--form name='pdf_format_form' id='pdf_format_form' action='export_pdf.php' method='post' target='_blank'>
+<form name='pdf_format_form' id='pdf_format_form' action='export_pdf.php' method='post' target='_blank'>
 	<input type='hidden' name='data' value='' id='pdf_data' />
-</form-->
+</form>
 <form name='txt_format_form' id='txt_format_form' action='export_txt.php' method='post' target='_blank'>
 	<input type='hidden' name='data' value='' id='txt_data' />
 </form>
-<input type='button' onclick="javascript:print_content('report_content');" value='<?php echo LangUtil::$generalTerms['CMD_PRINT']; ?>'></input>
+<form name='csv_format_form' id='csv_format_form' action='export_csv.php' method='post' target='_blank'> 
+	<input type='hidden' name='csv_data' id='csv_data'>
+</form>
+<input type='radio' name='do_landscape' value='N' <?php
+	//if($report_config->landscape == false) echo " checked ";
+	echo " checked ";
+?>>Portrait</input>
 &nbsp;&nbsp;
-<input type='button' onclick="javascript:export_as_word();" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input>
+<input type='radio' name='do_landscape' value='Y' <?php
+	//if($report_config->landscape == true) echo " checked ";
+?>>Landscape</input>&nbsp;&nbsp;
+
+<input type='button' onclick="javascript:print_content('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_PRINT']; ?>'></input>
 &nbsp;&nbsp;
-<!--input type='button' onclick="javascript:export_as_pdf('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTPDF']; ?>'></input-->
+<!-- <input type='button' onclick="javascript:export_as_word('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input> -->
 &nbsp;&nbsp;
-<input type='button' onclick="javascript:export_as_txt('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTTXT']; ?>'></input>
+<input type='button' onclick="javascript:export_as_pdf('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTPDF']; ?>'></input>
 &nbsp;&nbsp;
-<input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input>
+<!--input type='button' onclick="javascript:export_as_txt('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTTXT']; ?>'></input>
+&nbsp;&nbsp;-->
+<input type='button' onclick="javascript:export_as_csv('report_content_header', 'report_content_table1');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTCSV']; ?>'></input>
+&nbsp;&nbsp;
+<!-- <input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
 <hr>
 <?php /*
 <form name='export_word_form' id='export_word_form' action='export_word.php' method='post' target='_blank'>
@@ -73,8 +206,9 @@ function print_content(div_id)
 </form>
 */
 ?>
-<div id='report_content'>
+<div id='export_content'>
 <link rel='stylesheet' type='text/css' href='css/table_print.css' />
+<div id='report_config_content'>
 <b><?php echo LangUtil::$pageTerms['MENU_INFECTIONREPORT']; ?></b>
 <br><br>
 <?php
@@ -98,7 +232,9 @@ if($cat_code != 0)
 	$cat_test_ids = array();
 	foreach($cat_test_types as $test_type)
 	$cat_test_ids[] = $test_type->testTypeId;
+	//echo 'Selected IDs: '; var_dump($selected_test_ids); //echo 'CAT Test IDs: '; var_dump($cat_test_ids);
 	$matched_test_ids = array_intersect($cat_test_ids, $selected_test_ids);
+	//echo 'Matched IDs: '; var_dump($matched_test_ids);
 	$selected_test_ids = array_values($matched_test_ids);
 }
 
@@ -109,6 +245,7 @@ foreach($selected_test_ids as $test_type_id)
 	$test = TestType::getById($test_type_id);
 	$selected_test_types[] = $test;
 }
+//echo 'Selected Tests: '; var_dump($selected_test_types);
 
 # Fetch site-wide settings
 $site_settings = DiseaseReport::getByKeys($lab_config->id, 0, 0);
@@ -117,9 +254,10 @@ if($site_settings == null)
 	echo $lab_config->getSiteName()." - ".LangUtil::$pageTerms['TIPS_CONFIGINFECTION'];
 	return;
 }
+//echo 'Site Settings: '; var_dump($site_settings);
 $age_group_list = $site_settings->getAgeGroupAsList();
 ?>
-<table>
+<table id='report_content_header' class="print_entry_border draggable">
 	<tbody>
 		<tr>
 			<td><?php echo LangUtil::$generalTerms['FACILITY']; ?>:</td>
@@ -163,7 +301,7 @@ if(count($selected_test_types) == 0)
 $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 ?>
 <br>
-<table style='border-collapse: collapse;'>
+<table style='border-collapse: collapse;' id='report_content_table1' class="print_entry_border draggable">
 	<thead>
 		<tr>
 			<th><?php echo LangUtil::$generalTerms['TEST']; ?></th>
@@ -183,7 +321,7 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 			}
 			if($site_settings->groupByGender == 1)
 			{
-				echo "<th ></th>";
+				echo "<th >".LangUtil::$pageTerms['TOTAL_MF']."</th>";
 			}
 			?>
 			<th ><?php echo LangUtil::$pageTerms['TOTAL']; ?></th>
@@ -212,7 +350,7 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 			}
 			if($site_settings->groupByGender == 1)
 			{
-				echo "<th >".LangUtil::$pageTerms['TOTAL_MF']."</th>";
+				echo "<th></th>"; //echo "<th >".LangUtil::$pageTerms['TOTAL_MF']."</th>";
 			}
 			echo "<th ></th>";
 			echo "<th ></th>";
@@ -224,17 +362,24 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 	foreach($selected_test_types as $test)
 	{
 		StatsLib::setDiseaseSetList($lab_config, $test, $date_from, $date_to);
+		//if ($test->name=='G6PD') var_dump(StatsLib::$diseaseSetList);
 		$measures = $test->getMeasures();
+		//echo 'Test='; var_dump($test); echo 'Measure='; var_dump($measures);
 		foreach($measures as $measure)
 		{
 			$male_total = array();
+			$male_total1=array();
 			$female_total = array();
+			$female_total1 = array();
 			$cross_gender_total = array();
 			$curr_male_total = 0;
+			$curr_male_total1 = 0;
 			$curr_female_total = 0;
+			$curr_female_total1= 0;
 			$curr_cross_gender_total = 0;
 			$disease_report = DiseaseReport::getByKeys($lab_config->id, $test->testTypeId, $measure->measureId);
 			
+			//echo 'Disease Report: '; var_dump($disease_report);
 			if($disease_report == null)
 			{
 				# TODO: Check for error control
@@ -265,16 +410,26 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 			$grand_total = 0;
 			?>
 			<tr valign='top' id='<?php echo $row_id; ?>'>
-				<td><?php echo $measure->getName(); ?></td>
+				<td><?php echo $test->getName(); //$measure->getName(); ?></td>
 				<td>
 				<?php 
+				if($is_range_options){
 				foreach($range_values as $range_value)
 				{
 					if($is_range_options)
 						echo "$range_value<br>";
 					else
+						
 						echo "$range_value[0]-$range_value[1]<br>";
 					if($site_settings->groupByGender == 1)
+					{
+						echo "<br>";
+					}
+				}
+				}
+				else{
+				echo "Positive<br><br>Negative<br>";
+				if($site_settings->groupByGender == 1)
 					{
 						echo "<br>";
 					}
@@ -286,9 +441,15 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 				{
 					# Group by gender set to true
 					echo "<td>";
+					if($is_range_options){
 					for($i = 1; $i <= count($range_values); $i++)
 					{
 						echo "M<br>F<br>";
+					}
+					}
+					else{
+					echo "M<br>F<br>";
+					echo "M<br>F<br>";
 					}
 				}
 				if($site_settings->groupByAge == 1)
@@ -297,19 +458,30 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 					$age_slot_list = $site_settings->getAgeGroupAsList();
 					foreach($age_slot_list as $age_slot)
 					{
+					#added by Norbert to display Numeric range results as Positive or Negative
+					$men=array();
+					$female=array();
+					$men_neg=array();
+					$female_neg=array();
+					#end add
 						echo "<td>";
 						$range_value_count = 0;
+						//echo 'Range Values: '; var_dump($range_values);
 						foreach($range_values as $range_value)
 						{
 							$range_value_count++;
-							if(!isset($male_total[$range_value_count]))
+							if(!isset($male_total[$range_value_count]) || !isset($male_total1[$range_value_count]))
 							{
 								$male_total[$range_value_count] = 0;
+								$male_total1[$range_value_count] = 0;
 								$female_total[$range_value_count] = 0;
+								$female_total1[$range_value_count] = 0;
 								$cross_gender_total[$range_value_count] = 0;
 							}
 							$curr_male_total = 0;
+							$curr_male_total1 = 0;
 							$curr_female_total = 0;
+							$curr_female_total1 = 0;
 							$curr_cross_gender_total = 0;
 							$range_type = DiseaseSetFilter::$CONTINUOUS;
 							if($is_range_options == true)
@@ -340,17 +512,35 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 								## Count for males.
 								$disease_filter->patientGender = 'M';
 								$curr_total1 = StatsLib::getDiseaseFilterCount($disease_filter);
+								$curr_total3 = StatsLib::getDiseaseFilterCount1($disease_filter);#for negative range numeric values for males
 								$curr_male_total += $curr_total1;
+								$curr_male_total1 += $curr_total3;
 								## Count for females.
 								$disease_filter->patientGender = 'F';
+								//if ($test->name=='G6PD') {echo 'DFC='; var_dump($disease_filter);}
 								$curr_total2 = StatsLib::getDiseaseFilterCount($disease_filter);
+								$curr_total4 = StatsLib::getDiseaseFilterCount1($disease_filter);#for negative range numeric values for females
 								$curr_female_total += $curr_total2;
+								$curr_female_total1 += $curr_total4;
+								#added by Norbert to capture totals for all ranges men/female
+								$men[$range_value_count]=$curr_total1;#for positive males
+								$men_neg[$range_value_count]=$curr_total3;#for negative males
+								$female[$range_value_count]=$curr_total2;#for positive females
+								$female_neg[$range_value_count]=$curr_total4;#for negative females
+								if($is_range_options){
 								echo "$curr_total1<br>$curr_total2<br>";
+								}
 							}
 							# Build assoc list to track genderwise totals
 							$male_total[$range_value_count] += $curr_male_total;
+							$male_total1[$range_value_count] +=$curr_male_total1;
 							$female_total[$range_value_count] += $curr_female_total;
+							$female_total1[$range_value_count] += $curr_female_total1;
 							$cross_gender_total[$range_value_count] += $curr_cross_gender_total;
+						}
+					if(!$is_range_options){
+						echo array_sum($men)."<br>".array_sum($female)."<br>";
+						echo array_sum($men_neg)."<br>".array_sum($female_neg)."<br>";
 						}
 						echo "</td>";
 					}
@@ -415,6 +605,7 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 				if($site_settings->groupByGender == 1)
 				{
 					echo "<td>";
+					if($is_range_options){
 					for($i = 1; $i <= count($range_values); $i++)
 					{
 						$this_male_total = $male_total[$i];
@@ -422,10 +613,19 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 						echo "$this_male_total<br>$this_female_total<br>";
 						$this_cross_gender_total = $this_male_total + $this_female_total;
 					}
+					}
+					if(!$is_range_options){
+											$this_male_total = $male_total[$i];
+						$this_female_total = $female_total[$i];
+						echo array_sum($male_total)."<br>".array_sum($female_total)."<br>";
+						echo array_sum($male_total1)."<br>".array_sum($female_total1)."<br>";
+						$this_cross_gender_total = $this_male_total + $this_female_total;
+					}
 					echo "</td>";
 				}
 				
 				echo "<td>";
+				if($is_range_options){
 				for($i = 1; $i <= count($range_values); $i++)
 				{
 					if($site_settings->groupByGender == 1)
@@ -439,6 +639,23 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 						echo "<br>";
 					}				
 				}
+				}
+				if(!$is_range_options){
+				if($site_settings->groupByGender == 1)
+					{
+						$temp_sum=array_sum($male_total)+array_sum($female_total);
+						
+						echo $temp_sum;
+						
+						echo "<br><br>";
+						echo array_sum($male_total1)+array_sum($female_total1);
+					}
+					else
+					{
+						echo $cross_gender_total[$i];
+						echo "<br>";
+					}
+				}
 				echo "</td>";
 				# Grand total:
 				# TODO: Check the following function for off-by-one error
@@ -447,8 +664,17 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 				echo "<td>";
 				if($site_settings->groupByGender == 1)
 				{
+				if($is_range_options){
 					echo array_sum($male_total) + array_sum($female_total);
 					$grand_total = array_sum($male_total) + array_sum($female_total);
+					}
+				if(!$is_range_options){
+				$temp_sum=(array_sum($male_total) + array_sum($female_total))+array_sum($male_total1)+array_sum($female_total1);
+				
+				echo $temp_sum;
+				
+				
+				}
 				}
 				else
 				{
@@ -463,11 +689,11 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 			{
 				# Hide current table row
 				?>
-				<script type='text/javascript'>
+				<!--script type='text/javascript'>
 				$(document).ready(function(){
-					$('#<?php echo $row_id; ?>').remove();
+					//$('#<?php echo $row_id; ?>').remove();
 				});
-				</script>
+				</script-->
 				<?php
 			}
 		}
@@ -478,3 +704,13 @@ $table_css = "style='padding: .3em; border: 1px black solid; font-size:14px;'";
 <br><br><br>
 ............................................
 </div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+	$('#report_content_table1').tablesorter();
+});
+</script>
+</div>
+</div>
+</body>
+</html>

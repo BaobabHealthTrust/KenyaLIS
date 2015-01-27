@@ -93,12 +93,8 @@
             <tr> \
               <td class="b"/> \
               <td class="body"> \
+              <a href="#" class="close"><img src="/facebox/closelabel.gif" title="close" class="close_image" /></a>\
                 <div class="content"> \
-                </div> \
-                <div class="footer"> \
-                  <a href="#" class="close"> \
-                    <img src="/facebox/closelabel.gif" title="close" class="close_image" /> \
-                  </a> \
                 </div> \
               </td> \
               <td class="b"/> \

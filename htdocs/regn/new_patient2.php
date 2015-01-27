@@ -35,8 +35,8 @@ $script_elems->enableAutocomplete();
 			</tr>
 
 			<tr <?php
-			if($_SESSION['p_addl'] == 0)
-				echo " style='display:none;' ";
+			//if($_SESSION['p_addl'] == 0)
+				//echo " style='display:none;' ";
 			?>>
 				<td>
 					<?php echo LangUtil::$generalTerms['ADDL_ID'];
@@ -50,7 +50,7 @@ $script_elems->enableAutocomplete();
 				<td>  Date of Registration </td>
 				<td>
 					<div class="input-append date date-picker" data-date="<?php echo date("Y-m-d"); ?>" data-date-format="yyyy-mm-dd"> 
-					<input class="m-wrap m-ctrl-medium" size="16" name="patient_reg_date" id="patient_regist_date" type="text" value="<?php echo date("Y-m-d"); ?>"><span class="add-on"><i class="icon-calendar"></i></span>
+					<input class="m-wrap m-ctrl-medium" size="16" name="patient_reg_date" id="patient_regist_date" type="text" value="<?php echo date("Y-m-d"); ?>" ><span class="add-on"><i class="icon-calendar"></i></span>
 					</div>
 				</td>			
 			</tr>
@@ -63,7 +63,7 @@ $script_elems->enableAutocomplete();
 				</td>
 				<td><input type="text" name="dnum" id="dnum" value="<?php echo $daily_num; ?>" size="20" class='uniform_width m-wrap tooltips' /></td>
 			</tr>
-			<tr>	
+			<tr style='display:none;'>	
 			<div class="control-group" <?php if($_SESSION['pid'] == 0) echo " style='display:none;' ";?> >
 			 <td width="200">
 				   <?php echo "Registration Number"; ?>
@@ -87,7 +87,7 @@ $script_elems->enableAutocomplete();
 				<td>
 					<div class="controls">
 						<label class="radio">
-							<span><input type="radio"  name="sex" value="M" checked> <?php echo LangUtil::$generalTerms['MALE']; ?></span>
+							<span><input type="radio"  name="sex" value="M" > <?php echo LangUtil::$generalTerms['MALE']; ?></span>
 							</label>
 					</div>
 					<div class="controls">
@@ -103,48 +103,61 @@ $script_elems->enableAutocomplete();
 			</tr>
 
 			<tr valign='top'<?php
-			if($_SESSION['dob'] == 0)
-				echo " style='display:none;' ";
+		//	if($_SESSION['dob'] != 0)
+		//		echo " style='display:none;' ";
 			?>>	
 				<td>
 					<?php echo LangUtil::$generalTerms['DOB']; ?> 
 					<?php
-					if($_SESSION['dob'] == 2)
+		//			if($_SESSION['dob'] == 2)
 						$page_elems->getAsterisk();
 					?>
 				</td>
-				<td>                               
+				<td>				  
                   <div class="input-append date date-picker" data-date="" data-date-format="yyyy-mm-dd"> 
-					<input class="m-wrap m-ctrl-medium" size="16" name="patient_birth_date" id="patient_b_day" type="text" value=""><span class="add-on"><i class="icon-calendar"></i></span>
+					<input class="m-wrap m-ctrl-medium" size="16" name="patient_birth_date" id="patient_b_day" type="text" value="" readonly><span class="add-on" id="span_dob"><i class="icon-calendar"></i></span>
 					</div>
+                </td>
+                <td>				  
+                  <a href="" class="btn-default btn " data-toggle="modal" data-target=".bs-example-modal-sm"><span class="add-on" id="span_calcdob"><i class="icon-calendar"></i> From Age</span></a>
+			 <!--pop up for dob calc begin-->
+  <div class="modal fade bs-example-modal-sm" id="dobcal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+     
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+        <h4 class="modal-title" id="myModalLabel">Calculate Date of Birth</h4>
+      </div>
+      <div class="modal-body">
+       <div class="form-group">
+              <label class="col-md-2 control-label" for="body">Age in Years</label>  
+              <input id="age" name="age" type="text" maxlength="3" class="form-control input-md">
+              
+            </div>
+            <div class="form-group">
+              <label class="col-md-2 control-label" for="by_date">On Date</label>  
+              <style>
+              .datepicker{
+              z-index:1151 !important;
+              }
+              </style>
+              <div class="input-append date date-picker" data-date="" data-date-format="yyyy-mm-dd"> 
+					<input class="m-wrap m-ctrl-medium" size="16" name="by_date" id="by_date" type="text" readonly><span class="add-on" id="span_dob"><i class="icon-calendar"></i></span>
+					</div>
+                 
+            </div>
+           
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" name="submit_iss" class="btn btn-primary" onclick="javascript:calc_dob();">Submit</button>
+      </div>
+    
+  </div>
+  <!--pop up end-->		
                 </td>
 			</tr>
 			
-			<tr><?php
-			if($_SESSION['age'] == 0)
-				echo " style='display:none;' ";
-			?>
-				<td><?php echo LangUtil::$generalTerms['AGE']; ?> <?php
-					if($_SESSION['age'] == 2)
-						$page_elems->getAsterisk();
-					?>
-					<!-- <font style='color:red'><?php echo LangUtil::$pageTerms['TIPS_DOB_AGE'];?></font> -->
-				</td>
-				<td>
-					<input type="text" name="age" id="age" value="" size="4" maxlength="10" class='uniform_width m-wrap tooltips' />
-					
-					<select name='age_param' id='age_param' class='uniform_width m-wrap tooltips'>
-						<option value='1'><?php echo LangUtil::$generalTerms['YEARS']; ?></option>
-						<option value='2'><?php echo LangUtil::$generalTerms['MONTHS']; ?></option>
-						<option value='3'><?php echo LangUtil::$generalTerms['DAYS']; ?></option>
-						<option value='4'>Weeks</option>
-						<option value='5'>Range(Years)</option>
-					</select>
-					
-				</td>
-			</tr>
-				
-		</form>
 			
 		<form id='custom_field_form' name='custom_field_form' action='ajax/patient_add_custom.php' method='get'>
 		<input type='hidden' name='pid2' id='pid2' value=''></input>
@@ -170,7 +183,7 @@ $script_elems->enableAutocomplete();
 				<td>
 					<input class="btn green button-submit" type="button" id='submit_button' onclick="add_patient();" value="<?php echo LangUtil::$generalTerms['CMD_SUBMIT']; ?> " />
 					&nbsp;&nbsp;
-					<a class="btn red icn-only" href='find_patient.php'><?php echo LangUtil::$generalTerms['CMD_CANCEL']; ?></i></a>
+					<a class="btn red icn-only" href='find_patient.php?div=reception'><?php echo LangUtil::$generalTerms['CMD_CANCEL']; ?></i></a>
 					&nbsp;&nbsp;
 					<span id='progress_spinner' style='display:none'>
 						<?php $page_elems->getProgressSpinner(LangUtil::$generalTerms['CMD_SUBMITTING']); ?>
@@ -199,8 +212,10 @@ $script_elems->enableAutocomplete();
 		</td>
 		</tr>
 </table>
+<script type="text/javascript" src="js/check_date_format.js"></script>
 <script type='text/javascript'>
 $(document).ready(function(){
+	//SelectDOBAge(1);
 	$('#progress_spinner').hide();
 	<?php
 	if(isset($_REQUEST['n']))
@@ -228,6 +243,23 @@ $(document).ready(function(){
 	});
 });
 
+function calc_dob(){
+var age=$('#age').val();
+var curr_date=new Date($('#by_date').val());
+if(age.trim() == "" || $('#by_date').val()== ""){
+alert("Empty field!");
+return;
+}
+if(isNaN(age)){
+alert("Error: Numeric input required for age");
+return;
+}
+console.log(curr_date);
+curr_date.setMonth(curr_date.getMonth() -12*age);
+curr_date=$.datepicker.formatDate('yy-mm-dd',new Date(curr_date));
+$('#patient_b_day').attr('value',curr_date);
+$('#dobcal').modal('hide');
+}
 function add_patient()
 {
 	var card_num = $("#card_num").val();
@@ -236,10 +268,10 @@ function add_patient()
 	var name = $("#name").val();
 	name = name.replace(/[^a-z ]/gi,'');
 	var pat_reg_date = $('#patient_regist_date').val();
-	var age = $("#age").val();
-	age = age.replace(/[^0-9]/gi,'');
-	var age_param = $('#age_param').val();
-	age_param = age_param.replace(/[^0-9]/gi,'');
+	//var age = $("#age").val();
+	//age = age.replace(/[^0-9]/gi,'');
+	//var age_param = $('#age_param').val();
+	//age_param = age_param.replace(/[^0-9]/gi,'');
 	var patient_birth_date = $('#patient_b_day').val();
 	var sex = "";
 	var pid = $('#pid').val();
@@ -253,7 +285,59 @@ function add_patient()
 	var phone = $("#phone").val();
 	var error_message = "";
 	var error_flag = 0;
+	var curr_date = new Date();
 	var patient_birth_date = $('#patient_b_day').val();
+	if (patient_birth_date!=""){
+           /*
+            * Call a  function to validate the format of the keyed in format
+            */             
+            if (dt_format_check(patient_birth_date, "Date of Birth") == false)
+            {return;}
+            /* execute if the date is ok echiteri*/
+		var pt_dob_y = patient_birth_date.slice(0, 4);
+		var pt_dob_m = parseInt(patient_birth_date.slice(5, 7));
+		var pt_dob_d = patient_birth_date.slice(-2);
+		if (parseInt(pt_dob_y)==0){
+			error_message += "The year of birth must be greater than zero\n";
+			error_flag = 1;
+			alert("Error: The year of birth must be greater than zero");
+			return;
+		}
+		if (parseInt(pt_dob_m)==0){
+			error_message += "The month of birth must be greater than zero\n";
+			error_flag = 1;
+			alert("Error: The month of birth must be greater than zero");
+			return;
+		}
+		if (parseInt(pt_dob_d)==0){
+			error_message += "The day of birth must be greater than zero\n";
+			error_flag = 1;
+			alert("Error: The day of birth must be greater than zero");
+			return;
+		}
+		var pt_dob = new Date(pt_dob_y, pt_dob_m-1, pt_dob_d);		
+		if (curr_date<pt_dob){
+			error_message += "The date of birth cannot be after today\n";
+			error_flag = 1;
+			alert("Error: The date of birth cannot be after today");
+			return;
+		}
+	}
+	if (pat_reg_date!=""){
+            /*
+            * Call a  function to validate the format of the keyed in format
+            */             
+            if (dt_format_check(pat_reg_date, "Registration Date") == false)
+            {return;}
+            /* execute if the date is ok echiteri*/
+		var pt_regdate = new Date(pat_reg_date.slice(0, 4), parseInt(pat_reg_date.slice(5, 7))-1, pat_reg_date.slice(-2));
+		if (curr_date<pt_regdate){
+			error_message += "The registration date cannot be after today\n";
+			error_flag = 1;
+			alert("Error: The registration date cannot be after today");
+			return;
+		}
+	}
 	for(i = 0; i < radio_sex.length; i++)
 	{
 		if(radio_sex[i].checked)
@@ -284,9 +368,7 @@ function add_patient()
 		return;
 	}
 	
-	//Age not given
-	if(age.trim() == "")
-	{
+	
 		
 		if(patient_birth_date.trim() == "")
 		{
@@ -295,16 +377,10 @@ function add_patient()
 			alert("Error: Please enter either Age or Date of Birth");
 			return;
 		}
-	}
-	else if (isNaN(age))
-	{
 	
-		if(age_param!=5)
-		{
-			alert("<?php echo LangUtil::$generalTerms['ERROR'].": ".LangUtil::$generalTerms['AGE']; ?>");
-			return;
-		}
-	}	
+	
+	
+	
 	if(sex == "" || !sex)
 	{
 		alert("<?php echo LangUtil::$generalTerms['ERROR'].": ".LangUtil::$generalTerms['GENDER']; ?>");
@@ -312,11 +388,12 @@ function add_patient()
 	}
 	
 	var data_string = "card_num="+card_num+"&addl_id="+addl_id
-	+"&name="+name+"&dob="+patient_birth_date+"&age="+age+"&sex="+sex
-	+"&agep="+age_param+"&pid="+pid+"&receipt_date="+pat_reg_date;
+	+"&name="+name+"&dob="+patient_birth_date+"&sex="+sex
+	+"&pid="+pid+"&receipt_date="+pat_reg_date;
 	
 	if(error_flag == 0)
 	{
+		//alert(data_string);
 		$("#progress_spinner").show();
 		//Submit form by ajax
 		$.ajax({  
@@ -354,4 +431,21 @@ function reset_new_patient()
 {
 	$('#new_record').resetForm();
 }
+
+// function SelectDOBAge(optionval){
+// 	if (optionval==1){
+// 		$('#patient_b_day').show();
+// 		$('#span_dob').show();
+// 		$('#age').hide();
+// 		$('#age_param').hide();
+// 		$('#age').val('');
+// 	} else {
+// 		$('#patient_b_day').hide();
+// 		$('#span_dob').hide();
+// 		$('#age').show();
+// 		$('#age_param').show();
+// 		$('#patient_b_day').val('');
+// 	}
+// }
+
 </script>

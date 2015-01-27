@@ -5,7 +5,10 @@
 
 include("redirect.php");
 include("includes/header.php");
+include("includes/scripts.php");
+require_once("includes/script_elems.php");
 LangUtil::setPageId("lab_config_home");
+$script_elems->enableDatePicker();
 
 $lab_config_id = $_REQUEST['id'];
 $lab_config = LabConfig::getById($lab_config_id);

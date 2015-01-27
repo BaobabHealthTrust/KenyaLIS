@@ -30,12 +30,12 @@ function print_content(div_id)
 <input type='hidden' name='data' value='' id='word_data' />
 <input type='button' onclick="javascript:print_content('report_content');" value='<?php echo LangUtil::$generalTerms['CMD_PRINT']; ?>'></input>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input>
+<!-- <input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
 <hr>
 <div id='report_content'>
 <?php echo LangUtil::$generalTerms['FACILITY']; ?>: <?php echo $lab_config->getSiteName(); ?> |
-<?php echo LangUtil::$generalTerms['SPECIMEN_ID']; ?>: <?php $specimen->getAuxId(); ?> |
-<?php echo LangUtil::$generalTerms['G_DATE']; ?>: <?php echo date($_SESSION['dformat'].' H:i'); ?>
+<?php echo LangUtil::$generalTerms['SPECIMEN_ID']; ?>: <?php $test_list = get_tests_by_specimen_id($specimen_id); foreach($test_list as $test) echo $test->getLabSectionByTest(); ?> |
+<?php echo LangUtil::$generalTerms['G_DATE']; ?>: <?php echo date('Y-m-d H:i:s', strtotime(date($_SESSION['dformat'].' H:i'))); ?>
 <br><br>
 <?php
 if($specimen == null)

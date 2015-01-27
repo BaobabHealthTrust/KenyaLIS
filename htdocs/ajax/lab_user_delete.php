@@ -9,7 +9,7 @@ include("../includes/db_lib.php");
 $saved_session = SessionUtil::save();
 
 $user_id = $_REQUEST['uid'];
-delete_user_by_id($user_id);
+deactivate_user_by_id($user_id);
 
 SessionUtil::restore($saved_session);
 ?>

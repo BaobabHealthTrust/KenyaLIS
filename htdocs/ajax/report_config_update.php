@@ -1,4 +1,3 @@
-
 <?php
 #
 # Updates report configuration in DB
@@ -22,7 +21,7 @@ if($_REQUEST['Clinical_Data'] == 'Y')
 	$ClinicalData = 1;
 else
 	$ClinicalData = 0;
-$name="../../logo_".$lab_config_id.".jpg";
+$name="../logos/logo_".$lab_config_id.".jpg";
 # Header text
 $align_header=array();
 $align_header[0]=db_escape($_REQUEST['header']);
@@ -40,7 +39,7 @@ foreach($_REQUEST['title'] as $title_line)
 	if($count < count($_REQUEST['title']))
 		$title_text .= "<br>";
 }
-move_uploaded_file($_FILES["file"]["tmp_name"],$name);
+if (!move_uploaded_file($_FILES["file"]["tmp_name"],$name)) echo 'Unable to upload file!';
 $report_config->titleText = db_escape($title_text);
 # Footer text
 

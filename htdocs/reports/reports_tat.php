@@ -90,7 +90,7 @@ if($_REQUEST['pending'] == 'Y')
                     <?php $page_elems->getTestTypesSelect($lab_config->id); ?>
                 </select>
                 &nbsp;&nbsp;&nbsp;
-                    <span><input type="checkbox" id='pending_chk' name='pending'></input>
+                    <span><input type="checkbox" id='pending_chk' name='pending' <?php echo $include_pending ? 'checked' : ''; ?>></input>
                             <?php echo LangUtil::$pageTerms['MSG_INCLUDEPENDING']; ?>
                            
                     </span>
@@ -127,7 +127,7 @@ if($_REQUEST['pending'] == 'Y')
           </div>
      </div>
 </div>
-</div>     
+</div>    
 
 <?php
 include("includes/scripts.php");

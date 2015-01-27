@@ -54,7 +54,7 @@ $oldCostToPatient = $_REQUEST['costToPatient_old'];
 # Update tests measures and ranges
 $is_panel = false;
 $added_measures_list = array();
-if($_REQUEST['ispanel'] == 1)
+if($_REQUEST['ispanel'] == 0)
 {
 	# Panel test. Collect all selected measures
 	$is_panel = true;

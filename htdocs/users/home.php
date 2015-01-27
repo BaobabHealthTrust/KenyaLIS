@@ -10,6 +10,15 @@ $profile_tip = LangUtil::getPageTerm("TIPS_PWD");
 
 $facilityname = get_facility_name($_SESSION['lab_config_id']);
 
+// check if the password has been change at the first login. Restrict visit to other pages without password reset: echiteri
+if($_SESSION['id'] != "")
+{
+    session_destroy();
+}
+global $top_menu_options;
+$menu_vals = array_values($top_menu_options);
+echo '<input type="hidden" id="redir_page" value="'.$menu_vals[1].'" />';
+
 ?>
 <!-- BEGIN PAGE TITLE & BREADCRUMB-->		
 						<h3>
@@ -44,7 +53,7 @@ $facilityname = get_facility_name($_SESSION['lab_config_id']);
                     <div class="row-fluid">
 									<div class="span12">
 										<!--BEGIN TABS-->
-                                                <div class="tabbable tabbable-custom">
+                                                <!--div class="tabbable tabbable-custom">
 													<ul class="nav nav-tabs">
 														<?php global $top_menu_options;
 															if(isset($top_menu_options))
@@ -56,7 +65,7 @@ $facilityname = get_facility_name($_SESSION['lab_config_id']);
 															}
 														?>
 													</ul>
-												</div>
+												</div-->
 										<!--div class="tabbable tabbable-custom">
 											<ul class="nav nav-tabs">
 												<li class="active"><a href="#tab_1_1" data-toggle="tab">BLIS Launch</a></li>
@@ -142,6 +151,7 @@ $facilityname = get_facility_name($_SESSION['lab_config_id']);
                     	});
                         //$('#update_div').show();
                     });
+					window.location=document.getElementById('redir_page').value;
                     
                     function blis_update_t()
                     {

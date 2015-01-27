@@ -232,14 +232,14 @@ $page_elems->getTestTypeInfo($test_type->name, true);
 			echo "<script language=javascript>addData('$table')</script>";
 			}
 
-				
+			/*	
 			# TODO: Add option to manage panel tests or add new measures
 			if($test_type->isPanel == true)
 			{
 				# TODO: Show panel test options
 			}
 			else
-			{
+			{*/
 				?>
 				<tr valign='top'>
 					<td><?php echo LangUtil::$generalTerms['MEASURES']; ?> [<a href='#measures_help' rel='facebox'>?</a>]</td>
@@ -329,7 +329,7 @@ $page_elems->getTestTypeInfo($test_type->name, true);
 									if($range_type == Measure::$RANGE_AUTOCOMPLETE)
 										echo " selected='selected' ";
 									?>><?php echo LangUtil::$generalTerms['RANGE_AUTOCOMPLETE']; ?></option>
-                                                                        <option value='<?php echo Measure::$RANGE_FREETEXT; ?>' <?php 
+                                                                        <option disabled value='<?php echo Measure::$RANGE_FREETEXT; ?>' <?php 
 									if($range_type == Measure::$RANGE_FREETEXT)
 										echo " selected='selected' ";
 									?>><?php echo "Free Text"; ?></option>
@@ -623,7 +623,7 @@ $page_elems->getTestTypeInfo($test_type->name, true);
 					</td>
 				</tr>
 				<?php
-			}
+			//}
 			?>
 			<tr valign='top'>
 				<td><?php echo LangUtil::$generalTerms['COMPATIBLE_SPECIMENS']; ?><?php $page_elems->getAsterisk(); ?>  [<a href='#specimen_help' rel='facebox'>?</a>] </td>

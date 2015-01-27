@@ -15,6 +15,8 @@ include("../users/accesslist.php");
 include("redirect.php");
 include("includes/header.php");
 include("includes/stats_lib.php");
+include("includes/scripts.php");
+require_once("includes/script_elems.php");
 LangUtil::setPageId("stocks");
 $script_elems->enableTableSorter();
 $script_elems->enableDatePicker();
@@ -33,6 +35,10 @@ $(document).ready(function(){
         
         $('#n_lot_error').hide();
         $('#lot_u_error').hide();
+		$('#expiry_date_error').hide();
+		$('#quant_error').hide();
+		$('#receive_date_error').hide();
+		$('#receive_date_high_error').hide();
 	
 });
 function add_specimenbox(){	
@@ -75,9 +81,49 @@ function validateForm() {
 	else
 	{
 		$('#n_lot_error').hide();
-	} 
-        if(gcheck == 1)
-	$('#new_test_form').submit();
+	}
+    
+	if ($('#expiry_date').attr('value') == '')
+	{
+		$('#expiry_date_error').show();
+		return;
+	}
+	else
+	{
+		$('#expiry_date_error').hide();
+	}
+	
+	if($('#quant').attr("value") == "")
+	{
+		$('#quant_error').show();
+		return;
+	}
+	else
+	{
+		$('#quant_error').hide();
+	}
+    
+	if ($('#receive_date').attr('value') == '')
+	{
+		$('#receive_date_error').show();
+		return;
+	}
+	else
+	{
+		$('#receive_date_error').hide();
+		var curr_date = new Date();
+		var receive_date = $('#receive_date').val();
+		var rec_date = new Date(receive_date.slice(0, 4), receive_date.slice(5, 7), receive_date.slice(-2));
+		if (curr_date<rec_date){
+			$('#receive_date_high_error').show();
+			return;
+		} else {
+			$('#receive_date_high_error').hide();
+		}
+	}
+	
+    if(gcheck == 1)
+		$('#new_test_form').submit();
 }
 
 function validateForm2() {
@@ -158,12 +204,16 @@ $lott = Inventory::getLot($lid, $r_id, $lot);
 					</td>
 					<td></td>
 					<td>
+						<div class="input-append date date-picker" data-date="<?php echo date("Y-m-d"); ?>" data-date-format="yyyy-mm-dd"> 
+						<input class="m-wrap m-ctrl-medium" size="16" name="expiry_date" id="expiry_date" type="text" value="<?php echo $lott['expiry_date']; ?>"><span class="add-on" ><i class="icon-calendar"></i></span>
+						</div>
+						<label class="error" for="expiry_date" id="expiry_date_error"><small><font color="red"><?php echo LangUtil::getGeneralTerm("MSG_REQDFIELD"); ?></font></small></label>
 						<!--<input type="date" name="txtRow13" id="txtRow13" class='uniform_width'/>-->
 						<?php
-                                                $name_list1 = array("yyyy_e", "mm_e", "dd_e");
+                                                /*$name_list1 = array("yyyy_e", "mm_e", "dd_e");
                                                 $id_list1 = $name_list1;
                                                 $value_list1 = explode('-', $lott['expiry_date']);
-                                                echo $page_elems->getDatePicker($name_list1, $id_list1, $value_list1); ?>
+                                                echo $page_elems->getDatePicker($name_list1, $id_list1, $value_list1);*/ ?>
 					</td>
 				</tr>
 				<tr>
@@ -185,6 +235,16 @@ $lott = Inventory::getLot($lid, $r_id, $lot);
 					</td>
 				</tr>
 				
+				<tr>
+					<td>
+						&nbsp;<?php echo LangUtil::$pageTerms['Quantity_Supplied']; ?><?php $page_elems->getAsterisk(); ?> 
+					</td>
+					<td></td>
+					<td>
+						<input type="text" name="quant" id="quant" value="<?php echo $lott['quantity_supplied']; ?>" class='uniform_width'/>
+                        <label class="error" for="quant" id="quant_error"><small><font color="red"><?php echo LangUtil::getGeneralTerm("MSG_REQDFIELD"); ?></font></small></label>
+					</td>
+				</tr>
 				
 				<tr>
 					<td>
@@ -198,16 +258,21 @@ $lott = Inventory::getLot($lid, $r_id, $lot);
 				<tr>
 					<td>
 						<label for='<?php echo $curr_form_id; ?>_date_1'>
-							&nbsp;<?php echo LangUtil::$pageTerms['Date_received']; ?>
+							&nbsp;<?php echo LangUtil::$pageTerms['Date_received']; ?><?php $page_elems->getAsterisk(); ?>
 						</label>
 					</td>
 					<td></td>
 					<td>
+						<div class="input-append date date-picker" data-date="<?php echo date("Y-m-d"); ?>" data-date-format="yyyy-mm-dd"> 
+						<input class="m-wrap m-ctrl-medium" size="16" name="receive_date" id="receive_date" type="text" value="<?php echo $lott['date_of_reception']; ?>"><span class="add-on" ><i class="icon-calendar"></i></span>
+						</div>
+						<label class="error" for="receive_date" id="receive_date_error"><small><font color="red"><?php echo LangUtil::getGeneralTerm("MSG_REQDFIELD"); ?></font></small></label>
+						<label class="error" for="receive_date" id="receive_date_high_error"><small><font color="red"><?php echo 'Date received cannot be after today'; ?></font></small></label>
 							<?php
-                                                         $name_list2 = array("yyyy_r", "mm_r", "dd_r");
+                                                         /*$name_list2 = array("yyyy_r", "mm_r", "dd_r");
                                                          $id_list2 = $name_list2;
                                                          $value_list2 = explode('-', $lott['date_of_reception']);
-                                                        echo $page_elems->getDatePicker($name_list2, $id_list2, $value_list2); ?>
+                                                        echo $page_elems->getDatePicker($name_list2, $id_list2, $value_list2);*/ ?>
 					</td>
 				</tr>
                                 <tr>

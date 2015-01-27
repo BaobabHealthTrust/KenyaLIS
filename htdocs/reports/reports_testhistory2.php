@@ -117,7 +117,7 @@ $script_elems->enableEditInPlace();
 $page_elems = new PageElems();
 ?>
 
-<script type="text/javascript" src="../js/nicEdit.js"></script>
+<script type="text/javascript" src="js/nicEdit.js"></script>
 <script type='text/javascript'>
 
 var curr_orientation = 0;
@@ -348,11 +348,11 @@ $monthago_array = explode("-", $monthago_date);
 	</td>
 	<td>
 	&nbsp;&nbsp;
-	<input type='button' onclick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input>
+	<!-- <input type='button' onclick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input> -->
 	</td>
 	<td>
 	&nbsp;&nbsp;
-	<input type='button' onclick="javascript:window.close();" value='Close' title='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input>
+	<!-- <input type='button' onclick="javascript:window.close();" value='Close' title='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
 	</td>
 	
 	</tr>

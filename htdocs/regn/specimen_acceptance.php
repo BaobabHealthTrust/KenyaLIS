@@ -8,6 +8,7 @@ LangUtil::setPageId("specimen_info");
 
 $sid = $_REQUEST['sid'];
 $pid = $_REQUEST['pid'];
+//var_dump($_REQUEST);
 ?>
 <!-- BEGIN PAGE TITLE & BREADCRUMB-->       
                         <h3>
@@ -31,7 +32,7 @@ $pid = $_REQUEST['pid'];
         
         			<div class="tools">
         				<a href="javascript:;" class="collapse"></a>
-        				<a href="javascript:;" class="reload"></a>
+        				<a href="javascript:document.location.reload(true);" class="reload"></a>
         				<a href="javascript:;" class="remove"></a>
         			</div>
         		</div>

@@ -317,7 +317,7 @@ if($lab_config == null)
                                 <tr valign='top'>
                                     <td><?php echo LangUtil::$generalTerms['LAB_SECTION']; ?></td>
                                     <td>
-                                        <select name='cat_code' id='cat_code12' class='uniform_width'>
+                                        <select name='cat_code12' id='cat_code12' class='uniform_width'>
                                             <option value="0"><?php echo LangUtil::$generalTerms['ALL']; ?></option>
                                             <?php $page_elems->getTestCategorySelect(); ?>
                                         </select>
@@ -1148,7 +1148,7 @@ if($lab_config == null)
                                 <h4><i class="icon-reorder"></i>Tests</h4>
                                 <div class="tools">
                                     <a href="javascript:;" class="collapse"></a>
-                                    <a href="#portlet-config" data-toggle="modal" class="config"></a>
+                                    <!--a href="#portlet-config" data-toggle="modal" class="config"></a-->
                                 </div>
         </div>
         
@@ -1318,11 +1318,11 @@ if($lab_config == null)
 					 <i class='icon-plus'></i> 
 					 <?php echo LangUtil::$generalTerms['CMD_ADDNEWACCOUNT']; ?>
 					 </a>
-					 <a class="btn blue-stripe" href='javascript:import_users();'>
+					 <!-- <a class="btn blue-stripe" href='javascript:import_users();'> "this feature will be enabled upon completion of the importation module: echiteri"
 					 <i class='icon-download'></i> 
-					 <?php echo 'Import from HMIS/EMR' ?>
+					 <?php //echo 'Import from HMIS/EMR' ?>
 					 </a>
-					<br><br>
+					<br><br>-->
 					<div id='user_acc_msg' class='clean-orange' style='display:none;width:100%;'>
 					</div>
 					<div id='user_list_table'>
@@ -1336,6 +1336,7 @@ if($lab_config == null)
 						<div class="portlet box green">
 							<div class="portlet-title">
 								<h4><i class="icon-reorder"></i><?php echo 'Sanitas Users' ?></h4>
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
 							</div>
 							<div class="portlet-body">
 							<table class='table table-striped table-condensed table-hover' id="result">
@@ -2816,11 +2817,11 @@ function add_remarks_row(measure_id, range_type)
     if(range_type == <?php echo Measure::$RANGE_NUMERIC; ?>)
     {
         html_code = "<tr><td><input type='hidden' name='id_"+measure_id+"[]' value=-2 class='uniform_width_less'></input>";
-        html_code += "<input type='text' name='range_l_"+measure_id+"[]' value='' class='uniform_width_less'></input>";
-        html_code += "-<input type='text' name='range_u_"+measure_id+"[]' value='' class='uniform_width_less'></input>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-        html_code += "<input type='text' name='age_l_"+measure_id+"[]' value='' class='uniform_width_less'></input>";
-        html_code += "-<input type='text' name='age_u_"+measure_id+"[]' value='' class='uniform_width_less'></input>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-        html_code += "<input type='text' name='gender_"+measure_id+"[]' value='' size='1px'></input>";
+        html_code += "<input type='text' name='range_l_"+measure_id+"[]' value='' class='uniform_width_less' style='width:50px'></input>";
+        html_code += "-<input type='text' name='range_u_"+measure_id+"[]' value='' class='uniform_width_less' style='width:50px'></input></td><td>";
+        html_code += "<input type='text' name='age_l_"+measure_id+"[]' value='' class='uniform_width_less' style='width:30px'></input>";
+        html_code += "-<input type='text' name='age_u_"+measure_id+"[]' value='' class='uniform_width_less' style='width:30px'></input></td><td>";
+        html_code += "<input type='text' name='gender_"+measure_id+"[]' value='' style='width:10px'></input></td>";
         html_code += "<td><input type='text' name='remarks_"+measure_id+"[]' value='' class='uniform_width'></input></td></tr>";
     }
     var target_table_id = "remarks_table_"+measure_id;

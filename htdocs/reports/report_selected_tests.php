@@ -203,11 +203,11 @@ p.main {text-align:justify;}
 	</td>
 	<td>
 	&nbsp;&nbsp;
-	<input type='button' onclick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input>
+	<!-- <input type='button' onclick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input> -->
 	</td>
 	<td>
 	&nbsp;&nbsp;
-	<input type='button' onclick="javascript:window.close();" value='Close' title='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input>
+	<!-- <input type='button' onclick="javascript:window.close();" value='Close' title='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
 	</td>
 	
 	</tr>
@@ -254,7 +254,7 @@ div.editable input {
 <div id='logo' >
 <?php
 # If hospital logo exists, include it
-$logo_path = "../logos/logo_".$lab_config_id.".jpg";
+$logo_path = "logos/logo_".$lab_config_id.".jpg";
 $logo_path2 = "../ajax/logo_".$lab_config_id.".jpg";
 $logo_path1="../../logo_".$lab_config_id.".jpg";
 

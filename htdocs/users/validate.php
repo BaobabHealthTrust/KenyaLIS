@@ -18,7 +18,8 @@ if(session_id() == "")
 $username = $_REQUEST['username'];
 $password = $_REQUEST['password'];
 $login_correct = check_user_password($username, $password);
-if($login_correct)
+$active_status=get_account_active_status($username);
+if($login_correct && $active_status)
 {
 	#Set session variables
 	$user = get_user_by_name($username);
@@ -98,8 +99,19 @@ if($login_correct)
 	$_SESSION['DELAY_RECORDED'] = false;
 	#TODO: Add other session variables here
 	$_SESSION['user_role'] = "garbage";
-	#Redirect to home page
-	header("Location:home.php");
+        
+        $changed_times = check_password_change($username, $password);
+        $_SESSION['PWD'] = $changed_times;
+	if($changed_times == 0)//added by echiteri to check initial password change
+            {
+                #Redirect to first password change page
+                header("Location:first_pwd_change.php");
+            } 
+        else
+            {
+                #Redirect to home page
+                header("Location:home.php");
+            }
 }
 else
 {

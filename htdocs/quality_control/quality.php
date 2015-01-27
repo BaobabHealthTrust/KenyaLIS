@@ -114,7 +114,7 @@ function delete_quality_data()
 								</ul>
 								<div class="tab-content">
 									<div id="quality_controls_div" class="tab-pane active" id="tabs1-pane1">
-										<p style="text-align: right;"><a rel='facebox' href='#QualityControls_tc'>Page Help</a></p>
+										
 		<h5><?php echo LangUtil::$generalTerms['QUALITY_CONTROLS']; ?>
 		| <a href='quality_control_new.php' title='Click to Add a New Quality Control'><?php echo LangUtil::$generalTerms['ADDNEW']; ?></h5></a>
 		<div id='tdel_msg' class='clean-orange' style='display:none;'>
@@ -150,20 +150,19 @@ function delete_quality_data()
 		<?php $page_elems->getQualityControlCategoriesTable($_SESSION['lab_config_id']); ?>
 	</div>
     
-	<div id='QualityControls_tc' class='right_pane' style='display:none;margin-left:10px;'>
-		<ul>
-			<li><?php echo LangUtil::$pageTerms['TIPS_QC_1']; ?></li>
-			<li><?php echo LangUtil::$pageTerms['TIPS_QC_2']; ?></li>
-			<li><?php echo LangUtil::$pageTerms['TIPS_QC_3']; ?></li>
-		</ul>
-	</div>
+	
     
     <div id='QualityControlCategories_tc' class='right_pane' style='display:none;margin-left:10px;'>
-		<ul>
-			<li><?php echo LangUtil::$pageTerms['TIPS_QCC_1']; ?></li>
-			<li><?php echo LangUtil::$pageTerms['TIPS_QCC_2']; ?></li>
-			<li><?php echo LangUtil::$pageTerms['TIPS_QCC_3']; ?></li>
-		</ul>
+		 <?php
+        
+            echo "<li>";
+            echo " Clicking Add New enables you to add Quality control category upon which you can base quality standards";
+            echo "</li>";
+            echo "<li>";
+            echo " Hover around the tab of this section and click the grey tab that appears to hide this";
+            echo "</li>"           
+            
+        ?>
 	</div>
 	</div>
 	

@@ -8,6 +8,9 @@ LangUtil::setPageId("bill_review");
 
 $lab_config_id = $_SESSION['lab_config_id'];
 
+if ($_REQUEST['bill_id'] != '') // modified by echiteri. Only process if at least an ID has been selected
+{
+
 $pid = $_REQUEST['pid'];
 $billId = $_REQUEST['bill_id'];
 
@@ -41,16 +44,26 @@ $script_elems->enableTableSorter();
 	
 	<body>
 		<?php
+                
+			$bill = Bill::loadFromId($billId, $lab_config_id);
+			$patient = Patient::getById($bill->getPatientId());
+			$associations = $bill->getAllAssociationsForBill($lab_config_id); 
+                
+			$bill = Bill::loadFromId($billId, $lab_config_id);
+			$patient = Patient::getById($bill->getPatientId());
+			$associations = $bill->getAllAssociationsForBill($lab_config_id);
+                        
 			$bill = Bill::loadFromId($billId, $lab_config_id);
 			$patient = Patient::getById($bill->getPatientId());
 			$associations = $bill->getAllAssociationsForBill($lab_config_id);
 		?>
-		<div class='patient_bill_title'>
+		<div class='patient_bill_title' style="margin-top:50px;">
 			Bill <?php echo $bill->getId(); ?> for <?php echo $patient->getName(); ?>
 		</div>
 		<form id='payments_form' name='payments_form' action=''>
-			<table class='tablesorter' id='bill_table' style="border-collapse: separate;">
+			<table class='tablesorter table-hover' id='bill_table' style="border-collapse: separate;">
 				<tr valign='top'>
+					<th >Specimen ID</th>
 					<th style="width: 75px;">Test Date</th>
 					<th>Test Name</th>
 					<th>Specimen Type</th>
@@ -67,6 +80,7 @@ $script_elems->enableTableSorter();
 						$specimen = Specimen::getById($test->specimenId);
 						?>
 				<tr>
+					<td <?php echo $style_string ?>><?php echo $test->getLabSectionByTest(); ?></td>
 					<td><?php echo date("Y-m-d", strtotime($test->timestamp)); ?></td>
 					<td><?php echo $testType->name; ?></td>
 					<td><?php echo $specimen->getTypeName(); ?></td>
@@ -79,18 +93,31 @@ $script_elems->enableTableSorter();
 						</select>
 					</td>
 					<td>
-						<input type='text'  id="discount_amount_for_association_<?php echo $assoc->getId(); ?>" value="<?php echo $assoc->getDiscountAmount(); ?>"/>
+						<input type='text' style='height:30px;'  id="discount_amount_for_association_<?php echo $assoc->getId(); ?>" value="<?php echo $assoc->getDiscountAmount(); ?>"/>
 					</td>
 					<td><div style="color:blue; cursor:hand; cursor:pointer;" onclick="javascript:apply_discount(<?php echo $assoc->getId(); ?>)">Update Cost</div></td>
 				</tr>
 				<?php } ?>
 				<tr>
+                                <div style=" text-align: center"
+                                <div style=" text-align: center"
 					<td colspan='6'></td>
 					<td>Bill Total: <div id="bill_total" ><?php echo format_number_to_money($bill->getBillTotal($lab_config_id)); ?></div></td>
 				</tr>
 			</table>
 			<input type='button' value='Print Bill' onclick="javascript:print_bill(<?php echo $bill->getId() . ", " . $lab_config_id; ?>)"\>
 		</form>
+          
+            	</body>
+</html>
+<?php }// modified by echiteri to display a soft message in case a test is not selected or there is not tests to bill
+else{
+    echo '<div style=" text-align: center" > There is no test(s) for billing or no test was selected for billing.</br> Ensure you have selected atleast one test for billing. </div>';
+}
+?>
+
+	</body>
+</html>
 	</body>
 </html>
 

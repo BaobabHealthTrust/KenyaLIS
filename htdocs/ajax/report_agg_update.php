@@ -59,7 +59,11 @@ else
 $disease_report->testTypeId = 0;
 $disease_report->measureId = 0;
 $disease_report->measureGroups = "";
+$query = 'SET FOREIGN_KEY_CHECKS=0';
+query_blind($query);
 $disease_report->addToDb();
+$query = 'SET FOREIGN_KEY_CHECKS=1';
+query_blind($query);
 
 # For each test type
 ## Fetch range slots for each measure and update in DB
