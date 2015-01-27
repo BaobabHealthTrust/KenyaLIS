@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <?php
 # (c) C4G, Santosh Vempala, Ruban Monu and Amol Shintre
 # Contains DB connection parameters
@@ -29,22 +29,21 @@ if($SERVER == $ON_ARC)
 
 $DB_HOST = "localhost";
 $DB_USER = "root";
-$GLOBAL_DB_NAME="blis_pack";
+$GLOBAL_DB_NAME="blis_127";
 $DB_NAME = $GLOBAL_DB_NAME;	
 
+$DB_PASS = "password";
+if($SERVER == $ON_DEV)
+{
+$DB_PASS = "password";
+}
+else if($SERVER == $ON_ARC)
+{
 $DB_PASS = "1234";
-
-if($SERVER == $ON_DEV)
-{
-	$DB_PASS = "1234";
-}
-else if($SERVER == $ON_ARC)
-{
-	$DB_PASS = "1234";
 }
 else if($SERVER == $ON_PORTABLE)
 {
-	$DB_PASS = "1234";
+$DB_PASS = "1234";
 }
 
 if(isset($_SESSION['username']))
@@ -58,63 +57,4 @@ if(isset($_SESSION['username']))
 		$DB_NAME = $_SESSION['db_name'];*/
 }
 ?>
-=======
-<?php
-# (c) C4G, Santosh Vempala, Ruban Monu and Amol Shintre
-# Contains DB connection parameters
-# Include in db_mysql_lib.php
-#
 
-if(session_id() == "")
-	session_start();
-	
-# Flag for toggling between local machine, portable version and arc server
-$ON_DEV = 1;
-$ON_ARC = 2;
-$ON_PORTABLE = 3;
-
-$SERVER = $ON_DEV;
-/*
- * Language Definitions Folder Path Settings
- */
-$LOCAL_PATH = "../locale/";
-if($SERVER == $ON_ARC)
-{
-	$LOCAL_PATH = "../local/";
-}
-
-/*
- * Database Settings
- */
-
-$DB_HOST = "localhost";
-$DB_USER = "root";
-$GLOBAL_DB_NAME="blis_revamp";
-$DB_NAME = $GLOBAL_DB_NAME;	
-
-$DB_PASS = "root";
-if($SERVER == $ON_DEV)
-{
-$DB_PASS = "root";
-}
-else if($SERVER == $ON_ARC)
-{
-$DB_PASS = "root";
-}
-else if($SERVER == $ON_PORTABLE)
-{
-$DB_PASS = "root";
-}
-
-if(isset($_SESSION['username']))
-{
-	# User has logged in
-	if($_SESSION['db_name'] == "")
-		# Admin level user - keep global DB instance
-		$DB_NAME = $GLOBAL_DB_NAME;
-	/*else
-		# Technician user - Narrow down to local instance
-		$DB_NAME = $_SESSION['db_name'];*/
-}
-?>
->>>>>>> def2af0cafb819d2b8dbf62be0a90e6d64a587a4

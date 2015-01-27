@@ -70,12 +70,8 @@ class User
 		$user->phone = $record['phone'];
 		$user->createdBy = $record['created_by'];
 		$user->labConfigId = $record['lab_config_id'];
-<<<<<<< HEAD
 		$user->labSection = $record['lab_sec_code'];
 		$user->img = $record['img'];
-=======
-                $user->img = $record['img'];
->>>>>>> def2af0cafb819d2b8dbf62be0a90e6d64a587a4
 		$user->canverify = $record['verify'];
 		if(isset($record['lang_id']))
 			$user->langId = $record['lang_id'];
@@ -7598,25 +7594,7 @@ function set_specimen_status_toverify($specimen_id)
 	$status_code = Specimen::$STATUS_TOVERIFY;
 	set_specimen_status($specimen_id, $status_code);
 }
-function reject_test($specimen_id,$test_type_id,$reason)
-{
-	global $con;
-	
-	$status_code = Specimen::$STATUS_REJECTED;
-	$query = mysql_query("UPDATE test SET status_code_id=$status_code WHERE specimen_id = $specimen_id AND test_type_id=$test_type_id" );
-//	add_rejected_test($specimen_id,$test_type_id,$reason);
-	#updates test status to rejected
-      
-}
-function add_rejected_test($specimen_id,$test_type_id,$reason)
-{
-	global $con;
-	
-	$ts=date();
-	$query = mysql_query("INSERT INTO rejected_tests Values($specimen_id,$test_type_id,'$reason','$ts')");
-	#updates test status to rejected
-      
-}
+
 function update_specimen_status($specimen_id)
 {
 	global $con;
@@ -7646,6 +7624,7 @@ function reject_test($specimen_id,$test_type_id,$reason)
 	#updates test status to rejected
       
 }
+
 function add_rejected_test($specimen_id,$test_type_id,$reason)
 {
 	global $con;
