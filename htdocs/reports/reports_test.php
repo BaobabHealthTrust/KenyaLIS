@@ -86,9 +86,9 @@ function export_as_word(div_id)
 	<input type='hidden' name='data' value='' id='word_data' />
 	<input type='button' onclick="javascript:window.print();" value='Print'></input>
 	&nbsp;&nbsp;&nbsp;&nbsp;
-	<input type='button' onclick="javascript:export_as_word('export_content');" value='Export as Word Document'></input>
+	<!-- <input type='button' onclick="javascript:export_as_word('export_content');" value='Export as Word Document'></input> -->
 	&nbsp;&nbsp;&nbsp;&nbsp;
-	<input type='button' onclick="javascript:window.close();" value='Close This Page'></input>
+	<!-- <input type='button' onclick="javascript:window.close();" value='Close This Page'></input> -->
 </form>
 <hr>
 <div id='export_content'>

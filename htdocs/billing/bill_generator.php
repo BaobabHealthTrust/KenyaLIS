@@ -21,11 +21,16 @@ $script_elems->enableJQueryForm();
 			$("#generate_bill_button").click(function() {
 				var url = "bill_review.php";
 				$('#submit_progress').show();
-				$("#bill_generator_form").ajaxSubmit({
+                                $("#bill_generator_form").ajaxSubmit({
 					success: function(data)
 					{
+                                            if (data === ''){//Checks and stops if no test is selected echiteri
+                                                alert('No Test is Selected: Please select a Test for billing');
+                                                $('#submit_progress').hide();}
+                                            else {
 						$('#submit_progress').hide();
 						window.location = url + "?bill_id=" + data;
+                                            }
 					}
 				});
 			});
@@ -34,14 +39,15 @@ $script_elems->enableJQueryForm();
 	</head>
 	<body>
 		<form name='bill_generator_form' id='bill_generator_form' action='create_new_bill.php'>
-		<input type='hidden' name='patient_id' value='<?php echo $_SESSION['pid']; ?>'><?php
-		$tests = get_all_tests_for_patient_and_date_range($_SESSION['pid'], "January 1, 1969", "today");
+		<input type='hidden' name='patient_id' value='<?php echo $_REQUEST['patient_id']; ?>'><?php
+		$tests = get_all_tests_for_patient_and_date_range($_REQUEST['patient_id'], "January 1, 1969", "today");
 		if (!empty($tests))
 		{
-		?><table class='tablesorter' id='billing_popup_table' style="border-collapse: separate; width: 700px;">
+		?><table class='tablesorter table-hover' id='billing_popup_table' style="border-collapse: separate; width: 700px;">
 			<thead>
 				<tr valign='top'>
-					<th id='billing_popup_date' style='width: 75px;'>Test Date</th>
+					<th id='billing_popup_specimen_id'>Specimen ID</th>
+					<th id='billing_popup_date'>Test Date</th>
 					<th id='billing_popup_name'>Test Name</th>
 					<th id='billing_popup_specimen_type'>Specimen Type</th>
 					<th id='billing_popup_cost'>Test Cost</th>
@@ -64,7 +70,7 @@ $script_elems->enableJQueryForm();
 				$style_string = "";
 			}
 			$cost = get_cost_of_test($test);
-			?><tr>
+			?><tr>	<td <?php echo $style_string ?>><?php echo $test->getLabSectionByTest(); ?></td>
 				<td <?php echo $style_string ?>><?php echo date("Y-m-d", strtotime($test->timestamp)); ?></td>
 				<td <?php echo $style_string ?>><?php echo get_test_name_by_id($test->testTypeId); ?></td>
 				<td <?php echo $style_string ?>><?php echo $specimen->getTypeName(); ?></td>

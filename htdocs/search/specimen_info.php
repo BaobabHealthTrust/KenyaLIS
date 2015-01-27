@@ -17,7 +17,7 @@ if(!$is_modal){
 	$page_elems = new PageElems();
 	$script_elems->enableJQueryForm();
 	$script_elems->enableDatePicker();
-	include("../includes/scripts.php");
+	//include("../includes/scripts.php");
 }
 LangUtil::setPageId("specimen_info");
 $sid = $_REQUEST['sid'];

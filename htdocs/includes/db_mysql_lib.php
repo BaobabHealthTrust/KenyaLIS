@@ -35,7 +35,7 @@ function query_update($query)
 {
 	# Single update statement
 	global $con;
-    mysql_query( $query, $con ) or die(mysql_error());
+    mysql_query( $query, $con ) or die(mysql_error().'<br>'.$query);
 	if($LOG_QUERIES == true)	
         {
 		DebugLib::logQuery($query, db_get_current(), $_SESSION['username']);
@@ -281,7 +281,7 @@ function query_blind( $query )
 {
     global $con;
     $result = mysql_query( $query, $con );
-	if (!$result) echo 'Error:'.mysql_error();
+	if (!$result) echo 'Error:'.mysql_error().'<br>'.$query;
 	if($LOG_QUERIES == true)
         {
 		DebugLib::logQuery($query, db_get_current(), $_SESSION['username']);

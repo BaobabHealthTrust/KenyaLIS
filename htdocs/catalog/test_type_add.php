@@ -44,9 +44,9 @@ $is_panel = false;
 $r = 0;
 $scc = 0;
 $ccc = 0;
-if(isset($_REQUEST['ispanel']))
+/*if(isset($_REQUEST['ispanel']))
 {
-	# Panel test. Collect all selected measures
+	# Panel test. Collect all selected measures*/
 	$is_panel = true;
 	$measure_list = get_measures_catalog();
 	foreach($measure_list as $measure_id=>$measure_name)
@@ -57,10 +57,10 @@ if(isset($_REQUEST['ispanel']))
 			$added_measures_list[] = $measure_id;
 		}
 	}
-}
+/*}
 else
 {
-	# Non-panel test. Collect all newly entered measures
+	# Non-panel test. Collect all newly entered measures*/
 	$measure_names = $_REQUEST['measure'];
 	$measure_types = $_REQUEST['mtype'];
         $units = $_REQUEST['unit'];
@@ -273,7 +273,7 @@ else
         
         # Store Submeasures
         
-}
+//}
 
 # Fetch compatible specimen types
 $specimen_list = array();

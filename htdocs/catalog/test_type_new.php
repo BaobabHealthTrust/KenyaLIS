@@ -4,6 +4,7 @@
 #
 include("redirect.php");
 include("includes/header.php");
+
 LangUtil::setPageId("catalog");
 
 putUILog('test_type_new', 'X', basename($_SERVER['REQUEST_URI'], ".php"), 'X', 'X', 'X');
@@ -103,7 +104,7 @@ putUILog('test_type_new', 'X', basename($_SERVER['REQUEST_URI'], ".php"), 'X', '
 			<?php echo LangUtil::$generalTerms['MEASURES']; ?> <?php $page_elems->getAsterisk(); ?> [<a href='#measures_help' rel='facebox'>?</a>]
 		</td>
 		<td>
-			<table id='new_measure_list' class='smaller_font'>
+			<table id='new_measure_list' class='smaller_font' cellspacing='0' cellpadding='0'>
 				<tr>
 					<td><u><?php echo LangUtil::$generalTerms['NAME']; ?><?php $page_elems->getAsterisk(); ?></u></td>
 					<td><u><?php echo LangUtil::$generalTerms['TYPE']; ?><?php $page_elems->getAsterisk(); ?></u></td>
@@ -123,7 +124,7 @@ putUILog('test_type_new', 'X', basename($_SERVER['REQUEST_URI'], ".php"), 'X', '
 					}
 					echo ">";
 					echo "<td>";
-					echo "<input type='text' name='measure[]' value='' />";
+					echo "<input type='text' style='width:50px' name='measure[]' value='' />";
                                         echo "<br>";
                                         ?>
                                         <small><a id='new_submeasure_link' href='javascript:add_new_submeasure(<?php echo $i; ?>);'><?php echo 'Add Sub Measure'; ?> &raquo;</a></small>
@@ -135,7 +136,7 @@ putUILog('test_type_new', 'X', basename($_SERVER['REQUEST_URI'], ".php"), 'X', '
 						<option value='<?php echo Measure::$RANGE_NUMERIC; ?>'><?php echo LangUtil::$generalTerms['RANGE_NUMERIC']; ?></option>
 						<option value='<?php echo Measure::$RANGE_OPTIONS; ?>'><?php echo LangUtil::$generalTerms['RANGE_ALPHANUM']; ?></option>
 						<option value='<?php echo Measure::$RANGE_AUTOCOMPLETE; ?>'><?php echo LangUtil::$generalTerms['RANGE_AUTOCOMPLETE']; ?></option>
-                                                 <option value='<?php echo Measure::$RANGE_FREETEXT; ?>'><?php echo "Free Text" ?></option>
+                                                 <!--<option value='<?php echo Measure::$RANGE_FREETEXT; ?>'><?php echo "Free Text" ?></option>-->
 
                                         </select>
 					<?php
@@ -144,16 +145,17 @@ putUILog('test_type_new', 'X', basename($_SERVER['REQUEST_URI'], ".php"), 'X', '
 					?>
 					<span id='val_<?php echo $i; ?>' class='values_section_<?php echo $i; ?>'>
 						<span id='numeric_<?php echo $i; ?>'>
-							
-							<input type='text' class='range_field span2 m-wrap' name='range_l_<?php echo $i; ?>[]' value='' /> :
-							<input type='text' class='range_field span2 m-wrap' name='range_u_<?php echo $i; ?>[]' value=''/>
-							<input type='text' class='range_field span3 m-wrap' name='gender_<?php echo $i; ?>[]' value='B'/>
-							<input type='text' class='range_field span2 m-wrap'  name='agerange_l_<?php echo $i; ?>[]' id='agerange_l_<?php echo $i; ?>[]' value='0' /> :
-							<input type='text' class='range_field span4 m-wrap' name='agerange_u_<?php echo $i; ?>[]' id='agerange_u_<?php echo $i; ?>[]' value='100' />
+							<table style='font-size:11px'><tr><td><?php echo LangUtil::$generalTerms['RANGE']; ?></td>
+							<td><input type='text' class='range_field span3 m-wrap' name='range_l_<?php echo $i; ?>[]' value='' />&nbsp;-&nbsp;
+								<input type='text' class='range_field span3 m-wrap' name='range_u_<?php echo $i; ?>[]' value=''/></td></tr>
+							<tr><td>Gender<br>(Male, Female or Both)</td>
+							<td><input type='text' class='range_field span3 m-wrap' name='gender_<?php echo $i; ?>[]' value='B'/></td></tr>
+							<tr><td>Age&nbsp;Range</td>
+							<td><input type='text' class='range_field span3 m-wrap'  name='agerange_l_<?php echo $i; ?>[]' id='agerange_l_<?php echo $i; ?>[]' value='0' />&nbsp;-&nbsp;
+								<input type='text' class='range_field span3 m-wrap' name='agerange_u_<?php echo $i; ?>[]' id='agerange_u_<?php echo $i; ?>[]' value='100' /></td></tr>
+							</table>
 							<br>
 						</span>
-						&nbsp;&nbsp;&nbsp;&nbsp;<?php echo LangUtil::$generalTerms['RANGE']; ?>&nbsp;&nbsp;&nbsp; Gender &nbsp;&nbsp;Age_Range
-							<br>
 						<small><a href="javascript:add_range_field('<?php echo $i; ?>');"><?php echo LangUtil::$generalTerms['ADDANOTHER']; ?> &raquo;</a></small>
 						<br><br>
 					</span>
@@ -180,7 +182,7 @@ putUILog('test_type_new', 'X', basename($_SERVER['REQUEST_URI'], ".php"), 'X', '
 					<?php
 					echo "</td>";
 					echo "<td id='unit_$i'>";
-					echo "<input type='text' name='unit[]' value='' />";
+					echo "<input type='text' style='width:40px' name='unit[]' value='' />";
 					echo "</td>";
 					echo "</tr>";
                                         
@@ -369,7 +371,7 @@ To represent data like 56^5-65^5 ml add the range as 56-65 and the unit as 5:ml.
 It is used for test which are alphanumeric and autocomplete. The default value for that measure can be recorded in this section.
 </small>
 </div>
-<?php include("includes/scripts.php");
+<?php require_once("includes/scripts.php");
 $script_elems->enableLatencyRecord();
 ?>
 <script type='text/javascript'>
@@ -442,7 +444,7 @@ function add_range_field(mrow_num)
 	var num_row = num_ranges[mrow_num];
 	
 //		var map=map_offset-1;									
-	var html_code = "<input type='text' class='range_field' name='range_l_"+mrow_num+"[]' value='' /> : <input type='text' class='range_field' name='range_u_"+mrow_num+"[]' value='' /> <input type='text' class='range_field' name='gender_"+mrow_num+"[]' value='B'/> <input type='text' class='range_field agerange_l_"+mrow_num+"' name='agerange_l_"+mrow_num+"[]' id='agerange_l_"+mrow_num+"[]' value='0' /> : <input type='text' class='range_field agerange_u_"+mrow_num+"' name='agerange_u_"+mrow_num+"[]' id='agerange_u_"+mrow_num+"[]' value='100' /> <br>";
+	var html_code = "<table style='font-size:11px'><tr><td><?php echo LangUtil::$generalTerms['RANGE']; ?></td><td><input type='text'  class='range_field span3 m-wrap' name='range_l_"+mrow_num+"[]' value='' />&nbsp;-&nbsp;<input type='text'  class='range_field span3 m-wrap' name='range_u_"+mrow_num+"[]' value='' /></td></tr><tr><td>Gender<br>(Male, Female or Both)</td><td><input type='text'  class='range_field span3 m-wrap' name='gender_"+mrow_num+"[]' value='B'/></td></tr><tr><td>Age&nbsp;Range</td><td><input type='text'  class='range_field span3 m-wrap' name='agerange_l_"+mrow_num+"[]' id='agerange_l_"+mrow_num+"[]' value='0' />&nbsp;-&nbsp;<input type='text'  class='range_field span3 m-wrap' name='agerange_u_"+mrow_num+"[]' id='agerange_u_"+mrow_num+"[]' value='100' /></td</tr></table><br>";
 	$('#numeric_'+mrow_num).append(html_code);
 }
 
@@ -615,8 +617,8 @@ function check_input()
 		return;
 	}
 	var checkbox_val = $('#ispanel').attr("checked");
-	if(checkbox_val == true)
-	{
+	//if(checkbox_val == 'checked') //true)
+	//{
 		var mtype_entries = $('.m_entry');
 		var mtype_selected = false;
 		for(var i = 0; i < mtype_entries.length; i++)
@@ -627,14 +629,14 @@ function check_input()
 				break;
 			}
 		}
-		if(mtype_selected == false)
+		/*if(mtype_selected == false)
 		{
 			alert("<?php echo LangUtil::$pageTerms['TIPS_MISSING_SELECTEDMEASURES']; ?>");
 			return;
-		}
-	}
-	else
-	{
+		}*/
+	//}
+	//else
+	//{
 		var measure_elems = $("input[name='measure[]']");
 		var range_type_elems = $("select[name='mtype[]']");
 		var measure_entered = false;
@@ -766,12 +768,12 @@ function check_input()
 				}
 			}			
 		}
-		if(measure_entered == false)
+		if ((measure_entered == false) && (mtype_selected == false))
 		{
 			alert("<?php echo LangUtil::$pageTerms['TIPS_MISSING_SELECTEDMEASURES']; ?>");
 			return;
 		}
-	}
+	//}
 	var stype_entries = $('.stype_entry');
 	var stype_selected = false;
 	for(var i = 0; i < stype_entries.length; i++)

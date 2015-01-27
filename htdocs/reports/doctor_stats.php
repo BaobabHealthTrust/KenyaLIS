@@ -6,8 +6,18 @@ include("redirect.php");
 include("includes/header.php");
 include("includes/stats_lib.php");
 include("includes/scripts.php");
+require_once("includes/script_elems.php");
 LangUtil::setPageId("reports");
 $uiinfo = "from=".$date_from."%to=".$date_to;
+?>
+
+<?php
+//$script_elems = new ScriptElems();
+$script_elems->enableDatePicker();
+$script_elems->enableFlotBasic();
+$script_elems->enableFlipV();
+$script_elems->enableTableSorter();
+$script_elems->enableLatencyRecord();
 ?>
 
  <!-- BEGIN PAGE TITLE & BREADCRUMB-->       
@@ -178,15 +188,6 @@ $uiinfo = "from=".$date_from."%to=".$date_to;
 
 
 
-<?php
-require_once("includes/script_elems.php");
-$script_elems = new ScriptElems();
-$script_elems->enableFlotBasic();
-$script_elems->enableFlipV();
-$script_elems->enableTableSorter();
-$script_elems->enableLatencyRecord();
-?>
-
 <script type='text/javascript'>
 $(window).load(function(){
     $('#stat_graph').hide();
@@ -207,7 +208,7 @@ function showEditBox(id) {
 
 function updateDoctorName(id) {
     var newDoctorName = $('#newDoctorNameInput'+id).val();
-    var oldDoctorName = $('#originalDoctorName'+id).text();
+    var oldDoctorName = $('#originalDoctorName'+id).val();
     if(oldDoctorName == "Not Known") {
         alert("This is not editable!");
         return;

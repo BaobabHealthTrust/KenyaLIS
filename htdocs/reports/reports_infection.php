@@ -70,8 +70,8 @@ function toggle_stat_table()
                     <?php
                     $lab_config_id = array($_REQUEST['location']);
                     $summary_type = $_REQUEST['summary_type'];
-                    $date_from = $_REQUEST['yyyy_from']."-".$_REQUEST['mm_from']."-".$_REQUEST['dd_from'];
-                    $date_to = $_REQUEST['yyyy_to']."-".$_REQUEST['mm_to']."-".$_REQUEST['dd_to'];
+                    $date_from = $_REQUEST['from-report-date']; //$_REQUEST['yyyy_from']."-".$_REQUEST['mm_from']."-".$_REQUEST['dd_from'];
+                    $date_to = $_REQUEST['to-report-date']; //$_REQUEST['yyyy_to']."-".$_REQUEST['mm_to']."-".$_REQUEST['dd_to'];
                     
                     $uiinfo = "from=".$date_from."&to=".$date_to;
                     putUILog('reports_infection', $uiinfo, basename($_SERVER['REQUEST_URI'], ".php"), 'X', 'X', 'X');
@@ -93,6 +93,7 @@ function toggle_stat_table()
                     # Cumulative summary
                     $stat_list = array();
                     $stat_list = StatsLib::getDiscreteInfectionStatsAggregate($lab_config_id, $date_from, $date_to, $test_type_id);
+					//echo 'Here: '; var_dump($lab_config_id[0]); echo $date_from.', '.$date_to.', ', $test_type_id.'<br>';
                     if(count($stat_list) == 0)
                     {
                         ?>

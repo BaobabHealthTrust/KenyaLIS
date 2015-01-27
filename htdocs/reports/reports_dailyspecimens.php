@@ -60,12 +60,17 @@ function get_records_to_print($lab_config, $test_type_id, $date_from, $date_to)
 	DbUtil::switchRestore($saved_db);
 	return $retval;
 }
-
+?>
+<html>
+<head>
+<?php
 $page_elems = new PageElems();
 $script_elems = new ScriptElems();
 $script_elems->enableJQuery();
-$script_elems->enableTableSorter();
+//$script_elems->enableTableSorter();
 $script_elems->enableDragTable();
+$script_elems->enableLatencyRecord();
+$script_elems->enableEditInPlace();
 
 $date_from = $_REQUEST['yf']."-".$_REQUEST['mf']."-".$_REQUEST['df'];
 $date_to = $_REQUEST['yt']."-".$_REQUEST['mt']."-".$_REQUEST['dt'];
@@ -105,7 +110,9 @@ else if($cat_code != 0)
 	$test_types = array_values($matched_test_ids);
 }
 ?>
+<script type="text/javascript" src="js/table2CSV.js"></script>
 <script type='text/javascript'>
+var curr_orientation = 0;
 function export_as_word(div_id)
 {
 	var content = $('#'+div_id).html();
@@ -125,6 +132,13 @@ function export_as_txt(div_id)
 	var content = $('#'+div_id).html();
 	$('#txt_data').attr("value", content);
 	$('#txt_format_form').submit();
+}
+
+function export_as_csv(table_id)
+{
+	var content = $('#'+table_id).table2CSV({delivery:'value'});
+	$("#csv_data").val(content);
+	$('#csv_format_form').submit();
 }
 
 function report_fetch()
@@ -164,8 +178,153 @@ function print_content(div_id)
 
 $(document).ready(function(){
 	$('#report_content_table4').tablesorter();
+	$('.editable').editInPlace({
+		callback: function(unused, enteredText) {
+			return enteredText; 
+		},
+		show_buttons: false,
+		bg_over: "FFCC66"			
+	});
+	$("input[name='do_landscape']").click( function() {
+		change_orientation();
+	});
+});
+
+function change_orientation()
+{
+	var do_landscape = $("input[name='do_landscape']:checked").attr("value");
+	if(do_landscape == "Y" && curr_orientation == 0)
+	{
+		$('#report_config_content').removeClass("portrait_content");
+		$('#report_config_content').addClass("landscape_content");
+		curr_orientation = 1;
+	}
+	if(do_landscape == "N" && curr_orientation == 1)
+	{
+		$('#report_config_content').removeClass("landscape_content");
+		$('#report_config_content').addClass("portrait_content");
+		curr_orientation = 0;
+	}
+}
+
+$(document).ready(function(){
+
+  change_orientation();
+
+  // Reset Font Size
+  var originalFontSize = $('#report_content').css('font-size');
+   $(".resetFont").click(function(){
+  $('#report_content').css('font-size', originalFontSize);
+  $('#report_content table').css('font-size', originalFontSize);
+  $('#report_content table th').css('font-size', originalFontSize);
+  });
+  // Increase Font Size
+  $(".increaseFont").click(function(){
+  	var currentFontSize = $('#report_content').css('font-size');
+ 	var currentFontSizeNum = parseFloat(currentFontSize, 10);
+    var newFontSize = currentFontSizeNum*1.2;
+		$('#report_content').css('font-size', newFontSize);
+	$('#report_content table').css('font-size', newFontSize);
+	$('#report_content table th').css('font-size', newFontSize);
+	return false;
+  });
+  // Decrease Font Size
+  $(".decreaseFont").click(function(){
+  	var currentFontSize = $('#report_content').css('font-size');
+ 	var currentFontSizeNum = parseFloat(currentFontSize, 10);
+    var newFontSize = currentFontSizeNum*0.8;
+	$('#report_content').css('font-size', newFontSize);
+	$('#report_content table').css('font-size', newFontSize);
+	$('#report_content table th').css('font-size', newFontSize);
+	return false;
+  });
+  
+   $(".bold").click(function(){
+  	 var selObj = window.getSelection();
+		alert(selObj);
+		selObj.style.fontWeight='bold';
+	return false;
+  });
 });
 </script>
+</head>
+<body>
+<div id='report_content'>
+
+<link rel='stylesheet' type='text/css' href='css/table_print.css' />
+
+<style type='text/css'>
+
+div.editable {
+
+	/*padding: 2px 2px 2px 2px;*/
+
+	margin-top: 2px;
+
+	width:900px;
+
+	height:20px;
+
+}
+
+
+
+div.editable input {
+
+	width:700px;
+
+}
+
+div#printhead {
+
+position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+
+padding-bottom: 5em;
+
+margin-bottom: 100px;
+
+display:none;
+
+}
+
+
+
+@media all
+
+{
+
+  .page-break { display:none; }
+
+}
+
+@media print
+
+{
+
+	#options_header { display:none; }
+
+	/* div#printhead {	display: block;
+
+  } */
+
+  div#docbody {
+
+  margin-top: 5em;
+
+  }
+
+}
+
+
+
+.landscape_content {-moz-transform: rotate(90deg) translate(300px); }
+
+
+
+.portrait_content {-moz-transform: translate(1px); rotate(-90deg) }
+
+</style>
+
 <form name='word_format_form' id='word_format_form' action='export_word.php' method='post' target='_blank'>
 	<input type='hidden' name='data' value='' id='word_data' />
 </form>
@@ -175,32 +334,38 @@ $(document).ready(function(){
 <form name='txt_format_form' id='txt_format_form' action='export_txt.php' method='post' target='_blank'>
 	<input type='hidden' name='data' value='' id='txt_data' />
 </form>
+<form name='csv_format_form' id='csv_format_form' action='export_csv.php' method='post' target='_blank'> 
+	<input type='hidden' name='csv_data' id='csv_data'>
+</form>
 		<input type='radio' name='do_landscape' value='N'<?php
-		if($report_config->landscape == false) echo " checked ";
+		//if($report_config->landscape == false) echo " checked ";
+			echo " checked ";
 		?>>Portrait</input>
 		&nbsp;&nbsp;
 		<input type='radio' name='do_landscape' value='Y' <?php
-		if($report_config->landscape == true) echo " checked ";
+		//if($report_config->landscape == true) echo " checked ";
 		?>>Landscape</input>&nbsp;&nbsp;
 <input type='button' onclick="javascript:print_content('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_PRINT']; ?>'></input>
 &nbsp;&nbsp;
-<input type='button' onclick="javascript:export_as_word('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input>
+<!-- <input type='button' onclick="javascript:export_as_word('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input> -->
 &nbsp;&nbsp;
 <input type='button' onclick="javascript:export_as_pdf('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTPDF']; ?>'></input>
 &nbsp;&nbsp;
-<input type='button' onclick="javascript:export_as_txt('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTTXT']; ?>'></input>
+<!--input type='button' onclick="javascript:export_as_txt('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTTXT']; ?>'></input>
+&nbsp;&nbsp;-->
+<input type='button' onclick="javascript:export_as_csv('report_content_table4');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTCSV']; ?>'></input>
 &nbsp;&nbsp;
-<?php if($_REQUEST['ip']==1){?><input type='checkbox' name='ip' id='ip' checked ></input> <?php echo "All Tests"; ?>
-<?php } else{?><input type='checkbox' name='ip' id='ip'></input> <?php echo "All Tests"; }?>
+<?php if($_REQUEST['ip']==1){?><input type='radio' name='ip' id='ip' checked ></input> <?php echo "All Tests"; ?>
+<?php } else{?><input type='radio' name='ip' id='ip'></input> <?php echo "All Tests"; }?>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<?php if($_REQUEST['p']==1){?><input type='checkbox' name='p' id='p' checked ></input> <?php echo "Only Pending"; ?>
-<?php } else{?><input type='checkbox' name='p' id='p'></input> <?php echo "Only Pending"; }?>
+<?php if($_REQUEST['p']==1){?><input type='radio' name='ip' id='p' checked ></input> <?php echo "Only Pending"; ?>
+<?php } else{?><input type='radio' name='ip' id='p'></input> <?php echo "Only Pending"; }?>
 &nbsp;&nbsp;&nbsp;&nbsp;
 <input type='button' onclick="javascript:report_fetch();" value='<?php echo LangUtil::$generalTerms['CMD_VIEW']; ?>'></input>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input>
+<!-- <input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
 &nbsp;&nbsp;&nbsp;&nbsp;
-<?php $page_elems->getTableSortTip(); ?>
+<?php $page_elems->getTableSortTip(); echo "<small>Drag a table column to arrange the columns as desired</small>";?>
 <hr>
 
 <div id='export_content'>
@@ -208,7 +373,7 @@ $(document).ready(function(){
 <style type='text/css'>
 	<?php $page_elems->getReportConfigCss($margin_list, false); ?>
 </style>
-<div id='report_config_content'>
+<div id='report_config_content' style='display:block;'>
 <h3><?php echo $report_config->headerText; ?></h3>
 <h3><?php echo $report_config->titleText; ?></h3>
 <?php
@@ -313,13 +478,13 @@ if($no_match === true)
 	return;
 }
 ?>
-<table class='print_entry_border draggable' id='report_content_table4'>
+<table class='print_entry_border' id='report_content_table4'>
 <thead>
 		<tr valign='top'>
 			<?php
 			if($report_config->useDailyNum == 1)
 			{
-				echo "<th>".LangUtil::$generalTerms['PATIENT_DAILYNUM']."</th>";
+				echo "<th>Visit Number</th>";
 			}
 			if($report_config->useSpecimenAddlId != 0)
 			{
@@ -328,7 +493,7 @@ if($no_match === true)
 			if($report_config->usePatientId == 1)
 			{
 			?>
-				<th><?php echo LangUtil::$generalTerms['PATIENT_ID']; ?></th>
+				<!--<th><?php echo LangUtil::$generalTerms['PATIENT_ID']; ?></th>-->
 			<?php
 			}
 			if($report_config->usePatientAddlId == 1)
@@ -358,7 +523,7 @@ if($no_match === true)
 			if($report_config->useDob == 1)
 			{
 			?>
-				<th><?php echo LangUtil::$generalTerms['DOB']; ?></th>
+				<!--<th><?php echo LangUtil::$generalTerms['DOB']; ?></th>-->
 			<?php 
 			}
 			# Patient Custom fields here
@@ -375,7 +540,7 @@ if($no_match === true)
 			}
 			if($report_config->useSpecimenName == 1)
 			{
-				echo "<th>".LangUtil::$generalTerms['TYPE']."</th>";
+				echo "<th>Specimen Type</th>";
 			}
 			if($report_config->useDateRecvd == 1)
 			{
@@ -394,15 +559,15 @@ if($no_match === true)
 			}
 			if($report_config->useTestName == 1)
 			{
-				echo "<th>".LangUtil::$generalTerms['TEST']."</th>";
+				echo "<th>Test Type</th>";
 			}
 			if($report_config->useComments == 1)
 			{
-				echo "<th>".LangUtil::$generalTerms['COMMENTS']."</th>";
+				echo "<th>Interpretation</th>";
 			}
 			if($report_config->useReferredTo == 1)
 			{
-				echo "<th>".LangUtil::$generalTerms['REF_TO']."</th>";
+// 				echo "<th>".LangUtil::$generalTerms['REF_TO']."</th>";
 			}
 			if($report_config->useDoctor == 1)
 			{
@@ -422,7 +587,7 @@ if($no_match === true)
 			}
 			if($report_config->useRemarks == 1)
 			{
-				echo "<th>".LangUtil::$generalTerms['RESULT_COMMENTS']."</th>";
+// 				echo "<th>".LangUtil::$generalTerms['RESULT_COMMENTS']."</th>";
 			}
 			if($report_config->useEnteredBy == 1)
 			{
@@ -460,18 +625,18 @@ if($no_match === true)
 			<?php
 			if($report_config->useDailyNum == 1)
 			{
-				echo "<td>".$specimen->getDailyNum()."</td>";
+				echo "<td>".$patient->getDailyNum(); //$specimen->getDailyNum()."</td>";
 			}
 			if($report_config->useSpecimenAddlId == 1)
 			{
-				echo "<td>";
-				$specimen->getAuxId();
+				echo "<td>"./*$specimen->specimenId;*/$test->getLabSectionByTest();
+				//$specimen->getAuxId();
 				echo "</td>";
 			}
 			if($report_config->usePatientId == 1)
 			{
 			?>
-				<td><?php echo $patient->getSurrogateId(); ?></td>
+				<!--<td><?php echo $patient->getPatientId(); //$patient->getSurrogateId(); ?></td>-->
 			<?php
 			}
 			if($report_config->usePatientAddlId == 1)
@@ -501,7 +666,7 @@ if($no_match === true)
 			if($report_config->useDob == 1)
 			{
 			?>
-				<td><?php echo $patient->getDob(); ?></td>
+				<!--<td><?php echo $patient->getDob(); ?></td>-->
 			<?php 
 			}
 			# Patient Custom fields here
@@ -569,7 +734,7 @@ if($no_match === true)
 			}
 			if($report_config->useReferredTo == 1)
 			{
-				echo "<td>".$specimen->getReferredToName()."</td>";
+// 				echo "<td>".$specimen->getReferredToName()."</td>";
 			}
 			if($report_config->useDoctor == 1)
 			{
@@ -680,7 +845,7 @@ if($no_match === true)
 			}
 			if($report_config->useRemarks == 1)
 			{
-				echo "<td>".$test->getComments()."</td>";
+// 				echo "<td>".$test->getComments()."</td>";
 			}
 			if($report_config->useEnteredBy == 1)
 			{
@@ -716,3 +881,7 @@ if($no_match === true)
 <h4><?php echo $report_config->footerText; ?></h4>
 </div>
 </div>
+</div>
+</body>
+</html>
+

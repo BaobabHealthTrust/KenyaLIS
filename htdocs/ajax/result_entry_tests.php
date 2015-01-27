@@ -7,6 +7,7 @@ include("../includes/db_lib.php");
 include("../includes/user_lib.php");
 LangUtil::setPageId("results_entry");
 
+
 $attrib_value = $_REQUEST['a'];
 $attrib_type = $_REQUEST['t'];
 $date_from = $_REQUEST['df'];
@@ -18,6 +19,10 @@ $search_settings = get_lab_config_settings_search();
 $rcap = $search_settings['results_per_page'];
 $lab_config = LabConfig::getById($_SESSION['lab_config_id']);
 $uiinfo = "op=".$_REQUEST['t']."&qr=".$_REQUEST['a'];
+$res = $_REQUEST['res'];
+$new_res = $_REQUEST['new_res'];
+$comm = $_REQUEST['comm'];
+$new_comm = $_REQUEST['new_comm'];
 putUILog('result_entry_tests', $uiinfo, basename($_SERVER['REQUEST_URI'], ".php"), 'X', 'X', 'X');
 ?>
 <?php
@@ -154,6 +159,25 @@ else
             
     } elseif($attrib_type == 10)
     {
+    //get user lab sections so that user only views their lab section
+    $user=$_SESSION['user_id'];
+				$r = mysql_query("select lab_sec_code from user where user_id=$user");
+
+				if($row = mysql_fetch_assoc($r))
+						{
+				$lab_sec =$row['lab_sec_code'];
+						}
+    
+ //$lab_sec= echo $page_elems->getLabUserLabSectionIds();   
+$keywords = explode(',', $lab_sec);  //if keywords entered is "white black new", will convert to array of "white","black","new". The delimiter here is the space.
+$keywordsBits = array(); 
+foreach ($keywords as $keyword) { 
+          $keyword = trim($keyword); 
+          if (!empty($keyword)) { 
+                $keywordsBits[] = "test_category_id = $keyword"; 
+          } 
+} 
+
             # Get all specimens with pending status
             $query_string = 
                     "SELECT *, p.name AS patient_name, st.name as specimen_name, tt.name AS test_name, tc.name AS category_name, t.status_code_id AS status
@@ -163,13 +187,13 @@ else
 						LEFT JOIN specimen_type st ON s.specimen_type_id = st.specimen_type_id
 						LEFT JOIN test_type tt ON t.test_type_id = tt.test_type_id
 						LEFT JOIN test_category tc ON tt.test_category_id = tc.test_category_id
-            		WHERE";
+            		WHERE s.status_code_id!=".Specimen::$STATUS_REJECTED." AND t.test_type_id in (select test_type_id from test_type where ".implode(' OR ', $keywordsBits).") AND ";
             
-            if ($status!="all")
+            if (($status!="all") && ($status!=Specimen::$STATUS_ALL)){
             	$query_string.="
                     	 t.status_code_id=$status AND
             			 s.status_code_id NOT IN (".Specimen::$STATUS_NOT_COLLECTED.") AND ";
-            
+            }
             $query_string.="	
                     	(tt.parent_test_type_id = 0 or t.external_parent_lab_no = '0')
             			AND (p.surr_id = '$search_term' or p.name LIKE '%$search_term%' or tt.name LIKE '%$search_term%' or s.specimen_id = '$search_term')
@@ -198,14 +222,22 @@ else
 	}
 	else if($attrib_type == 13)
 	{
-		#Update specimen to started status code
+		$query_string =
+			"SELECT * FROM test ".
+			"WHERE test_id=$attrib_value";
+		$record = query_associative_one($query_string);
+		
+		#Update specimen to verified status code
 		$ts = date("Y-m-d H:i:s");
 		$query_string = "UPDATE test SET 
                     		status_code_id = ".Specimen::$STATUS_VERIFIED.",
                     		ts = '$ts',
+				comments='$new_comm',
                     		date_verified = '$ts',
-                    		verified_by = ".$_SESSION['user_id']."  
-                    		WHERE test_id ='$attrib_value'";
+                    		verified_by = ".$_SESSION['user_id'].
+							($new_res!=$res ? ",result='".mysql_real_escape_string(str_replace($res, $new_res, $record['result']))."'" : "").
+							
+                    		" WHERE test_id ='$attrib_value'";
 	}
 }
 //RUN QUERY DEPENDING ON PARAMETERS
@@ -214,8 +246,12 @@ if($attrib_type == 12||$attrib_type == 13)
 	$resultset = query_update($query_string);
 	switch ($attrib_type){
 	case 12:
-		echo '<a href="javascript:fetch_test_result_form('.$quote.$attrib_value.$quote.');" title="Click to Enter Results for this Specimen" class="btn yellow mini"><i class="icon-pencil"></i>Enter Results</a>%
-	          <a href="javascript:fetch_specimen2('.$quote.$attrib_value.$quote.');" title="View specimen details" class="btn mini"><i class="icon-search"></i> View Details</a>';
+		$query_string =
+			"SELECT * FROM test WHERE test_id=$attrib_value";
+		$record = query_associative_one($query_string);
+		echo '<a id="Link_'.$attrib_value.'" href="javascript:fetch_test_result_form('.$quote.$attrib_value.$quote.');" title="Click to Enter Results for this Specimen" class="btn yellow mini"><i class="icon-pencil"></i>Enter Results</a>%
+	          <a href="javascript:specimen_info('.$quote.$record['specimen_id'].$quote.');" title="View specimen details" class="btn blue mini"><i class="icon-search"></i> View Details</a>';
+			  //<a href="javascript:fetch_specimen2('.$quote.$attrib_value.$quote.');" title="View specimen details" class="btn blue mini"><i class="icon-search"></i> View Details</a>';
 		return;
 	break;
 	case 13:
@@ -233,7 +269,8 @@ else{
  	$limit=10;
  
  	$pagination_array = setPagination($query_string, $limit, $page, $url, $num_records);
-	$resultset = query_associative_all($pagination_array['query_string'], $row_count);
+	//$resultset = query_associative_all($pagination_array['query_string'], $row_count);
+	$resultset = query_associative_all($query_string, $num_records);
 }
 
 // $specimen_id_list = array();
@@ -294,19 +331,28 @@ else{
 	</div>
 	<div class="span3">
 	
-	Search: <span id="search">
+	<!--Search: <span id="search">
 	
 	<input type=text id="search_tests"></input>&nbsp;&nbsp;
-	
+	-->
 	
 	</span> 
 	</div>
 	<!--div class="span3">Lab Section: <span id="section"></span> </div-->
-	<div class="span3">Status: <span id="status"></span> </div>
+	<div class="span3">Status: 
+		<select id="status" onchange="ShowTests(this.value)">
+			<option value="All"<?php echo $status==Specimen::$STATUS_ALL ? ' selected' : ''?>>All</option>
+			<option value="Pending"<?php echo $status==Specimen::$STATUS_PENDING ? ' selected' : ''?>>Accepted</option>
+			<option value="Started"<?php echo $status==Specimen::$STATUS_STARTED ? ' selected' : ''?>>Started</option>
+			<option value="Tested"<?php echo $status==Specimen::$STATUS_TOVERIFY ? ' selected' : ''?>>Tested</option>
+			<option value="Tested & Verified"<?php echo $status==Specimen::$STATUS_VERIFIED ? ' selected' : ''?>>Tested & Verified</option>
+		</select>
+	</div>
 	<!-- div class="span3">Specimen Type: <span id="specimen_type"></span> </div>
 	<div class="span3">Test Type: <span id="test_type"></span> </div-->
 </div>
-<table class="table tale-striped table-condensed" id="<?php echo $attrib_type; ?>">
+<!--table class="table tale-striped table-condensed" id="<?php echo $attrib_type; ?>"-->
+<table class='tablesorter table' id='<?php echo $attrib_type; ?>' name='<?php echo $attrib_type; ?>'>
 	<thead>
 	
 		<tr>
@@ -319,7 +365,7 @@ else{
 			<?php
 			}
 			?>
-				<th style='width:100px;'><?php echo "Time Collected";?></th>
+				<th style='width:100px;'><?php echo "Date/Time Received";?></th>
 			<?php
 			if($_SESSION['pid'] != 0)
 			{
@@ -424,7 +470,7 @@ else{
 				<?php
 				//if($lab_config->hidePatientName == 0)
 				?>
-				<td style='width:200px;'><?php echo $patient->getPatientName()." (".$patient->sex." ".$patient->getAgeNumber().") "; ?></td>
+				<td style='width:200px;'><?php echo $patient->getPatientName()." (".$patient->sex." ".$patient->getAge().") "; ?></td>
 				<td style='width:100px;'><?php echo $specimen_type->getSpecimenName(); ?></td>
 				<td style='width:100px;'>
 				<?php
@@ -440,27 +486,27 @@ else{
 				
 				if($test_status == Specimen::$STATUS_PENDING){
 					if($specimen_status == Specimen::$STATUS_NOT_COLLECTED){
-						echo 'label">Not Collected';
+						echo 'label">Collected';
 						echo '</span></td>';
 						echo '
 							<td id=actionA'.$test->testId.' style="width:130px;">
 								<a href="javascript:accept_specimen('.$quote.$specimen->specimenId.$quote.', '.$quote.$test->testId.$quote.');" class="btn mini green"><i class="icon-thumbs-up"></i> Accept</a>
 							</td>
 							<td id=actionB'.$test->testId.' style="width:220px;">
-							<a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn mini">
+							<a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn blue mini">
 								<i class="icon-search"></i> View Details
 							</a>
 							</td>';
 					}else{
 						
-							echo 'label-important">Pending';
+							echo 'label-important">Accepted';
 							echo '</span></td>';
 							echo '<div id=action'.$test->testId.'>
 						<td id=actionA'.$test->testId.' style="width:200px;"><a href="javascript:start_test('.$quote.$test->testId.$quote.');" title="Click to begin testing this Specimen" class="btn red mini">
 							<i class="icon-ok"></i> '.LangUtil::$generalTerms['START_TEST'].'</a>
 						</td>
 						<td id=actionB'.$test->testId.' style="width:220px;">
-							<a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn mini">
+							<a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn blue mini">
 								<i class="icon-search"></i> View Details
 							</a>
 						</td></div>';
@@ -492,10 +538,10 @@ else{
 					echo 'label-info">Tested';
 					echo '</span></td>';
 					echo '
-				<td style="width:300px;"><a href="javascript:view_test_result('.$quote.$test->testId.$quote.');" title="Click to view and verify results of this Specimen" class="btn blue mini">
+				<td style="width:300px;"><a id="Link_'.$test->testId.'" href="javascript:view_test_result('.$quote.$test->testId.$quote.');" title="Click to view and verify results of this Specimen" class="btn blue mini">
 					<i class="icon-edit"></i> Verify Results</a>
 				</td>
-				<td style="width:280px;"><a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn mini">
+				<td style="width:280px;"><a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn blue mini">
 					<i class="icon-search"></i> View Details</a>
 				</td>';
 				}else
@@ -528,7 +574,7 @@ else{
 				<td style="width:100px;"><a href="javascript:start_test('.$quote.$specimen->specimenId.$quote.');" title="Click to begin testing this Specimen" class="btn red mini">
 					<i class="icon-ok"></i>'.LangUtil::$generalTerms['START_TEST'].'</a>
 				</td>
-				<td style="width:280px;"><a href="javascript:fetch_specimen2('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn mini">
+				<td style="width:280px;"><a href="javascript:fetch_specimen2('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn blue mini">
 					<i class="icon-group"></i>'.LangUtil::$generalTerms['ASSIGN_TO'].'</a>
 				</td>';
 				}else
@@ -536,10 +582,10 @@ else{
 					echo 'label-warning">Started';
 					echo '</span></td>';
 					echo '
-				<td id=action'.$test->testId.' style="width:250px;"><a href="javascript:fetch_test_result_form('.$quote.$test->testId.$quote.');" title="Click to Enter Results for this Specimen" class="btn yellow mini">
+				<td id=action'.$test->testId.' style="width:250px;"><a id="Link_'.$test->testId.'" href="javascript:fetch_test_result_form('.$quote.$test->testId.$quote.');" title="Click to Enter Results for this Specimen" class="btn yellow mini">
 					<i class="icon-pencil"></i> Enter Results</a>
 				</td>
-				<td style="width:275px;"><a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn mini">
+				<td style="width:275px;"><a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn blue mini">
 					<i class="icon-search"></i> View Details</a>
 				</td>';
 				}else
@@ -550,7 +596,7 @@ else{
 				<td style="width:250px;"><a href="javascript:view_test_result('.$quote.$test->testId.$quote.','.Specimen::$STATUS_VERIFIED.');" title="Click to view results" class="btn green mini">
 					<i class="icon-edit"></i> View Results</a>
 				</td>
-				<td style="width:250px;"><a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn mini">
+				<td style="width:250px;"><a href="javascript:specimen_info('.$quote.$specimen->specimenId.$quote.');" title="View specimen details" class="btn blue mini">
 					<i class="icon-search"></i> View Details</a>
 				</td>';
 				}else 
@@ -571,7 +617,8 @@ else{
 	?>
 	</tbody>
 </table>
-<?php echo $pagination_array["pagination"];?>
+
+<?php //echo $pagination_array["pagination"];?>
 
 <?php
 if($attrib_type == 3 && $count > 2)
@@ -596,6 +643,18 @@ $("#search_tests").keypress(function(e) {
 
 
 $("#refresh").click(function() {
-	fetch_tests(0,null,null);
+	fetch_tests(<?php echo Specimen::$STATUS_ALL; ?>,null,null); //(0,null,null);
 });
+
+function ShowTests(val) {
+	if(val=="Pending"){
+		fetch_tests(<?php echo Specimen::$STATUS_PENDING?>);
+	} else if (val=="Started"){
+		fetch_tests(<?php echo Specimen::$STATUS_STARTED?>);
+	}else if (val=="Tested"){
+		fetch_tests(<?php echo Specimen::$STATUS_TOVERIFY?>);
+	}else if (val=="Tested & Verified"){
+		fetch_tests(<?php echo Specimen::$STATUS_VERIFIED?>);
+	} else fetch_tests(<?php echo Specimen::$STATUS_ALL?>);
+}
 </script>

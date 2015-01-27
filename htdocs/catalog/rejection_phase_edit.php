@@ -5,12 +5,20 @@
 include("redirect.php");
 include("includes/header.php");
 include("includes/ajax_lib.php");
+include("includes/scripts.php");
+require_once("includes/script_elems.php");
 LangUtil::setPageId("catalog");
 
 
 $rejection_phase = get_rejection_phase_by_id($_REQUEST['rp']);
 ?>
-
+<?php 
+$script_elems->enableDatePicker();
+$script_elems->enableJQuery();
+$script_elems->enableJQueryForm();
+$script_elems->enableTokenInput();
+//$script_elems->enableFacebox();
+?>
 <br>
 <b><?php echo "Edit Specimen Rejection Phase"; ?></b>
 | <a href="catalog.php?show_rp=1"><?php echo LangUtil::$generalTerms['CMD_CANCEL']; ?></a>
@@ -26,13 +34,12 @@ if($rejection_phase == null)
 	include("includes/footer.php");
 	return;
 }
-$page_elems->getRejectionPhaseInfo($rejection_phase->name, true);
+//$page_elems->getRejectionPhaseInfo($rejection_phase->name, true);
 ?>
-<br>
-<br>
+
 <div class='pretty_box'>
 <form name='edit_rejection_phase_form' id='edit_rejection_phase_form' action='ajax/rejection_phase_update.php' method='post'>
-<input type='hidden' name='tcid' id='tcid' value='<?php echo $_REQUEST['tcid']; ?>'></input>
+<input type='hidden' name='tcid' id='tcid' value='<?php echo $_REQUEST['rp']; ?>'></input>
 	<table cellspacing='4px'>
 		<tbody>
 			<tr valign='top'>
@@ -50,7 +57,7 @@ $page_elems->getRejectionPhaseInfo($rejection_phase->name, true);
                 
                 <div class="form-actions">
 
-                      <input class='btn yellow' type='button' value='<?php echo LangUtil::$generalTerms['CMD_SUBMIT']; ?>' onclick='javascript:update_rejection_phase_category();'></input>
+					  <input class='btn yellow' type='button' value='<?php echo LangUtil::$generalTerms['CMD_SUBMIT']; ?>' onclick='javascript:update_rejection_phase_category();'></input>
                       <a href='catalog.php?show_tc=1' class='btn'> <?php echo LangUtil::$generalTerms['CMD_CANCEL']; ?></a>
                 </div>
                	<span id='update_rejection_phase_progress' style='display:none;'>
@@ -79,17 +86,12 @@ function update_rejection_phase_category()
 	$('#update_rejection_phase_progress').show();
 	$('#edit_rejection_phase_form').ajaxSubmit({
 		success: function(msg) {
-			$('#update_testcategory_progress').hide();
+			$('#update_rejection_phase_progress').hide();
 			window.location="rejection_phase_updated.php?rp=<?php echo $_REQUEST['rp']; ?>";
 		}
 	});
 }
 </script>
 <?php 
-include("includes/scripts.php");
-$script_elems->enableDatePicker();
-$script_elems->enableJQuery();
-$script_elems->enableJQueryForm();
-$script_elems->enableTokenInput();
-$script_elems->enableFacebox();
-include("includes/footer.php"); ?>
+include("includes/footer.php");
+?>

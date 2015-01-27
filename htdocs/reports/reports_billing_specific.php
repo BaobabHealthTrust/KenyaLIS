@@ -72,7 +72,7 @@ for($i = 0; $i < count($margin_list); $i++) {
 
 		?>
 
-		<script type="text/javascript" src="../js/nicEdit.js"></script>
+		<script type="text/javascript" src="js/nicEdit.js"></script>
 		<script type='text/javascript'>
 
 		var curr_orientation = 0;
@@ -239,11 +239,11 @@ for($i = 0; $i < count($margin_list); $i++) {
 					</td>
 					<td>
 						&nbsp;&nbsp;
-						<input type='button' onclick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input>
+						<!-- <input type='button' onclick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input> -->
 					</td>
 					<td>
 						&nbsp;&nbsp;
-						<input type='button' onclick="javascript:window.close();" value='Close' title='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input>
+						<!-- <input type='button' onclick="javascript:window.close();" value='Close' title='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
 					</td>
 				</tr>
 			</table>
@@ -294,7 +294,7 @@ for($i = 0; $i < count($margin_list); $i++) {
 						<?php
 						
 						# If hospital logo exists, include it
-						$logo_path = "../logos/logo_".$lab_config_id.".jpg";
+						$logo_path = "logos/logo_".$lab_config_id.".jpg";
 						$logo_path2 = "../ajax/logo_".$lab_config_id.".jpg";
 						$logo_path1="../../logo_".$lab_config_id.".jpg";
 						
@@ -313,7 +313,9 @@ for($i = 0; $i < count($margin_list); $i++) {
 						?>
 					</div>
 					<!--//If condition for the font size
-					<STYLE>H3 {FONT-SIZE: <?php echo $size; ?>}</STYLE>-->
+					
+<STYLE>H3 {FONT-SIZE: <?php echo $size; ?>}</STYLE>-->
+					<center>
 					<div id="report_word_content">
 						<?php $align=$report_config->alignment_header;?>
 						<h3 align="<?php echo $align; ?>"><?php echo $report_config->headerText; ?><?php #echo LangUtil::$pageTerms['MENU_PHISTORY']; ?></h3>
@@ -455,21 +457,28 @@ for($i = 0; $i < count($margin_list); $i++) {
 					<?php } ?>
 					<table>
 						<tr>
-							<td>Date</td>
+							<td>Specimen Id</td>
+							<td>Test Date</td>
 							<td>Test Name</td>
-							<td>Cost</td>
+							<td>Specimen Type</td>
+							<td>Test Cost</td>
 						</tr>
 							<?php foreach ($associations as $association) { ?>
 						<tr>
+						<?php $test = Test::getById($association->getTestId());
+						$testType = TestType::getById($test->testTypeId);
+						$specimen = Specimen::getById($test->specimenId);
+						?>	<td><?php echo $test->getLabSectionByTest() ?></td>
 							<td><?php echo $association->getTestDate() ?></td>
 							<td><?php echo $association->getTestName() ?></td>
+							<td><?php echo $specimen->getTypeName()?></td>
 							<td align='right'><?php echo $association->getFormattedTestCost() ?></td>
 						</tr>
 							<?php } ?>
 						<tr>
 							<td></td>
 							<td align='right'>BILL TOTAL</td>
-							<td align='right'><?php echo $bill->getFormattedTotal($lab_config_id) ?></td>
+							<td align='center' colspan="2"><?php echo $bill->getFormattedTotal($lab_config_id) ?></td>
 						</tr>
 					</table>
 

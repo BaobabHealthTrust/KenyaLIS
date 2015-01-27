@@ -16,7 +16,7 @@ $test_type = TestType::getById($test->testTypeId);
 $specimen_id = $_REQUEST['specimen_id'];
 $specimen = Specimen::getById($specimen_id);
 $patient = Patient::getById($specimen->patientId);
-$comment = $_REQUEST['comments'];
+$comment = mysql_real_escape_string($_REQUEST['comments']);
 $comment_1=$_REQUEST['comments_1'];
 $dd_to=$_REQUEST['dd_to'];
 $mm_to=$_REQUEST['mm_to'];
@@ -121,7 +121,8 @@ $user_id = $_SESSION['user_id'];
 //-NC3065
 add_test_result($test_id, $result_csv, $comments, "", $user_id, $ts, $patient->getHashValue());
 API::updateExternalLabrequest($patient->surrogateId, $test->external_lab_no, $result_to_push, $comments);
-update_specimen_status($specimen_id);
+set_specimen_status_toverify($specimen_id);
+//update_specimen_status($specimen_id);
 $test_list = get_tests_by_specimen_id($specimen_id);
 # Show confirmation with details.
 ?>
@@ -139,7 +140,7 @@ $test_list = get_tests_by_specimen_id($specimen_id);
 if($_SESSION['sid'] != 0)
 {
 	echo LangUtil::$generalTerms['SPECIMEN_ID'].": ";
-	$specimen->getAuxId();
+	echo $test->getLabSectionByTest();
 	echo "<br>";
 }
 //if($_SESSION['pnamehide'] == 0)

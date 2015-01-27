@@ -165,7 +165,7 @@ $script_elems->enableLatencyRecord();
 	$(document).ready(function(){
              $("#barcode_search_field").focus();
 
-			$('#current_inventory').tablesorter();
+//			$('#current_inventory').tablesorter();
 	});
 
 function getBarcodeSearchResults()

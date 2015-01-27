@@ -5,7 +5,7 @@
 # Sends POST request to stock_details.php 
 #
 
-include("../users/accesslist.php");
+include("users/accesslist.php");
 /*if( !(isAdmin(get_user_by_id($_SESSION['user_id'])) && in_array(basename($_SERVER['PHP_SELF']), $adminPageList)) 
      && !(isCountryDir(get_user_by_id($_SESSION['user_id'])) && in_array(basename($_SERVER['PHP_SELF']), $countryDirPageList)) 
 	 && !(isSuperAdmin(get_user_by_id($_SESSION['user_id'])) && in_array(basename($_SERVER['PHP_SELF']), $superAdminPageList)) ) {
@@ -15,6 +15,8 @@ include("../users/accesslist.php");
 include("redirect.php");
 include("includes/header.php");
 include("includes/stats_lib.php");
+include("includes/scripts.php");
+require_once("includes/script_elems.php");
 LangUtil::setPageId("stocks");
 $script_elems->enableTableSorter();
 $script_elems->enableDatePicker();
@@ -30,7 +32,7 @@ $(document).ready(function() {
     $('#quant_u_error').hide();
     $('#quant_e_error').hide();
 val = $('select').val();
-    var url_string = "../inventory/get_reagent_unit.php?lid="+"<?php echo $lid?>"+"&id="+"<?php echo $selected_id; ?>";
+    var url_string = "inventory/get_reagent_unit.php?lid="+"<?php echo $lid?>"+"&id="+"<?php echo $selected_id; ?>";
 	$.ajax({ 
 		url: url_string, 
 		success: function(result){
@@ -39,7 +41,7 @@ val = $('select').val();
 		}
 	});
 //});
-     var url_string = "../inventory/get_reagent_quantity.php?lid="+"<?php echo $lid; ?>"+"&id="+"<?php echo $selected_id; ?>"+"&lot="+"<?php echo $_REQUEST['lot']; ?>";
+     var url_string = "inventory/get_reagent_quantity.php?lid="+"<?php echo $lid; ?>"+"&id="+"<?php echo $selected_id; ?>"+"&lot="+"<?php echo $_REQUEST['lot']; ?>";
 	$.ajax({ 
 		url: url_string, 
 		success: function(result){
@@ -95,7 +97,7 @@ function validateRow() {
 
 function display_unit()
 {
-    var url_string = "../inventory/get_reagent_unit.php?lid="+"<?php echo $lid;?>"+"&id="+"<?php echo $selected_id; ?>";
+    var url_string = "inventory/get_reagent_unit.php?lid="+"<?php echo $lid;?>"+"&id="+"<?php echo $selected_id; ?>";
 	$.ajax({ 
 		url: url_string, 
 		success: function(result){
@@ -111,16 +113,17 @@ function display_unit()
 <a href='stock_lots.php?id=<?php echo $_REQUEST['id']; ?>'>&laquo; <?php echo LangUtil::$generalTerms['CMD_BACK']; ?></a>&nbsp;|&nbsp;<b><?php echo "Log Stock Usage"; ?></b>
 <br><br>
 
+<div class="span4" style="position: absolute;top: 100px;right: 30px;">
 <?php
-$tips_string = "Log stock usage (quantity signed out) by completing this form. Available qunatity for the selected lot is displayed. Quantity signed out should be less than or equal to the available quantity.";
+$tips_string = "Log stock usage (quantity signed out) by completing this form. Available quantity for the selected lot is displayed. Quantity signed out should be less than or equal to the available quantity.";
 $page_elems->getSideTip("Tips", $tips_string);
-
 ?>
+</div>
 
 <form name='new_test_form' id='new_test_form' action='inventory/stock_use.php' method='post'>
 		
 		<input type='hidden' name='count' value='1' id='count' />
-		<div class="pretty_box" style="width:550px;">
+		<div class="pretty_box" style="width:900px;">
 			<table>
 				<tr>
 					<td>
@@ -193,11 +196,15 @@ $page_elems->getSideTip("Tips", $tips_string);
 					</td>
 					<td></td>
 					<td>
+					<div class="input-append date date-picker" data-date="<?php echo date("Y-m-d"); ?>" data-date-format="yyyy-mm-dd"> 
+					<input class="m-wrap m-ctrl-medium" size="16" name="usage_date" id="usage_date" type="text"><span class="add-on"><i class="icon-calendar"></i></span>
+					</div>
 						<!--<input type="date" name="txtRow13" id="txtRow13" class='uniform_width'/>-->
 						<?php
-                                                $name_list1 = array("yyyy_u", "mm_u", "dd_u");
+                                                /*$name_list1 = array("yyyy_u", "mm_u", "dd_u");
                                                 $id_list1 = $name_list1;
-                                                echo $page_elems->getDatePicker($name_list1, $id_list1, $value_list1); ?>
+												$value_list1 = explode("-", date("Y-m-d"));
+                                                echo $page_elems->getDatePicker($name_list1, $id_list1, $value_list1);*/ ?>
 					</td>
 				</tr>
 				

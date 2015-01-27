@@ -85,7 +85,7 @@ function hide_div(div)
 Code: <input type="text" id="code" name="code"></input>
 <input type="button" onclick='getBarcode();' value="Generate">  
 <input type="button" value="Print" onclick="PrintElem('#barcodeList')" />
-<input type='button' onclick="javascript:export_as_word('barcodeList');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input>
+<!-- <input type='button' onclick="javascript:export_as_word('barcodeList');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input> -->
 <input type='button' onclick="javascript:export_as_pdf2('barcodeList');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTPDF']; ?>'></input>
 -->
 

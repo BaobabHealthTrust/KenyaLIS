@@ -90,6 +90,7 @@ RewriteRule ^geo_report_dir_prev_tanzania\.php$ reports/geo_report_dir_prev_tanz
 RewriteRule ^geo_report_dir_tat_tanzania\.php$ reports/geo_report_dir_tat_tanzania.php
 RewriteRule ^geo_report_dir_prev\.php$ reports/geo_report_dir_prev.php
 RewriteRule ^geo_report_dir_tat\.php$ reports/geo_report_dir_tat.php
+RewriteRule ^reports_consumption\.php$ reports/reports_consumption.php
 
 ## /catalog folder
 RewriteRule ^catalog\.php$ catalog/catalog.php
@@ -192,6 +193,7 @@ RewriteRule ^quality_control_category_delete\.php$ catalog/test_category_delete.
 RewriteRule ^export_word\.php$ export/export_word.php
 RewriteRule ^export_txt\.php$ export/export_txt.php
 RewriteRule ^export_pdf\.php$ export/export_pdf.php
+RewriteRule ^export_csv\.php$ export/export_csv.php
 RewriteRule ^data_backup$ export/data_backup2.php
 RewriteRule ^data_backup_revert.php$ export/data_backup_revert.php
 RewriteRule ^update_database.php$ export/update_database.php
@@ -209,6 +211,10 @@ RewriteRule ^lab_backups\.php$ export/lab_backups.php
 ## /users folder
 RewriteRule ^edit_profile\.php$ users/edit_profile.php
 RewriteRule ^change_profile\.php$ users/change_profile.php
+## /added by EC
+RewriteRule ^first_pwd_change\.php$ users/first_pwd_change.php 
+RewriteRule ^first_change_pwd\.php$ users/first_change_pwd.php
+#//
 RewriteRule ^change_pwd\.php$ users/change_pwd.php
 RewriteRule ^password_reset\.php$ users/password_reset.php
 RewriteRule ^lab_admins\.php$ users/lab_admins.php
@@ -300,7 +306,7 @@ RewriteRule ^update_lab_coords\.php$ director/update_lab_coords.php
 RewriteRule ^labrequest$ api/import_lab_request.php
 
 ##/Test Server folder
-##RewriteCond %{REQUEST_URI} !(.*)/$
-##RewriteRule ^blistest$ blistest/
+#RewriteCond %{REQUEST_URI} !(.*)/$
+#RewriteRule ^blistest$ blistest/
 
 

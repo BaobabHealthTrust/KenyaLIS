@@ -105,7 +105,7 @@ $monthago_array = explode("-", $monthago_date);
 			<input type='hidden' name='data' value='' id='word_data' />
 			<input type='button' onclick="javascript:print_content('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_PRINT']; ?>'></input>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input>
+			<!-- <input type='button' onclick="javascript:window.close();" value='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
 		</td>
 	</tr>
 </table>
