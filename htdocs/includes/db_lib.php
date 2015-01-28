@@ -15535,7 +15535,7 @@ class API
 			$specimen->timeCollected = date('H:i'); //from REQUEST 
 			$specimen->dateRecvd = date("Y-m-d"); //from REQUEST
 			$specimen->patientId = $patient_id;
-			$specimen->specimenTypeId = 6; //from REQUEST
+			$specimen->specimenTypeId = 16; //from REQUEST
 			$specimen->comments = '';
 			$specimen->userId = 26;
 			$specimen->auxId = 0;
@@ -15563,11 +15563,11 @@ class API
     	$test = new Test();
     
 		$test->specimenId = $specimen_id;
-		$test->testTypeId = 7; //from REQUEST
+		$test->testTypeId = 113; //from REQUEST
 		$test->comments = ""; //from REQUEST
 		$test->userId = 26; //from REQUEST request login credentials
 		$test->result = "";		
-		$ex = API::getExternalParentLabNo($patient->surrogateId,  get_test_name_by_id($test_type_id, 127));
+		$ex = API::getExternalParentLabNo($patient->surrogateId,  get_test_name_by_id($test_type_id, 113));
 		$test->patientVisitNumber = API::getpatientVisitNumber($patient->surrogateId, 0);
 		$test_id = add_test($test);
 	
@@ -15593,10 +15593,10 @@ class API
 		$response['specimen_id'] = $specimen_id;
 		$response['accesssion_number'] = $accession_number;		
 		$s_name = query_associative_one('SELECT name FROM specimen_type 
-										WHERE specimen_type_id = 6 LIMIT 1'); //6 from REQUEST
+										WHERE specimen_type_id = 16 LIMIT 1'); //6 from REQUEST
 		$response['specimen_name'] = $s_name['name'];
 		$t_name = query_associative_one('SELECT name FROM test_type 
-										WHERE test_type_id = 7 LIMIT 1'); //6 from REQUEST							
+										WHERE test_type_id = 113 LIMIT 1'); //6 from REQUEST							
 		$response['test_name'] = $t_name['name'];
 	
 		return $response;
