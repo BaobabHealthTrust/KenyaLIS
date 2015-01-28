@@ -15525,7 +15525,7 @@ class API
      public function create_order($accession_number){
     	$specimen;
     	$specimen_id;
-    	$patient_id =  20296;
+    	$patient_id =  1;
     	if (!$accession_number){
 		
 			$specimen = new Specimen();
