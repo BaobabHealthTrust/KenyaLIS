@@ -15592,10 +15592,13 @@ class API
 		$response['test_id'] = $test_id;
 		$response['specimen_id'] = $specimen_id;
 		$response['accesssion_number'] = $accession_number;		
-		$response['specimen_name'] = query_associative_one('SELECT name FROm specimen_type 
-										WHERE specimen_type_id = 6 LIMIT 1')['name']; //6 from REQUEST
-		$response['test_name'] = query_associative_one('SELECT name FROm test_type 
-										WHERE test_type_id = 7 LIMIT 1')['name']; //6 from REQUEST							
+		$s_name = query_associative_one('SELECT name FROM specimen_type 
+										WHERE specimen_type_id = 6 LIMIT 1'); //6 from REQUEST
+		$response['specimen_name'] = $s_name['name'];
+		$t_name = query_associative_one('SELECT name FROM test_type 
+										WHERE test_type_id = 7 LIMIT 1'); //6 from REQUEST							
+		$response['test_name'] = $t_name['name'];
+	
 		return $response;
 	}
 	
@@ -15608,8 +15611,8 @@ class API
             $user = get_user_by_id($_SESSION['user_id']);
             $lab_config_id = $user->labConfigId;
         }
-
-            if($lab_config_id == null)
+	
+        if($lab_config_id == null)
             {
                 $lab_config_id = get_lab_config_id_admin($_SESSION['user_id']);
             }
