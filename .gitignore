@@ -53,3 +53,4 @@ server/
 export/
 /nbproject
 /htdocs/reports/reports_billing_1.php
+.idea/*
