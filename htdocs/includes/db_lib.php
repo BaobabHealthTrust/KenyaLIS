@@ -15603,7 +15603,7 @@ class API
     	
 			$date_receipt = date("Y-m-d H:i:s");
 			$patient = new Patient();
-			$patient->patientId = $patient_id;
+			
 			$patient->addlId = null;
 			$patient->name =$record['patientName'];
 			$patient->clinician =  $record['whoOrderedTest'];
@@ -15615,6 +15615,7 @@ class API
 			$patient->createdBy = $_SESSION['user_id'];
 			$patient->from_external_system = true;
 			$patient = add_patient($patient);
+			$patient = get_patient_by_npid($record['nationalID']);
     	}    	   	
     	
     	$patient_id = $patient->patientId;
