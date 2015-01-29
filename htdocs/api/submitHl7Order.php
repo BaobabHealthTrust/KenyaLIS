@@ -1,7 +1,7 @@
 <?php
 
-include("../includes/Net/HL7/Message.php");
-include("../includes/Net/HL7/Types/Types.php");
+include("Net/HL7/Message.php");
+include("Net/HL7/Types/Types.php");
 
 
 # parse an OML_O21 message

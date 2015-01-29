@@ -1382,6 +1382,30 @@ class TestType
 
 }
 
+
+class TestMeasure{
+	public $test_measure_id;
+	public $test_id;
+	public $lab_no;
+	public $measure_id;
+	public $result;
+	
+	
+	public static function getObject($record)
+	{
+		# Converts a test_measure record in DB into a TestMeasure object
+		if($record == null)
+			return null;
+		
+		$test_measure = new TestMeasure();
+		$test_measure->test_measure_id = $record['tm_id'];
+		$test_measure->test_id = $record['tm_id'];
+		$test_measure->lab_no = $record['lab_no'];
+		$test_measure->measure_id = $record['measure_id'];
+		$test_measure->result = $record['result'];
+	}
+}
+
 class SpecimenType
 {
 	public $specimenTypeId;
@@ -2621,6 +2645,8 @@ class Patient
 	function reverse_birthday( $days ){
 		return date("Y-m-d", mktime(0, 0, 0, date("m") < 1 ? 12 : date("m"), date("d") - $days, date("Y")));
 	}
+	
+	
 }
 
 class Specimen
@@ -7504,7 +7530,26 @@ function add_test($test, $testId=null)
 		$auditTrail->logAddTest();	
 	}
 	
-	return $last_insert-id;
+	return $last_insert_id;
+}
+
+function add_test_measure($test_measure, $test_measure_id=null)
+{	
+	$query_string =
+	"INSERT INTO test_measure ( test_id, lab_no, measure_id, result) ".
+	"VALUES ( $test_measure->test_id, '$test_measure->lab_no', $test_measure->measure_id, '$test_measure->result')";
+	$result = query_insert_one($query_string);
+	$last_insert_id = get_last_insert_id();
+	
+	if($result){
+		//Add event to audit trail
+		$auditTrail = new AuditTrail();
+		$auditTrail->tablename = "test_measure";
+		$auditTrail->objectid = $last_insert_id;
+		$auditTrail->logAddTest();
+	}
+
+	return $last_insert_id;
 }
 
 function add_test_random($test)
@@ -15467,6 +15512,178 @@ class API
          return 1;
     }
     
+    public static function getpatientVisitNumber($surr_id, $labno)
+    {
+    	$query_string =
+    	"SELECT patientVisitNumber FROM external_lab_request
+    		WHERE patient_id = '$surr_id' and labNo = '$labno'";
+    	$saved_db = DbUtil::switchToGlobal();
+    	$resultset = query_associative_one($query_string, $row_count);
+    	DbUtil::switchRestore($saved_db);
+    	$retval = $resultset['patientVisitNumber'];
+    	return $retval;
+    }
+    
+     public function create_order($accession_number){
+    	$specimen;
+    	$specimen_id;
+    	$patient_id =  1;
+    	$patient = Patient::get_patient_by_npid("mee");
+    	
+    	if (!$patient){
+			$patient = Patient::create_patient_by_npid();
+    	}   	
+    	
+    	$patient_id = $patient->$patient_id;
+    	
+    	if (!$accession_number){
+		
+			$specimen = new Specimen();
+			$specimen->sessionNum = get_session_number();
+			$specimen->specimenId = bcadd(get_max_specimen_id(), 1); 
+			$specimen->dateCollected = date("Y-m-d"); //from REQUEST
+			$specimen->timeCollected = date('H:i'); //from REQUEST 
+			$specimen->dateRecvd = date("Y-m-d"); //from REQUEST
+			$specimen->patientId = $patient_id;
+			$specimen->specimenTypeId = 16; //from REQUEST
+			$specimen->comments = '';
+			$specimen->userId = 26;
+			$specimen->auxId = 0;
+			$specimen->statusCodeId = 1;
+			$specimen->dailyNum = get_daily_number();
+			$specimen->external_lab_no= 0; //from REQUEST
+			$specimen->referredToName = 'Name Referred To';
+			$specimen->referredTo = 0; //from REQUEST
+			$specimen->reportTo = '0'; //from REQUEST
+			$specimen->doctor = 'Doctor'; //from REQUEST			
+			$specimen_id = add_specimen($specimen);
+			$accession_number = $specimen->sessionNum;
+		}else{
+			$spec_query = "SELECT * FROM specimen WHERE session_num = '".$accession_number."' LIMIT 1";
+			$resultset = query_associative_one($spec_query);
+			
+			if ($resultset != null && $resultset != 1){
+				$specimen = $resultset;
+				$specimen_id = $specimen['specimen_id'];
+			}
+		}
+		
+		
+		$patient = get_patient_by_id($patient_id);
+    	$test = new Test();
+    
+		$test->specimenId = $specimen_id;
+		$test->testTypeId = 113; //from REQUEST
+		$test->comments = ""; //from REQUEST
+		$test->userId = 26; //from REQUEST request login credentials
+		$test->result = "";		
+		$ex = API::getExternalParentLabNo($patient->surrogateId,  get_test_name_by_id($test_type_id, 113));
+		$test->patientVisitNumber = API::getpatientVisitNumber($patient->surrogateId, 0);
+		$test_id = add_test($test);
+	
+		#Get Test Measures and create Test Measure and insert into new Test_measure table. (new method)
+	
+		$test_type = TestType::getById($test->testTypeId);
+		$measures = $test_type->getMeasures();	
+		if ($test_id!=null){
+			foreach ($measures as $measure){
+				$test_measure = new TestMeasure();
+				$test_measure->test_id = $test_id;
+				$test_measure->measure_id = $measure->measureId;
+				$test_measure->lab_no = API::getExternalLabNo($patient->surrogateId, $measure->name);
+				$test_measure->result="";			
+				add_test_measure($test_measure);			
+			}
+		}
+		
+		//build a json response
+		$response = Array();		
+		$response['patient_id'] = $patient->patientId;
+		$response['test_id'] = $test_id;
+		$response['specimen_id'] = $specimen_id;
+		$response['accesssion_number'] = $accession_number;		
+		$s_name = query_associative_one('SELECT name FROM specimen_type 
+										WHERE specimen_type_id = 16 LIMIT 1'); //6 from REQUEST
+		$response['specimen_name'] = $s_name['name'];
+		$t_name = query_associative_one('SELECT name FROM test_type 
+										WHERE test_type_id = 113 LIMIT 1'); //6 from REQUEST							
+		$response['test_name'] = $t_name['name'];
+	
+		return $response;
+	}
+	
+	
+    public function get_test_catalog()
+    {
+        global $CATALOG_TRANSLATION;
+        if($_SESSION['level'] < 2 || $_SESSION['level'] > 4)
+        {
+            $user = get_user_by_id($_SESSION['user_id']);
+            $lab_config_id = $user->labConfigId;
+        }
+	
+        if($lab_config_id == null)
+            {
+                $lab_config_id = get_lab_config_id_admin($_SESSION['user_id']);
+            }
+		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
+	$query_ttypes =
+		"SELECT test_type_id, name FROM test_type WHERE disabled=0 ORDER BY name";
+		
+	$query_ttypes =
+		"SELECT s_type.specimen_type_id AS specimen_id, s_type.name AS specimen_name, 
+				t_type.test_type_id AS test_type_id, t_type.name AS test_type_name,
+				t_type.loinc_code AS loinc_code, t_type.test_code AS test_code
+		FROM specimen_test s_test
+			INNER JOIN specimen_type s_type ON s_test.specimen_type_id = s_type.specimen_type_id
+			INNER JOIN test_type t_type ON s_test.test_type_id = t_type.test_type_id 
+		WHERE s_type.disabled = 0 AND t_type.disabled = 0
+		";
+	
+	$specimen_query = "SELECT distinct name AS name, specimen_type_id AS specimen_id FROM specimen_type WHERE disabled = 0";
+	$resultset = query_associative_all($query_ttypes, $row_count);	
+	$specimens = query_associative_all($specimen_query, $row_count);
+		
+	$retval = array();	
+	foreach($specimens as $spec){
+			//$retval[$spec['specimen_id'].'|'.$spec['name']] = array();
+	}
+	
+
+	
+	if($resultset) {
+		foreach($resultset as $record)
+		{		
+			$key = $record['specimen_id'].'|'.$record['specimen_name'];
+			$name;
+						
+			if($CATALOG_TRANSLATION === true){				
+			
+				$name = LangUtil::getTestName($record['test_type_name']);				
+			}else{		
+				$name = $record['test_type_name'];
+			}
+			
+			$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];			
+			
+			if (!isset($retval[$key])){
+					$retval[$key] = array();				
+			}
+			
+			array_push($retval[$key], $name);									
+		}
+	}	
+	
+	DbUtil::switchRestore($saved_db);
+        $catalog = $retval;
+        if(count($catalog) > 0)
+                $ret = $catalog;
+             else
+                $ret = 0;
+            
+        return $ret;
+    }    
+    
     public function search_patients($by, $str)
     {
         //by 1 = name, 2 = id, 3 = number
@@ -15619,45 +15836,6 @@ class API
              
         return $ret;
     }
-    
-    
-    public function get_test_catalog()
-    {
-        global $CATALOG_TRANSLATION;
-        if($_SESSION['level'] < 2 || $_SESSION['level'] > 4)
-        {
-            $user = get_user_by_id($_SESSION['user_id']);
-            $lab_config_id = $user->labConfigId;
-        }
-
-            if($lab_config_id == null)
-            {
-                $lab_config_id = get_lab_config_id_admin($_SESSION['user_id']);
-            }
-		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
-	$query_ttypes =
-		"SELECT test_type_id, name FROM test_type WHERE disabled=0 ORDER BY name";
-	$resultset = query_associative_all($query_ttypes, $row_count);
-	$retval = array();
-	if($resultset) {
-		foreach($resultset as $record)
-		{
-			if($CATALOG_TRANSLATION === true)
-				$retval[$record['test_type_id']] = LangUtil::getTestName($record['test_type_id']);
-			else
-				$retval[$record['test_type_id']] = $record['name'];
-		}
-	}
-	DbUtil::switchRestore($saved_db);
-        $catalog = $retval;
-        if(count($catalog) > 0)
-                $ret = $catalog;
-             else
-                $ret = 0;
-             
-        return $ret;
-    }
-    
     
     public function get_lab_sections()
     {
