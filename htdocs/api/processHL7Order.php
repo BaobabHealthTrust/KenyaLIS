@@ -141,62 +141,6 @@ if($debugPrint && false){
   
 }
 
-$record = array();
-
-$record['sendingFacility'] = $sendingFacility;
-
-$record['receivingFacility'] = $receivingFacility;
-
-$record['messageDatetime'] =  $messageDatetime;
-
-$record['messageType'] = $messageType;
-
-$record['messageControlID'] = $messageControlID;
-
-$record['processingID'] = $processingID;
-
-$record['hl7VersionID'] = $hl7VersionID;
-
-$record['obrSetID'] = $obrSetID;
-
-$record['testCode'] = $testCode;
-
-$record['timestampForSpecimenCollection'] = $timestampForSpecimenCollection;
-
-$record['reasonTestPerformed'] = $reasonTestPerformed;
-
-$record['whoOrderedTest'] = $whoOrderedTest;
-
-$record['healthFacilitySiteCodeAndName'] = $healthFacilitySiteCodeAndName;
-
-$record['pidSetID'] = $pidSetID;
-
-$record['nationalID'] = $nationalID;
-
-$record['patientName'] = $patientName;
-
-$record['dateOfBirth'] = $dateOfBirth;
-
-$record['gender'] = $gender;
-
-$record['spmSetID'] = $spmSetID;
-
-$record['accessionNumber'] = $accessionNumber;
-
-$record['typeOfSample'] = $typeOfSample;
-
-$record['tq1SetID'] = $tq1SetID;
-
-$record['priority'] = $priority;
-
-$record['enteredBy'] = $enteredBy;
-
-$record['enterersLocation'] = $enterersLocation;
-
-$response = API::create_order($record);
-
-echo json_encode($response);
-
 $accessionNumber = null;
 
 /*
@@ -240,7 +184,9 @@ $result = array(
   "enterersLocation" => $enterersLocation
 );
 
-echo (json_encode($result));
 
+$response = API::create_order($result);
+
+echo json_encode($response);
 ?>
 
