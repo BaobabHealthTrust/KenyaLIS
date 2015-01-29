@@ -41,8 +41,9 @@ require_once 'Net/HL7.php';
  * @package    Net_HL7
  * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
  */
-class Net_HL7_Message {
-
+class Net_HL7_Message
+{
+    
     /**
      * Array holding all segements of this message.
      */
@@ -138,13 +139,13 @@ class Net_HL7_Message {
             }
 
             // Set field separator based on control segment
-            $this->_fieldSeparator        = $fldSep;
+            $this->_fieldSeparator = $fldSep;
 
             // Set other separators
-            $this->_componentSeparator    = $compSep;
+            $this->_componentSeparator = $compSep;
             $this->_subcomponentSeparator = $subCompSep;
-            $this->_escapeChar            = $esc;
-            $this->_repetitionSeparator   = $repSep;
+            $this->_escapeChar = $esc;
+            $this->_repetitionSeparator = $repSep;
 
             // Do all segments
             //
@@ -162,9 +163,11 @@ class Net_HL7_Message {
                         continue;
                     }
 
-                    $comps = preg_split("/\\" . $this->_componentSeparator ."/", $fields[$j], -1, PREG_SPLIT_NO_EMPTY);
+                    $comps = preg_split("/\\" . $this->_componentSeparator . "/", $fields[$j], -1);
 
                     for ($k = 0; $k < count($comps); $k++) {
+
+                        if ( empty($comps[$k]) ) $comps[$k] = "";
 
                         $subComps = preg_split("/\\" . $this->_subcomponentSeparator . "/", $comps[$k]);
 
@@ -181,6 +184,7 @@ class Net_HL7_Message {
                 // Let's see whether it's the a special segment
                 //
                 if (@include_once "Net/HL7/Segments/$name.php") {
+                  
                     array_unshift($fields, $this->_fieldSeparator);
 
                     $seg = new $segClass($fields);
@@ -225,6 +229,20 @@ class Net_HL7_Message {
     }
 
 
+    function hasSegment($segment)
+    {
+        $segmentsByName = array();
+
+        foreach ($this->_segments as $seg) {
+
+            if ($seg->getName() == $segment) {
+                array_push($segmentsByName, $seg);
+            }
+        }
+
+        return length($segmentsByName) > 0;
+    }
+
     /**
      * Insert a segment.
      *
@@ -237,7 +255,7 @@ class Net_HL7_Message {
      * @access public
      * @see Net_HL7_Segment
      */
-        function insertSegment($segment, $idx = "")
+    function insertSegment($segment, $idx = "")
     {
         if ((!$idx) || ($idx > count($this->_segments))) {
             trigger_error("Index out of range", E_USER_WARNING);
@@ -257,10 +275,10 @@ class Net_HL7_Message {
         } else {
             $this->_segments =
                 array_merge(
-                            array_slice($this->_segments, 0, $idx),
-                            array($segment),
-                            array_slice($this->_segments, $idx)
-                            );
+                    array_slice($this->_segments, 0, $idx),
+                    array($segment),
+                    array_slice($this->_segments, $idx)
+                );
         }
 
         return true;
@@ -306,6 +324,25 @@ class Net_HL7_Message {
         }
 
         return $segmentsByName;
+    }
+
+    /**
+     * Return first segment with the given name
+     *
+     * @param name String
+     * @return Net_HL7_Segment
+     * @access public
+     */
+    public function getSegmentByName($name)
+    {
+        if (isset($this->_segments) && !is_null($this->_segments) && sizeof($this->_segments) > 0) {
+            foreach ($this->_segments as $seg) {
+                if ($seg->getName() == $name) {
+                    return $seg;
+                }
+            }
+        }
+        trigger_error("Could not find " .$name. " segment");
     }
 
 
@@ -368,7 +405,7 @@ class Net_HL7_Message {
     /**
      * After change of MSH, reset control fields
      *
-     * @param object An instance of Net_HL7_Segment
+     * @param $segment Net_HL7_Segment
      * @return boolean
      * @access private
      * @see Net_HL7_Segment
@@ -380,9 +417,9 @@ class Net_HL7_Message {
         }
 
         if (preg_match("/(.)(.)(.)(.)/", $segment->getField(2), $matches)) {
-            $this->_componentSeparator    = $matches[1];
-            $this->_repetitionSeparator   = $matches[2];
-            $this->_escapeChar            = $matches[3];
+            $this->_componentSeparator = $matches[1];
+            $this->_repetitionSeparator = $matches[2];
+            $this->_escapeChar = $matches[3];
             $this->_subcomponentSeparator = $matches[4];
         }
 
@@ -454,7 +491,7 @@ class Net_HL7_Message {
                 $msg .= $this->_fieldSeparator;
             }
 
-            ($pretty) ? ($msg .= "\n") : ($msg .= $this->_segmentSeparator);
+            ($pretty) ? ($msg .= "<br/>\n") : ($msg .= $this->_segmentSeparator);
         }
 
         return $msg;
