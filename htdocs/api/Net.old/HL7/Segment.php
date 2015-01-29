@@ -94,6 +94,9 @@ class Net_HL7_Segment {
      */
     function setField($index, $value= "")
     {
+
+        #check if the value is a set of arrays
+
         if (!($index && $value)) {
             return false;
         }
@@ -121,11 +124,40 @@ class Net_HL7_Segment {
      * @return mixed The value of the field
      * @access public
      */
-    function getField($index)
-    {
-        return isset($this->_fields[$index]) ? $this->_fields[$index] : null;
-    }
+//    function getField($index)
+//    {
+//        if (isset($this->_fields[$index])) {
+//            # check if this is a repeated field and return multiple arrays if it is -- look for the separator character
+//            foreach  ($this->_fields[$index] as $key => $value) {
+//                ;
+//            }
+//
+//        } else {
+//            return null;
+//        }
+//
+//
+//
+//        return isset($this->_fields[$index]) ? $this->_fields[$index] : null;
+//    }
 
+
+    /**
+     * Return the number of repeated fields within the field
+     * 0 if the field is not set.
+     *
+     * @param $index
+     * @return int
+     */
+    function getFieldSize($index) {
+        if (isset($this->_fields[$index])) {
+
+        } else {
+            return 0;
+        }
+
+
+    }
 
     /**
      * Get the number of fields for this segment, not including the name

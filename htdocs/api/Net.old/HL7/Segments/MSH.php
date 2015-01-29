@@ -18,8 +18,8 @@
 //
 // $Id: MSH.php,v 1.8 2004/07/05 15:41:29 wyldebeast Exp $
 
-require_once 'Net/HL7/Segment.php';
-require_once 'Net/HL7.php';
+require_once '../includes/Net/HL7/Segment.php';
+require_once '../includes/Net/HL7.php';
 
 /**
  * MSH (message header) segment class
@@ -132,6 +132,8 @@ class Net_HL7_Segments_MSH extends Net_HL7_Segment {
 
         return parent::setField($index, $value);
     }
+
+
 
 }
 
