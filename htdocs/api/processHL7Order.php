@@ -4,6 +4,8 @@ require_once "Net/HL7/Message.php";
 
 $debug = true;
 
+$debugPrint = false;
+
 if(!isset($_REQUEST['hl7']) && !$debug)
 {
     echo -2;
@@ -84,7 +86,7 @@ $enteredBy = $orc[0]->getField(10)[2] . " " . $orc[0]->getField(10)[1] . " (" . 
 
 $enterersLocation = $orc[0]->getField(11);   // ORC.13
 
-if($debug){
+if($debugPrint && false){
 
   echo "sendingFacility: $sendingFacility<br />";
 
@@ -137,6 +139,51 @@ if($debug){
   echo "enterersLocation: $enterersLocation<br />";
   
 } 
+
+$accessionNumber = null;
+
+/*
+
+  Create order somewhere here and get an "accession number" to be added to the 
+  JSON object returned
+
+*/
+
+if ($debug){
+
+  $accessionNumber = rand();
+  
+}
+
+$result = array(
+  "sendingFacility" => $sendingFacility,
+  "receivingFacility" => $receivingFacility,
+  "messageDatetime" => $messageDatetime,
+  "messageType" => $messageType,
+  "messageControlID" => $messageControlID,
+  "processingID" => $processingID,
+  "hl7VersionID" => $hl7VersionID,
+  "obrSetID" => $obrSetID,
+  "testCode" => $testCode,
+  "timestampForSpecimenCollection" => $timestampForSpecimenCollection,
+  "reasonTestPerformed" => $reasonTestPerformed,
+  "whoOrderedTest" => $whoOrderedTest,
+  "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
+  "pidSetID" => $pidSetID,
+  "nationalID" => $nationalID,
+  "patientName" => $patientName,
+  "dateOfBirth" => $dateOfBirth,
+  "gender" => $gender,
+  "spmSetID" => $spmSetID,
+  "accessionNumber" => $accessionNumber,
+  "typeOfSample" => $typeOfSample,
+  "tq1SetID" => $tq1SetID,
+  "priority" => $priority,
+  "enteredBy" => $enteredBy,
+  "enterersLocation" => $enterersLocation
+);
+
+echo (json_encode($result));
 
 ?>
 
