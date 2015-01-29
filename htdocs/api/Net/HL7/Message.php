@@ -43,7 +43,7 @@ require_once 'Net/HL7.php';
  */
 class Net_HL7_Message
 {
-
+    
     /**
      * Array holding all segements of this message.
      */
@@ -184,6 +184,7 @@ class Net_HL7_Message
                 // Let's see whether it's the a special segment
                 //
                 if (@include_once "Net/HL7/Segments/$name.php") {
+                  
                     array_unshift($fields, $this->_fieldSeparator);
 
                     $seg = new $segClass($fields);

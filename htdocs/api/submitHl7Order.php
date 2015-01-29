@@ -1,7 +1,7 @@
 <?php
 
-include("../includes/Net/HL7/Message.php");
-include("../includes/Net/HL7/Types/Types.php");
+include("Net/HL7/Message.php");
+include("Net/HL7/Types/Types.php");
 
 
 # parse an OML_O21 message
@@ -9,7 +9,7 @@ include("../includes/Net/HL7/Types/Types.php");
 if(!isset($_REQUEST['hl7']))
 {
     echo -2;
-    return;
+    //return;
 }
 
 //$omlString=$_REQUEST['hl7'];

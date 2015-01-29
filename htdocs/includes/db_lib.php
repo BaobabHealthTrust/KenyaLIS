@@ -2645,6 +2645,8 @@ class Patient
 	function reverse_birthday( $days ){
 		return date("Y-m-d", mktime(0, 0, 0, date("m") < 1 ? 12 : date("m"), date("d") - $days, date("Y")));
 	}
+	
+	
 }
 
 class Specimen
@@ -15526,6 +15528,14 @@ class API
     	$specimen;
     	$specimen_id;
     	$patient_id =  1;
+    	$patient = Patient::get_patient_by_npid("mee");
+    	
+    	if (!$patient){
+			$patient = Patient::create_patient_by_npid();
+    	}   	
+    	
+    	$patient_id = $patient->$patient_id;
+    	
     	if (!$accession_number){
 		
 			$specimen = new Specimen();
