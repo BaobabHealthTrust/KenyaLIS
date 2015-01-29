@@ -1,6 +1,7 @@
 <?php
 require_once "Net/HL7/Segments/MSH.php";
 require_once "Net/HL7/Message.php";
+require_once "../includes/db_lib.php";
 
 $debug = true;
 
@@ -16,7 +17,7 @@ if(!$debug){
   
 } else {
 
-  $request = "MSH|^~&||KCH^2.16.840.1.113883.3.5986.2.15^ISO||KCH^2.16.840.1.113883.3.5986.2.15^ISO|20150126145826||OML^O21^OML_O21|20150126145826|T|2.5\r\nPID|1||P17000012293||Doe^John^Q^Jr||19641004|M\r\nORC||||||||||1^Super^User|||^^^^^^^^MEDICINE||||||||KCH\r\nTQ1|1||||||||S\r\nOBR|1|||626-2^MICROORGANISM IDENTIFIED:PRID:PT:THRT:NOM:THROAT CULTURE^LOINC^78335^Throat Culture^L|||20150126145826||||||Rule out diagnosis|||439234^Moyo^Chris\r\nSPM|1|||THRT^Throat";
+  $request = "MSH|^~&||KCH^2.16.840.1.113883.3.5986.2.15^ISO||KCH^2.16.840.1.113883.3.5986.2.15^ISO|20150126145826||OML^O21^OML_O21|20150126145826|T|2.5\r\nPID|1||P17020012293||Kenneth^Kapundi||19641004|M\r\nORC||||||||||1^Super^User|||^^^^^^^^MEDICINE||||||||KCH\r\nTQ1|1||||||||S\r\nOBR|1|||626-2^MICROORGANISM IDENTIFIED:PRID:PT:THRT:NOM:THROAT CULTURE^LOINC^78335^Throat Culture^L|||20150126145826||||||Rule out diagnosis|||439234^Moyo^Chris\r\nSPM|1|||Urine^Throat";
   
 }
 
@@ -136,7 +137,63 @@ if($debug){
 
   echo "enterersLocation: $enterersLocation<br />";
   
-} 
+}
+
+$record = array();
+
+$record['sendingFacility'] = $sendingFacility;
+
+$record['receivingFacility'] = $receivingFacility;
+
+$record['messageDatetime'] =  $messageDatetime;
+
+$record['messageType'] = $messageType;
+
+$record['messageControlID'] = $messageControlID;
+
+$record['processingID'] = $processingID;
+
+$record['hl7VersionID'] = $hl7VersionID;
+
+$record['obrSetID'] = $obrSetID;
+
+$record['testCode'] = $testCode;
+
+$record['timestampForSpecimenCollection'] = $timestampForSpecimenCollection;
+
+$record['reasonTestPerformed'] = $reasonTestPerformed;
+
+$record['whoOrderedTest'] = $whoOrderedTest;
+
+$record['healthFacilitySiteCodeAndName'] = $healthFacilitySiteCodeAndName;
+
+$record['pidSetID'] = $pidSetID;
+
+$record['nationalID'] = $nationalID;
+
+$record['patientName'] = $patientName;
+
+$record['dateOfBirth'] = $dateOfBirth;
+
+$record['gender'] = $gender;
+
+$record['spmSetID'] = $spmSetID;
+
+$record['accessionNumber'] = $accessionNumber;
+
+$record['typeOfSample'] = $typeOfSample;
+
+$record['tq1SetID'] = $tq1SetID;
+
+$record['priority'] = $priority;
+
+$record['enteredBy'] = $enteredBy;
+
+$record['enterersLocation'] = $enterersLocation;
+
+$response = API::create_order($record);
+
+echo json_encode($response);
 
 ?>
 
