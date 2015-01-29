@@ -2645,8 +2645,6 @@ class Patient
 	function reverse_birthday( $days ){
 		return date("Y-m-d", mktime(0, 0, 0, date("m") < 1 ? 12 : date("m"), date("d") - $days, date("Y")));
 	}
-	
-	
 }
 
 class Specimen
@@ -2810,6 +2808,44 @@ $query_string = "SELECT description FROM rejection_reasons WHERE ".implode(' OR 
 			echo "-";
 		else
 			echo $this->auxId;
+	}
+	public function readable_status($code){
+	
+		switch($code)
+		{
+			case Specimen::$STATUS_PENDING:
+				return LangUtil::$generalTerms['PENDING_RESULTS'];
+				break;
+			case Specimen::$STATUS_DONE:
+				return LangUtil::$generalTerms['DONE'];
+				break;
+			case Specimen::$STATUS_REFERRED:
+				return LangUtil::$generalTerms['REF_OUT'];
+				break;
+			case Specimen::$STATUS_TOVERIFY:
+				return LangUtil::$generalTerms['PENDING_VER'];
+				break;
+			case Specimen::$STATUS_REPORTED:
+				break;
+			case Specimen::$STATUS_RETURNED:
+				return LangUtil::$generalTerms['REF_RETURNED'];
+				break;
+			case Specimen::$STATUS_REJECTED:
+				return ('Specimen Rejected');
+				//return LangUtil::$generalTerms['REJECTED'];
+				break;
+			case Specimen::$STATUS_STARTED:
+				return LangUtil::$generalTerms['STARTED'];
+				break;
+			case Specimen::$STATUS_NOT_COLLECTED:
+				return LangUtil::$generalTerms['NOT_COLLECTED'];
+				break;
+			case Specimen::$STATUS_TOVERIFY:
+				return LangUtil::$generalTerms['TO_VERIFY'];
+				break;
+			case Specimen::$STATUS_VERIFIED:
+				break;
+		}
 	}
 	
 	public function getStatus()
@@ -6612,6 +6648,16 @@ function check_patient_id($pid)
 		return false;
 	else
 		return true;
+}
+
+function get_patient_by_npid($pid){
+
+	global $con;
+	$pid = mysql_real_escape_string($pid, $con);
+	$query_string = "SELECT patient_id FROM patient WHERE addl_id=$pid LIMIT 1";
+	
+	$resultset = query_associative_one($query_string);
+	
 }
 
 function get_patient_by_sp_id($sid)
@@ -15836,6 +15882,65 @@ class API
              
         return $ret;
     }
+    
+    public function get_specimen_details($params){
+    	/*
+    		This method pulls all specimens filtered by 
+    		department and status. Main target was for dashboard display
+    		By: Kenneth Kapundi, Date: 29 Jan, 2015
+    	*/
+    	
+    	$date = $params['date'];
+    	$department = $params['dept'];
+    	$status = $params['status'];
+    	$query_string = 'SELECT * FROM specimen LIMIT 10';
+    	$resultset = query_associative_all($query_string);
+    	$result = array();
+    	
+    	if ($resultset){
+    		foreach($resultset as $record){
+    			$sub = array();
+    			$sub['accession_number'] = "record['accession_number']";		
+    			$sub['date_collected'] = "record['date_collected']";
+    			$sub['status'] = "Specimen::readable_status(record['status_code_id'])";
+    			$sub['patient_name'] = "record['name']";	
+    			array_push($result, $sub);	
+    		}
+    	}
+    	
+    	return $result;
+    }
+    
+    
+    public function get_specimen_details($params){
+    	/*
+    		This method pulls all specimens filtered by 
+    		department and status. Main target was for dashboard display
+    		By: Kenneth Kapundi, Date: 29 Jan, 2015
+    	*/
+    	
+    	$date = $params['date'];
+    	$department = $params['dept'];
+    	$status = $params['status'];
+    	$query_string = 'SELECT * FROM specimen LIMIT 10';
+    	$resultset = query_associative_all($query_string);
+    	$result = array();
+    	
+    	if ($resultset){
+    		foreach($resultset as $record){
+    			$sub = array();
+    			$sub['accession_number'] = "record['accession_number']";		
+    			$sub['date_collected'] = "record['date_collected']";
+    			$sub['status'] = "Specimen::readable_status(record['status_code_id'])";
+    			$sub['patient_name'] = "record['name']";
+    			$sub['test_name'] = "record['name']";	
+    			array_push($result, $sub);	
+    		}
+    	}
+    	
+    	return $result;
+    }
+    
     
     public function get_lab_sections()
     {
