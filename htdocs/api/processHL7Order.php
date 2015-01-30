@@ -22,7 +22,7 @@ if(!$debug){
   
 } else {
 
-  $request = "MSH|^~&||KCH^2.16.840.1.113883.3.5986.2.15^ISO||KCH^2.16.840.1.113883.3.5986.2.15^ISO|20150126145826||OML^O21^OML_O21|20150126145826|T|2.5\r\nPID|1||P17020012293||Kenneth^Kapundi||19641004|M\r\nORC||||||||||1^Super^User|||^^^^^^^^MEDICINE||||||||KCH\r\nTQ1|1||||||||S\r\nOBR|1|||626-2^MICROORGANISM IDENTIFIED:PRID:PT:THRT:NOM:THROAT CULTURE^LOINC^78335^Throat Culture^L|||20150126145826||||||Rule out diagnosis|||439234^Moyo^Chris\r\nSPM|1|||Urine^Throat";
+  $request = "MSH|^~&||KCH^2.16.840.1.113883.3.5986.2.15^ISO||KCH^2.16.840.1.113883.3.5986.2.15^ISO|20150126145826||OML^O21^OML_O21|20150126145826|T|2.5\r\nPID|1||P17020012293||Kenneth^Kapundi||19641004|M\r\nORC||||||||||1^Super^User|||^^^^^^^^MEDICINE||||||||KCH\r\nTQ1|1||||||||S\r\nOBR|1|||626-2^MICROORGANISM IDENTIFIED:PRID:PT:THRT:NOM:THROAT CULTURE^LOINC^78335^Throat Culture^L|||20150126145826||||||Rule out diagnosis|||439234^Moyo^Chris\r\nSPM|1|||^Urine";
   
 }
 
@@ -80,7 +80,7 @@ $spmSetID = $spm[0]->getField(1);           // SPM.01
 
 $accessionNumber = $spm[0]->getField(2);    // SPM.02
 
-$typeOfSample = $spm[0]->getField(4)[0];       // SPM.04
+$typeOfSample = $spm[0]->getField(4)[1];       // SPM.04
 
 $tq1SetID = $tq1[0]->getField(1);           // TQ1.01
 
