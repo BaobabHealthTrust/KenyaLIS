@@ -15924,7 +15924,7 @@ class API
     	*/
     	
     	$date = $params['date'];
-    	$department = $params['dept'];
+    	$department = $params['department'];
     	$status = $params['status'];
     	if ($status){
 	    	$status_condition = "WHERE status_code_id = $status";
