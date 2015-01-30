@@ -1,9 +1,12 @@
 <?php
+
+require_once "authenticate.php";
+
 require_once "Net/HL7/Segments/MSH.php";
 require_once "Net/HL7/Message.php";
 require_once "../includes/db_lib.php";
 
-$debug = true;
+$debug = false;
 
 $debugPrint = false;
 
@@ -143,13 +146,6 @@ if($debugPrint && false){
 
 $accessionNumber = null;
 
-/*
-
-  Create order somewhere here and get an "accession number" to be added to the 
-  JSON object returned
-
-*/
-
 if ($debug){
 
   $accessionNumber = rand();
@@ -184,8 +180,15 @@ $result = array(
   "enterersLocation" => $enterersLocation
 );
 
+if (!$debug){
 
-$response = API::create_order($result);
+  $response = API::create_order($result);
+  
+} else {
+
+  $response = $result;
+
+}
 
 echo json_encode($response);
 ?>

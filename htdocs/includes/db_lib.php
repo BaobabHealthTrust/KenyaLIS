@@ -15612,7 +15612,7 @@ class API
 			$patient->sex = $record['gender'];
 			$patient->regDate= $record['timestampForSpecimenCollection'];
 			$patient->surrogateId = $record['nationalID'];
-			$patient->createdBy = $_SESSION['user_id'];
+			$patient->createdBy = 53;
 			$patient->from_external_system = true;
 			$patient = add_patient($patient);
 			$patient = get_patient_by_npid($record['nationalID']);
@@ -15633,7 +15633,7 @@ class API
 			
 			$specimen->specimenTypeId = Specimen::getIdByName($record['typeOfSample']);
 			$specimen->comments = '';
-			$specimen->userId = $_SESSION['user_id'];
+			$specimen->userId = 53;
 			$specimen->auxId = 0;
 			$specimen->statusCodeId = 1;
 			$specimen->dailyNum = get_daily_number();
@@ -15661,7 +15661,7 @@ class API
 		$test->specimenId = $specimen_id;
 		$test->testTypeId = $test_type_id;
 		$test->comments = ""; 
-		$test->userId = $_SESSION['user_id']; //from
+		$test->userId = 53; //from
 		$test->result = "";		
 		$ex = API::getExternalParentLabNo($patient->surrogateId,  get_test_name_by_id($test->testTypeId));
 		$test->patientVisitNumber = API::getpatientVisitNumber($patient->surrogateId, 0);
