@@ -15926,24 +15926,43 @@ class API
     	$date = $params['date'];
     	$department = $params['dept'];
     	$status = $params['status'];
-    	
-    	$query_string = "SELECT (SELECT `name` from patient where patient_id = s.patient_id) AS patient_name,
-				specimen_id,status_code_id, session_num, doctor,
-				concat(date_collected, ' ' , time_collected) as collected_datetime , (SELECT 
-				GROUP_CONCAT(`name` SEPARATOR ', ') AS tests from test_type where test_type_id in
-				(select test_type_id from test where specimen_id = s.specimen_id)) AS tests
-				FROM blis_revamp.specimen as s HAVING patient_name IS NOT NULL";
+    	if ($status){
+	    	$status_condition = "WHERE status_code_id = $status";
+    	}
+    	else {
+	    	$status_condition = "";
+    	}
+
+    	if ($department){
+	    	$department_condition = "AND test_type_id in (SELECT test_type_id from test_type 
+										where test_category_id = (select test_category_id 
+										from test_category where name = '$department'))";
+    	}
+    	else {
+    		$department_condition = "";
+    	}
+    	    	
+    	$query_string = "SELECT (SELECT `name` from patient where patient_id = s.patient_id) AS patient_name, 
+									specimen_id,status_code_id, session_num, doctor, 
+									concat(date_collected, ' ' , time_collected) as collected_datetime  ,
+								(SELECT GROUP_CONCAT(`name` SEPARATOR ', ') AS tests from test_type where test_type_id in 
+								(select test_type_id from test where specimen_id = s.specimen_id) $department_condition 
+								) AS tests
+						FROM specimen as s WHERE ts $status_condition HAVING patient_name IS NOT NULL AND tests IS NOT NULL";
     	
     	$resultset = query_associative_all($query_string);
+    	
     	$result = array();
     	
     	if ($resultset){
     		foreach($resultset as $record){
     			$sub = array();
-    			$sub['accession_number'] = "record['accession_number']";		
-    			$sub['date_collected'] = "record['date_collected']";
-    			$sub['status'] = "Specimen::readable_status(record['status_code_id'])";
-    			$sub['patient_name'] = "record['name']";	
+    			$sub['accession_number'] = $record['session_num'];		
+    			$sub['date_collected'] = $record['collected_datetime'];
+    			$sub['status'] = Specimen::readable_status($record['status_code_id']);
+    			$sub['patient_name'] = $record['patient_name'];
+    			$sub['doctor'] = $record['doctor'];	
+    			$sub['test_name'] = $record['tests'];
     			array_push($result, $sub);	
     		}
     	}
