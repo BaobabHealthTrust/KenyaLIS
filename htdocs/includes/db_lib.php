@@ -15926,7 +15926,14 @@ class API
     	$date = $params['date'];
     	$department = $params['dept'];
     	$status = $params['status'];
-    	$query_string = 'SELECT * FROM specimen LIMIT 10';
+    	
+    	$query_string = "SELECT (SELECT `name` from patient where patient_id = s.patient_id) AS patient_name,
+				specimen_id,status_code_id, session_num, doctor,
+				concat(date_collected, ' ' , time_collected) as collected_datetime , (SELECT 
+				GROUP_CONCAT(`name` SEPARATOR ', ') AS tests from test_type where test_type_id in
+				(select test_type_id from test where specimen_id = s.specimen_id)) AS tests
+				FROM blis_revamp.specimen as s HAVING patient_name IS NOT NULL";
+    	
     	$resultset = query_associative_all($query_string);
     	$result = array();
     	
