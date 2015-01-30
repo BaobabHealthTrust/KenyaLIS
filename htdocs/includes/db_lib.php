@@ -15948,7 +15948,7 @@ class API
 								(SELECT GROUP_CONCAT(`name` SEPARATOR ', ') AS tests from test_type where test_type_id in 
 								(select test_type_id from test where specimen_id = s.specimen_id) $department_condition 
 								) AS tests
-						FROM specimen as s WHERE ts $status_condition HAVING patient_name IS NOT NULL AND tests IS NOT NULL";
+						FROM specimen as s $status_condition HAVING patient_name IS NOT NULL AND tests IS NOT NULL";
     	
     	$resultset = query_associative_all($query_string);
     	
