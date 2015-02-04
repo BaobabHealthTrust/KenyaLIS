@@ -23,17 +23,16 @@ DROP TABLE IF EXISTS `activity_state`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `activity_state` (
-  `activity_state_id` int(11) NOT NULL AUTO_INCREMENT,
-  `state_id` int(11) NOT NULL,
-  `test_id` int(11) DEFAULT NULL,
-  `specimen_id` int(11) DEFAULT NULL,
-  `date` datetime DEFAULT NULL,
-  `reason` varchar(255) DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `doctor` varchar(255) DEFAULT NULL,
-  `comments` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`activity_state_id`)
+ 	`activity_state_id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`state_id` int(11) NOT NULL,
+	`test_id` int(10) ,
+	`specimen_id` int(10) ,
+	`date` datetime DEFAULT NULL,
+	`reason` VARCHAR(255),
+	`location` VARCHAR(255),
+	`user_id` int(10) ,
+	`doctor` VARCHAR(255),
+	`comments` VARCHAR(255)	
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -79,12 +78,12 @@ DROP TABLE IF EXISTS `department`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `department` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `test_category_id` int(11) DEFAULT NULL,
-  `active` tinyint(4) DEFAULT '0',
-  `description` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`name` VARCHAR(255) NOT NULL,
+	`test_category_id` int(11),
+	`active` tinyint DEFAULT 0,
+	`description` VARCHAR(255),
+	PRIMARY KEY (`id`)	
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -106,7 +105,7 @@ DROP TABLE IF EXISTS `location`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `location` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `department_id` varchar(255) NOT NULL,
+  `department_id` int(11) NOT NULL,
   `device_mac_addr` varchar(255) DEFAULT NULL,
   `active` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`)
