@@ -15742,8 +15742,28 @@ class API
 			}else{		
 				$name = $record['test_type_name'];
 			}
+		
+			$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];	
 			
-			$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];			
+			$test_type_id = $record['test_type_id'];
+			$containers_query = "SELECT (select name FROM container_type 
+				 WHERE id = tc.container_type_id) AS name
+				 FROM test_type_container_type tc WHERE tc.test_type_id = $test_type_id";
+		
+		    $containerset = query_associative_all($containers_query);
+		    
+		    if ($containerset)
+		    {
+		    	$str = "";
+				foreach($containerset as $container)
+				{
+						if ($str == "")
+							$str = $container['name'];
+						else 
+							$str = $str.'/'.$container['name'];
+				}
+				$name = $name.'|'.$str;
+		    }	
 			
 			if (!isset($retval[$key])){
 					$retval[$key] = array();				
