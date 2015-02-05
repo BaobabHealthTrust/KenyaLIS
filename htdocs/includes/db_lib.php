@@ -10697,7 +10697,7 @@ function get_compatible_test_types($lab_config_id, $specimen_type_id)
 	global $con;
 	$lab_config_id = mysql_real_escape_string($lab_config_id, $con);
 	$specimen_type_id = mysql_real_escape_string($specimen_type_id, $con);
-	$saved_db = DbUtil::switchToLabConfigRevamp($lab_config_id);
+	//$saved_db = DbUtil::switchToLabConfigRevamp($lab_config_id);
 	$query_string = 
 		"SELECT tt.* FROM test_type tt, lab_config_test_type lctt, specimen_test st ".
 		"WHERE tt.test_type_id=lctt.test_type_id ".
@@ -10712,7 +10712,7 @@ function get_compatible_test_types($lab_config_id, $specimen_type_id)
 	{
 		$retval[] = TestType::getObject($record);
 	}
-	DbUtil::switchRestore($saved_db);
+	//DbUtil::switchRestore($saved_db);
 	return $retval;
 }
 
@@ -15742,8 +15742,28 @@ class API
 			}else{		
 				$name = $record['test_type_name'];
 			}
+		
+			$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];	
 			
-			$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];			
+			$test_type_id = $record['test_type_id'];
+			$containers_query = "SELECT (select name FROM container_type 
+				 WHERE id = tc.container_type_id) AS name
+				 FROM test_type_container_type tc WHERE tc.test_type_id = $test_type_id";
+		
+		    $containerset = query_associative_all($containers_query);
+		    
+		    if ($containerset)
+		    {
+		    	$str = "";
+				foreach($containerset as $container)
+				{
+						if ($str == "")
+							$str = $container['name'];
+						else 
+							$str = $str.'/'.$container['name'];
+				}
+				$name = $name.'|'.$str;
+		    }	
 			
 			if (!isset($retval[$key])){
 					$retval[$key] = array();				
