@@ -6832,6 +6832,25 @@ function search_all_pending_external_requests(){
 
 }
 
+function search_all_patients(){
+	global $con;
+	
+	$query_string = 
+		"SELECT * FROM patient ".		
+		"ORDER BY ts DESC";
+		
+	$resultset = query_associative_all($query_string, $row_count);
+	$patient_list = array();
+	if(count($resultset) > 0)
+	{
+		foreach($resultset as $record)
+		{
+			$patient_list[] = Patient::getObject($record);
+		}
+	}
+	return $patient_list;
+}
+
 function search_patients_by_id($q)
 {
 	global $con;
@@ -15635,7 +15654,7 @@ class API
 			$specimen->comments = '';
 			$specimen->userId = 53;
 			$specimen->auxId = 0;
-			$specimen->statusCodeId = 1;
+			$specimen->statusCodeId = 8;
 			$specimen->dailyNum = get_daily_number();
 			$specimen->external_lab_no= $record['healthFacilitySiteCodeAndName'];
 			$specimen->referredToName = '';
@@ -15682,6 +15701,11 @@ class API
 			}
 		}
 		
+		$insert_query = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
+							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Ordered'  LIMIT 1), 
+							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
+							
+		$activity_state = query_insert_one($insert_query);
 		//send a json response
 		
 		$t_name = query_associative_one("SELECT name FROM test_type 
@@ -15691,7 +15715,94 @@ class API
 		return $record;
 	}
 	
-	
+	public function update_order($record, $accession_number, $test_type_name){
+		$state = 'Collected'; //$record['location'];
+		$location = 'Microbiology'; //$record['location'];
+		$doctor = 'Mvalre'; //$record['doctor'];
+		$date = date; //$record['date'];
+		$reason = 'MEemem'; //$record['reason'];
+		$user_id = $_SESSION['user_id'];
+		$result = '-'; //$record['result'];
+		$comments = '-'; //$record['comments'];
+		$record['date'] = date;
+
+		//Update specimen
+		$query_specimen = "SELECT * FROM specimen WHERE session_num = '$accession_number'";
+		$specimen = query_associative_one($query_specimen);
+
+		$query_test = "SELECT * FROM test WHERE specimen_id = ".$specimen['specimen_id'].
+			" AND test_type_id = (SELECT test_type_id FROM test_type WHERE name = '$test_type_name' LIMIT 1)";
+		$test = query_associative_one($query_test);
+
+		if (!$specimen || !$test){
+					return false;
+		}
+
+		$specimen_id = $specimen['specimen_id'];
+
+		$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location)
+							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
+							$specimen_id, $date, $user_id, '$doctor', '$location' )";
+		$specimen_activity_log = query_insert_one($query_update_activity_log);
+
+		$specimen_status_code_id = Specimen::$STATUS_PENDING;
+		$test_status_code_id = Specimen::$STATUS_PENDING;
+
+		switch ($state) {
+			case 'Received':
+				$specimen_status_code_id = Specimen::$STATUS_PENDING;
+				$test_status_code_id = Specimen::$STATUS_PENDING;
+        		break;
+			case 'Collected':
+				$specimen_status_code_id =  Specimen::$STATUS_PENDING;
+				$test_status_code_id =  Specimen::$STATUS_PENDING;
+        		break;
+			case 'Testing':
+				$specimen_status_code_id =  Specimen::$STATUS_PENDING;
+				$test_status_code_id = Specimen::$STATUS_STARTED;
+        		break;
+			case 'Rejected':
+				$specimen_status_code_id =  Specimen::$STATUS_REJECTED;
+				$test_status_code_id = Specimen::$STATUS_REJECTED;
+				break;
+			case 'Disposed':
+				$specimen_status_code_id =  Specimen::$STATUS_DONE;
+				$test_status_code_id = Specimen::$STATUS_DONE;
+				break;
+			case 'Tested':
+				$specimen_status_code_id = Specimen::$STATUS_TOVERIFY;
+				$test_status_code_id = Specimen::$STATUS_TOVERIFY;
+				break;
+			case 'Verified':
+				$specimen_status_code_id = Specimen::$STATUS_TOVERIFY;
+				$test_status_code_id = Specimen::$STATUS_VERIFIED;
+				break;
+			default:
+				$specimen_status_code_id = $specimen['status_code_id'];
+				$test_status_code_id =  Specimen::$STATUS_PENDING;
+		}
+
+		$update_specimen_query = "UPDATE specimen SET ts = NOW(), status_code_id = $specimen_status_code_id WHERE specimen_id = $specimen_id";
+		$specimen = query_update($update_specimen_query);
+
+		$update_test_query = "UPDATE test SET ts = NOW(), status_code_id = $test_status_code_id WHERE test_id = ".$test['test_id'];
+		$test = query_update($update_test_query);
+
+		if ($test_status_code_id == Specimen::$STATUS_TOVERIFY){
+			//Update results
+
+		}else if ($test_status_code_id == Specimen::$STATUS_REJECTED){
+			//update rejection attributes
+
+		}else if ($test_status_code_id == Specimen::$STATUS_STARTED){
+			//update started datetime and other attributes
+			$update_test_query = "UPDATE test SET ts_started = ".$record['date']." WHERE test_id = ".$test['test_id'];
+			$test = query_update($update_test_query);
+		}
+		$response = array();
+		return  $response;
+	}
+
     public function get_test_catalog()
     {
         global $CATALOG_TRANSLATION;
@@ -15727,7 +15838,6 @@ class API
 	foreach($specimens as $spec){
 			//$retval[$spec['specimen_id'].'|'.$spec['name']] = array();
 	}
-	
 
 	
 	if($resultset) {
