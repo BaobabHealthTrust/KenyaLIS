@@ -4,7 +4,6 @@ require_once "authenticate.php";
 
 require_once "Net/HL7/Segments/MSH.php";
 require_once "Net/HL7/Message.php";
-require_once "../includes/db_lib.php";
 
 $debug = false;
 

@@ -15804,8 +15804,29 @@ class API
 			$update_test_query = "UPDATE test SET ts_started = ".$record['date']." WHERE test_id = ".$test['test_id'];
 			$test = query_update($update_test_query);
 		}
-		$response = array();
-		return  $response;
+
+		//return updated $record parameters
+		$record['accession_number'] = $accession_number;
+		$record['test_type_name'] = $test_type_name;
+		return  $record;
+	}
+
+
+	public function get_patient_specimen_details($patient_id){
+		$patient = API::get_patient($patient_id);
+
+		$specimen_query = "SELECT * FROM specimen_activity_log sal
+							INNER JOIN specimen s ON s.patient_id = $patient_id
+												  AND s.specimen_id = sal.specimen_id
+						  ";
+		$test_query = "SELECT * FROM specimen_activity_logl sal
+							INNER JOIN test t ON t.patient_id = $patient_id
+												  AND t.test_i = sal.test_id
+						  ";
+
+		$s_activity_logs = query_associative_all($specimen_query);
+		$t_activity_logs = query_associative_all($test_query);
+
 	}
 
     public function get_test_catalog()
