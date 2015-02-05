@@ -15716,19 +15716,23 @@ class API
 	}
 	
 	public function update_order($record, $accession_number, $test_type_name){
-		$state = 'Collected'; //$record['location'];
+		$state = 'Tested'; //$record['location'];
 		$location = 'Microbiology'; //$record['location'];
 		$doctor = 'Mvalre'; //$record['doctor'];
 		$date = date; //$record['date'];
 		$reason = 'MEemem'; //$record['reason'];
 		$user_id = $_SESSION['user_id'];
-		$result = '-'; //$record['result'];
+		$result = 'Negative'; //$record['result'];
 		$comments = '-'; //$record['comments'];
 		$record['date'] = date;
 
 		//Update specimen
 		$query_specimen = "SELECT * FROM specimen WHERE session_num = '$accession_number'";
 		$specimen = query_associative_one($query_specimen);
+
+		$patient = API::get_patient($specimen['patient_id']);
+		$hash_value = $patient->generateHashValue();
+		$result_with_hash_value = $result.','.$hash_value;
 
 		$query_test = "SELECT * FROM test WHERE specimen_id = ".$specimen['specimen_id'].
 			" AND test_type_id = (SELECT test_type_id FROM test_type WHERE name = '$test_type_name' LIMIT 1)";
@@ -15786,11 +15790,12 @@ class API
 		$specimen = query_update($update_specimen_query);
 
 		$update_test_query = "UPDATE test SET ts = NOW(), status_code_id = $test_status_code_id WHERE test_id = ".$test['test_id'];
-		$test = query_update($update_test_query);
+		$test_update = query_update($update_test_query);
 
 		if ($test_status_code_id == Specimen::$STATUS_TOVERIFY){
 			//Update results
-
+			$update_test_query = "UPDATE test SET result = '".$result_with_hash_value."' , ts_result_entered = NOW() WHERE test_id = ".$test['test_id'];
+			$test = query_update($update_test_query);
 		}else if ($test_status_code_id == Specimen::$STATUS_REJECTED){
 			//update rejection attributes
 
