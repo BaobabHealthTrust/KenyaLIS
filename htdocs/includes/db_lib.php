@@ -15722,7 +15722,7 @@ class API
 	}
 	
 	public function update_order($record, $accession_number, $test_type_name){
-		$state = $record['location'];
+		$state = $record['state'];
 		$location = $record['location'];
 		$doctor = $record['doctor'];
 		$date = $record['date'];
