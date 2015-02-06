@@ -32,18 +32,18 @@ $DB_USER = "root";
 $GLOBAL_DB_NAME="blis_127";
 $DB_NAME = $GLOBAL_DB_NAME;	
 
-$DB_PASS = "password";
+$DB_PASS = "root.letusout!";
 if($SERVER == $ON_DEV)
 {
-$DB_PASS = "password";
+$DB_PASS = "root.letusout!";
 }
 else if($SERVER == $ON_ARC)
 {
-$DB_PASS = "1234";
+$DB_PASS = "root.letusout!";
 }
 else if($SERVER == $ON_PORTABLE)
 {
-$DB_PASS = "1234";
+$DB_PASS = "root.letusout!";
 }
 
 if(isset($_SESSION['username']))
