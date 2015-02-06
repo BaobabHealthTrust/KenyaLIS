@@ -15815,11 +15815,17 @@ class API
 	public function get_patient_specimen_details($patient_id){
 		$patient = API::get_patient($patient_id);
 
-		$specimen_query = "SELECT * FROM specimen_activity_log sal
+		$specimen_query = "SELECT s.session_num AS accession_number,
+						  (SELECT )
+ 						FROM specimen_activity_log sal
 							INNER JOIN specimen s ON s.patient_id = $patient_id
 												  AND s.specimen_id = sal.specimen_id
 						  ";
-		$test_query = "SELECT * FROM specimen_activity_logl sal
+		$test_query = "SELECT (SELECT session_num FROM specimen WHERE specimen_id = t.specimen_id) AS accession_number,
+ 							(SELECT name FROM test_type WHERE test_type_id = t.test_type_id) AS test_type,
+ 							 (SELECT name FROM specimen_activity WHERE state_id = sal.state_id) AS state,
+ 							 sal.date
+						FROM specimen_activity_logl sal
 							INNER JOIN test t ON t.patient_id = $patient_id
 												  AND t.test_i = sal.test_id
 						  ";
@@ -15827,6 +15833,18 @@ class API
 		$s_activity_logs = query_associative_all($specimen_query);
 		$t_activity_logs = query_associative_all($test_query);
 
+		if (!$s_activity_logs && !$t_activity_logs){
+
+			return false;
+		}
+
+		foreach ($s_activity_logs as $log){
+
+		}
+
+		foreach ($t_activity_logs as $log){
+
+		}
 	}
 
     public function get_test_catalog()
