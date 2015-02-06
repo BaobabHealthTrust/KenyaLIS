@@ -15711,7 +15711,7 @@ class API
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Collected'  LIMIT 1),
 							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
 
-		 $activity_state = query_insert_one($insert_query2);
+		 $activity_state2 = query_insert_one($insert_query2);
 		//send a json response
 		
 		$t_name = query_associative_one("SELECT name FROM test_type 
@@ -15831,53 +15831,29 @@ class API
 							INNER JOIN specimen s ON s.patient_id = $patient_id
 												  AND s.specimen_id = sal.specimen_id
 						  ";
-		$test_query = "SELECT (SELECT session_num FROM specimen WHERE specimen_id = t.specimen_id) AS accession_number,
- 							(SELECT name FROM test_type WHERE test_type_id = t.test_type_id) AS test_type,
- 							 (SELECT name FROM specimen_activity WHERE state_id = sal.state_id) AS state,
- 							 sal.date, sal.location AS department, sal.doctor AS doctor
-						FROM specimen_activity_log sal
-							INNER JOIN test t ON t.patient_id = $patient_id
-												  AND t.test_i = sal.test_id
-						  ";
+
 
 		$s_activity_logs = query_associative_all($specimen_query);
-		$t_activity_logs = query_associative_all($test_query);
-		$logs = array();
 
-		if (!$s_activity_logs && !$t_activity_logs){
-
+			$logs = array();
 			foreach ($s_activity_logs AS $activity){
+
 				if (!array_key_exists($activity['accession_number'] , $logs)){
 					$logs[$activity['accession_number']] = array();
 				}
+
 				$temp = array();
-				$key = "Processing in ".$activity['department']." department";
+				$key = $activity['department'];
 				$value = array(
 					"date" => $activity['date'],
 					"status" => $activity['state'],
 					"doctor" => $activity['doctor'],
-					"test_type" => $activity['test_type']
+					"sample_type" => $activity['sample_name']
 				);
 				$temp[$key] = $value;
-				array_push($temp, $logs[$activity['accession_number']]);
+				array_push($logs[$activity['accession_number']], $temp);
 			}
 
-			foreach ($t_activity_logs as $activity){
-				if (!array_key_exists($activity['accession_number'] , $logs)){
-					$logs[$activity['accession_number']] = array();
-				}
-				$temp = array();
-				$key = "Processing in ".$activity['department']." department";
-				$value = array(
-					"date" => $activity['date'],
-					"status" => $activity['state'],
-					"doctor" => $activity['doctor'],
-					"sample_name" => $activity['sample_name']
-				);
-				$temp[$key] = $value;
-				array_push($temp, $logs[$activity['accession_number']]);
-			}
-		}
 		return $logs;
 	}
 
