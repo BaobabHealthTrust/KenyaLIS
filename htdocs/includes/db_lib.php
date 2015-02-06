@@ -2841,7 +2841,7 @@ $query_string = "SELECT description FROM rejection_reasons WHERE ".implode(' OR 
 				return LangUtil::$generalTerms['REF_RETURNED'];
 				break;
 			case Specimen::$STATUS_REJECTED:
-				return ('Specimen Rejected');
+				return ('Rejected');
 				//return LangUtil::$generalTerms['REJECTED'];
 				break;
 			case Specimen::$STATUS_STARTED:
@@ -16153,7 +16153,7 @@ class API
     	$query_string = "SELECT (SELECT `name` from patient where patient_id = s.patient_id) AS patient_name, 
 									specimen_id,status_code_id, session_num, doctor, 
 									concat(date_collected, ' ' , time_collected) as collected_datetime  ,
-								(SELECT GROUP_CONCAT(`name` SEPARATOR ', ') AS tests from test_type where test_type_id in 
+								(SELECT GROUP_CONCAT(COALESCE(test_code,`name`) SEPARATOR ', ') AS tests from test_type where test_type_id in
 								(select test_type_id from test where specimen_id = s.specimen_id) $department_condition 
 								) AS tests
 						FROM specimen as s $status_condition HAVING patient_name IS NOT NULL AND tests IS NOT NULL";
