@@ -15706,6 +15706,12 @@ class API
 							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
 							
 		$activity_state = query_insert_one($insert_query);
+
+		 $insert_query2 = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
+							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Collected'  LIMIT 1),
+							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
+
+		 $activity_state = query_insert_one($insert_query2);
 		//send a json response
 		
 		$t_name = query_associative_one("SELECT name FROM test_type 
