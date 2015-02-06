@@ -37,7 +37,7 @@ header('Content-Type: text/html; charset=UTF-8');
 <!-- BEGIN HEAD -->
 <head>
   <meta charset="utf-8" />
-  <title>BLIS <?php echo $VERSION; ?> - Kenya</title>
+  <title>BLIS <?php echo $VERSION; ?> - Malawi</title>
   <meta content="" name="description" />
   <meta content="" name="author" />
   <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
