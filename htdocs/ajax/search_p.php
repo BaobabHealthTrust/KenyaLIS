@@ -47,7 +47,10 @@ else
 }
 $patient_list = array();
 # Fetch list from DB
-if($a == 0)
+if($a == ""){
+	$patient_list = search_all_patients();
+}
+else if($a == 0)
 {
 	# Fetch by patient ID
 	$patient_list = search_patients_by_id($q);
