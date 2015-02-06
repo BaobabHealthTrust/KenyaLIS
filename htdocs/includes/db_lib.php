@@ -15814,7 +15814,6 @@ class API
 		return  $record;
 	}
 
-
 	public function get_patient_specimen_details($patient_id){
 		$patient = API::get_patient($patient_id);
 
