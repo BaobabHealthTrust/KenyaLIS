@@ -15716,19 +15716,22 @@ class API
 	}
 	
 	public function update_order($record, $accession_number, $test_type_name){
-		$state = 'Tested'; //$record['location'];
-		$location = 'Microbiology'; //$record['location'];
-		$doctor = 'Mvalre'; //$record['doctor'];
-		$date = date; //$record['date'];
-		$reason = 'MEemem'; //$record['reason'];
+		$state = $record['location'];
+		$location = $record['location'];
+		$doctor = $record['doctor'];
+		$date = $record['date'];
+		$reason = $record['reason'];
 		$user_id = $_SESSION['user_id'];
-		$result = 'Negative'; //$record['result'];
-		$comments = '-'; //$record['comments'];
-		$record['date'] = date;
+		$result = $record['result'];
+		$comments = $record['comments'];
 
 		//Update specimen
 		$query_specimen = "SELECT * FROM specimen WHERE session_num = '$accession_number'";
 		$specimen = query_associative_one($query_specimen);
+
+		if (!$specimen){
+			return false;
+		}
 
 		$patient = API::get_patient($specimen['patient_id']);
 		$hash_value = $patient->generateHashValue();
