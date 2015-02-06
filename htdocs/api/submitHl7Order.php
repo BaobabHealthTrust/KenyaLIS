@@ -1,7 +1,7 @@
 <?php
 
-include("../includes/Net/HL7/Message.php");
-include("../includes/Net/HL7/Types/Types.php");
+include("Net/HL7/Message.php");
+include("Net/HL7/Types/Types.php");
 
 
 # parse an OML_O21 message
@@ -12,8 +12,11 @@ if(!isset($_REQUEST['hl7']))
     return;
 }
 
+
+// WHEN DONE WITH TESTING UNCOMMENT THIS LINE
 //$omlString=$_REQUEST['hl7'];
 
+// WHEN DONE WITH TESTING COMMENT OUT THIS LINE
 $omlString="MSH|^~&||KCH^2.16.840.1.113883.3.5986.2.15^ISO||KCH^2.16.840.1.113883.3.5986.2.15^ISO|20150126145826||OML^O21^OML_O21|20150126145826|T|2.5\rPID|1||P17000012293||Doe^John^Q^Jr||19641004|M\rORC||||||||||1^Super^User|||^^^^^^^^MEDICINE||||||||KCH\rTQ1|1||||||||S\rOBR|1|||626-2^MICROORGANISM IDENTIFIED:PRID:PT:THRT:NOM:THROAT CULTURE^LOINC^78335^Throat Culture^L|||20150126145826||||||Rule out diagnosis|||439234^Moyo^Chris\rSPM|1|||THRT^Throat\r";
 
 $omlMsg = new Net_HL7_Message($omlString);
@@ -39,28 +42,28 @@ $facilitySiteCode = $omlMsg->getSegmentByName("ORC")->getField(21);
 
 
 
+// COMMENT OUT THE FOLLOWING LINES WHEN DONE TESTING
 echo "Sending Facility: " . $sendingFacility ."<br/>\n";
 echo "Receiving Facility: " . $receivingFacility ."<br/>\n";
 echo "Patient ID: " . $patientId ."<br/>\n";
 echo "Patient Name:" . $patientName . "<br/>\n";
 echo "Date of Birth: " . $patientDateOfBirth . "<br/>\n";
 echo "Gender: " . $gender . "<br\>\n";
-
-
 echo "Message Type: " . $messageType . "<br/>\n";
 echo "Processing ID: " . $processingId . "<br/>\n";
 echo "Lab ID / Accession Number: " . $labAccessionNumber . "<br/>\n";
 echo "Type of Sample: " . $typeOfSample . "<br/>\n";
-
 echo "Priority: " . $priority . "<br/>\n";
 echo "EntererName: " . $enterer . "<br/>\n";
 echo "Enterer's Location: " .$entererLocation . "<br/>\n";
-
 echo "Test Code: " . $testCode . "<br/>\n";
 echo "Timestamp of when sample collected: " . $sampleTimeStamp . "<br/>\n";
 echo "Reason test performed: " . $reasonPerformed . "<br/>\n";
 echo "Who ordered the test: " . $orderer . "<br/>\n";
 echo "Health Facility Site Code and Name: " . $facilitySiteCode . "<br/>\n";
+
+
+// ADD YOUR DATABASE CREATE ORDER CODE HERE USING THE VARIABLES ABOVE
 
 
 ?>

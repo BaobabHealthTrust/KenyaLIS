@@ -1271,6 +1271,18 @@ class TestType
 		return TestType::getObject($record);
 	}
 	
+	public static function getByLoincCode($code)
+	{
+	
+		# Returns test type record in DB
+		global $con;
+		$test_type_id = mysql_real_escape_string($code, $con);		
+		$query_string =
+			"SELECT * FROM test_type WHERE loinc_code='$code' LIMIT 1";
+		$record = query_associative_one($query_string);
+		return TestType::getObject($record);
+	}
+	
 	public function getMeasures()
 	{
 		# Returns list of measures included in a test type
@@ -1351,20 +1363,7 @@ class TestType
 		DbUtil::switchRestore($saved_db);
 		
 		return $retVal['name'];
-	}
-
-	public static function getIdByName($name)
-	{
-		$query_string = "SELECT test_type_id as id FROM `test_type` WHERE `name` = '$name'";
-		
-		$saved_db = DbUtil::switchToLabConfig($_SESSION['lab_config_id']);
-
-		$retVal = query_associative_one($query_string);
-
-		DbUtil::switchRestore($saved_db);
-		
-		return $retVal['id'];
-	}
+	}	
 
 	public static function getSpecimenIdByTestName($test_id)
 	{
@@ -1380,6 +1379,30 @@ class TestType
 	}
 
 
+}
+
+
+class TestMeasure{
+	public $test_measure_id;
+	public $test_id;
+	public $lab_no;
+	public $measure_id;
+	public $result;
+	
+	
+	public static function getObject($record)
+	{
+		# Converts a test_measure record in DB into a TestMeasure object
+		if($record == null)
+			return null;
+		
+		$test_measure = new TestMeasure();
+		$test_measure->test_measure_id = $record['tm_id'];
+		$test_measure->test_id = $record['tm_id'];
+		$test_measure->lab_no = $record['lab_no'];
+		$test_measure->measure_id = $record['measure_id'];
+		$test_measure->result = $record['result'];
+	}
 }
 
 class SpecimenType
@@ -1512,7 +1535,8 @@ class SpecimenType
 		DbUtil::switchRestore($saved_db);
 		
 		return $retVal['name'];
-	}
+	}	
+
 }
 
 class TestCategory
@@ -2732,6 +2756,16 @@ class Specimen
 			$specimen->ts_collected = null;
 		return $specimen;
 	}
+	
+   public static function getIdByName($name)
+	{
+		
+		$query_string = "SELECT specimen_type_id FROM specimen_type WHERE name = '$name'";
+		
+		$retVal = query_associative_one($query_string);
+	
+		return $retVal['specimen_type_id'];
+	}
 	public function getSpecimenCollector()
 	{
 		# Get whether patient is New or Referral
@@ -2784,6 +2818,44 @@ $query_string = "SELECT description FROM rejection_reasons WHERE ".implode(' OR 
 			echo "-";
 		else
 			echo $this->auxId;
+	}
+	public function readable_status($code){
+	
+		switch($code)
+		{
+			case Specimen::$STATUS_PENDING:
+				return LangUtil::$generalTerms['PENDING_RESULTS'];
+				break;
+			case Specimen::$STATUS_DONE:
+				return LangUtil::$generalTerms['DONE'];
+				break;
+			case Specimen::$STATUS_REFERRED:
+				return LangUtil::$generalTerms['REF_OUT'];
+				break;
+			case Specimen::$STATUS_TOVERIFY:
+				return LangUtil::$generalTerms['PENDING_VER'];
+				break;
+			case Specimen::$STATUS_REPORTED:
+				break;
+			case Specimen::$STATUS_RETURNED:
+				return LangUtil::$generalTerms['REF_RETURNED'];
+				break;
+			case Specimen::$STATUS_REJECTED:
+				return ('Specimen Rejected');
+				//return LangUtil::$generalTerms['REJECTED'];
+				break;
+			case Specimen::$STATUS_STARTED:
+				return LangUtil::$generalTerms['STARTED'];
+				break;
+			case Specimen::$STATUS_NOT_COLLECTED:
+				return LangUtil::$generalTerms['NOT_COLLECTED'];
+				break;
+			case Specimen::$STATUS_TOVERIFY:
+				return LangUtil::$generalTerms['TO_VERIFY'];
+				break;
+			case Specimen::$STATUS_VERIFIED:
+				break;
+		}
 	}
 	
 	public function getStatus()
@@ -6588,6 +6660,30 @@ function check_patient_id($pid)
 		return true;
 }
 
+function get_patient_by_npid($pid){
+
+	global $con;	
+	$pid = mysql_real_escape_string($pid, $con);
+	query_blind("Use blis_revamp;");
+	# Searches for patients with similar PID
+	$query_string = 
+		"SELECT * FROM patient ".
+		"WHERE surr_id='$pid'".
+		"ORDER BY ts DESC LIMIT 1";
+	$resultset = query_associative_all($query_string);
+	
+	$patient;
+	if(count($resultset) > 0)
+	{
+		foreach($resultset as $record)
+		{		
+			$patient = Patient::getObject($record);
+			break;
+		}
+	}	
+	return $patient;
+}
+
 function get_patient_by_sp_id($sid)
 {
 	global $con;
@@ -6734,6 +6830,25 @@ function search_all_pending_external_requests(){
    }//end for Kapsabet
     return $patient_list;
 
+}
+
+function search_all_patients(){
+	global $con;
+	
+	$query_string = 
+		"SELECT * FROM patient ".		
+		"ORDER BY ts DESC";
+		
+	$resultset = query_associative_all($query_string, $row_count);
+	$patient_list = array();
+	if(count($resultset) > 0)
+	{
+		foreach($resultset as $record)
+		{
+			$patient_list[] = Patient::getObject($record);
+		}
+	}
+	return $patient_list;
 }
 
 function search_patients_by_id($q)
@@ -7504,7 +7619,26 @@ function add_test($test, $testId=null)
 		$auditTrail->logAddTest();	
 	}
 	
-	return $last_insert-id;
+	return $last_insert_id;
+}
+
+function add_test_measure($test_measure, $test_measure_id=null)
+{	
+	$query_string =
+	"INSERT INTO test_measure ( test_id, lab_no, measure_id, result) ".
+	"VALUES ( $test_measure->test_id, '$test_measure->lab_no', $test_measure->measure_id, '$test_measure->result')";
+	$result = query_insert_one($query_string);
+	$last_insert_id = get_last_insert_id();
+	
+	if($result){
+		//Add event to audit trail
+		$auditTrail = new AuditTrail();
+		$auditTrail->tablename = "test_measure";
+		$auditTrail->objectid = $last_insert_id;
+		$auditTrail->logAddTest();
+	}
+
+	return $last_insert_id;
 }
 
 function add_test_random($test)
@@ -10582,7 +10716,7 @@ function get_compatible_test_types($lab_config_id, $specimen_type_id)
 	global $con;
 	$lab_config_id = mysql_real_escape_string($lab_config_id, $con);
 	$specimen_type_id = mysql_real_escape_string($specimen_type_id, $con);
-	$saved_db = DbUtil::switchToLabConfigRevamp($lab_config_id);
+	//$saved_db = DbUtil::switchToLabConfigRevamp($lab_config_id);
 	$query_string = 
 		"SELECT tt.* FROM test_type tt, lab_config_test_type lctt, specimen_test st ".
 		"WHERE tt.test_type_id=lctt.test_type_id ".
@@ -10597,7 +10731,7 @@ function get_compatible_test_types($lab_config_id, $specimen_type_id)
 	{
 		$retval[] = TestType::getObject($record);
 	}
-	DbUtil::switchRestore($saved_db);
+	//DbUtil::switchRestore($saved_db);
 	return $retval;
 }
 
@@ -15467,6 +15601,370 @@ class API
          return 1;
     }
     
+    public static function getpatientVisitNumber($surr_id, $labno)
+    {
+    	$query_string =
+    	"SELECT patientVisitNumber FROM external_lab_request
+    		WHERE patient_id = '$surr_id' and labNo = '$labno'";
+    	$saved_db = DbUtil::switchToGlobal();
+    	$resultset = query_associative_one($query_string, $row_count);
+    	DbUtil::switchRestore($saved_db);
+    	$retval = $resultset['patientVisitNumber'];
+    	return $retval;
+    }
+    
+     public function create_order($record){
+    	$specimen;
+    	$specimen_id;    	
+    	$patient = get_patient_by_npid($record['nationalID']);
+    	$accession_number;
+    	if (!$patient){
+    	
+			$date_receipt = date("Y-m-d H:i:s");
+			$patient = new Patient();
+			
+			$patient->addlId = null;
+			$patient->name =$record['patientName'];
+			$patient->clinician =  $record['whoOrderedTest'];
+			$patient->dob = $record['dateOfBirth'];
+			$patient->age = 0;
+			$patient->sex = $record['gender'];
+			$patient->regDate= $record['timestampForSpecimenCollection'];
+			$patient->surrogateId = $record['nationalID'];
+			$patient->createdBy = 53;
+			$patient->from_external_system = true;
+			$patient = add_patient($patient);
+			$patient = get_patient_by_npid($record['nationalID']);
+    	}    	   	
+    	
+    	$patient_id = $patient->patientId;
+    	
+    	if (!$accession_number){
+			$time = strtotime($record['timestampForSpecimenCollection']);
+			
+			$specimen = new Specimen();
+			$specimen->sessionNum = get_session_number();
+			$specimen->specimenId = bcadd(get_max_specimen_id(), 1); 
+			$specimen->dateCollected = date('Y-m-d',$time);
+			$specimen->timeCollected = date('H:i', $time); 
+			$specimen->dateRecvd = date("Y-m-d"); 
+			$specimen->patientId = $patient_id;
+			
+			$specimen->specimenTypeId = Specimen::getIdByName($record['typeOfSample']);
+			$specimen->comments = '';
+			$specimen->userId = 53;
+			$specimen->auxId = 0;
+			$specimen->statusCodeId = 8;
+			$specimen->dailyNum = get_daily_number();
+			$specimen->external_lab_no= $record['healthFacilitySiteCodeAndName'];
+			$specimen->referredToName = '';
+			$specimen->referredTo = 0; 
+			$specimen->reportTo = '0'; 
+			$specimen->doctor = $record['whoOrderedTest'];			
+			$specimen_id = add_specimen($specimen);
+			$accession_number = $specimen->sessionNum;
+			$record['accessionNumber'] = $accession_number;
+		}else{
+			$spec_query = "SELECT * FROM specimen WHERE session_num = '".$accession_number."' LIMIT 1";
+			$resultset = query_associative_one($spec_query);
+			
+			if ($resultset != null && $resultset != 1){
+				$specimen = $resultset;
+				$specimen_id = $specimen['specimen_id'];
+			}
+		}
+				
+		$patient = get_patient_by_id($patient_id);
+    	$test = new Test();
+    	$test_type_id = TestType::getByLoincCode($record['testCode'])->testTypeId;
+		$test->specimenId = $specimen_id;
+		$test->testTypeId = $test_type_id;
+		$test->comments = ""; 
+		$test->userId = 53; //from
+		$test->result = "";		
+		$ex = API::getExternalParentLabNo($patient->surrogateId,  get_test_name_by_id($test->testTypeId));
+		$test->patientVisitNumber = API::getpatientVisitNumber($patient->surrogateId, 0);
+		$test_id = add_test($test);
+	
+		#Get Test Measures and create Test Measure and insert into new Test_measure table. (new method)
+	
+		$test_type = TestType::getById($test->testTypeId);
+		$measures = $test_type->getMeasures();	
+		if ($test_id!=null){
+			foreach ($measures as $measure){
+				$test_measure = new TestMeasure();
+				$test_measure->test_id = $test_id;
+				$test_measure->measure_id = $measure->measureId;
+				$test_measure->lab_no = API::getExternalLabNo($patient->surrogateId, $measure->name);
+				$test_measure->result="";			
+				add_test_measure($test_measure);			
+			}
+		}
+		
+		$insert_query = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
+							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Ordered'  LIMIT 1), 
+							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
+							
+		$activity_state = query_insert_one($insert_query);
+		//send a json response
+		
+		$t_name = query_associative_one("SELECT name FROM test_type 
+										WHERE test_type_id = $test_type_id LIMIT 1"); 							
+		$record['testName'] = $t_name['name'];
+	
+		return $record;
+	}
+	
+	public function update_order($record, $accession_number, $test_type_name){
+		$state = $record['location'];
+		$location = $record['location'];
+		$doctor = $record['doctor'];
+		$date = $record['date'];
+		$reason = $record['reason'];
+		$user_id = $_SESSION['user_id'];
+		$result = $record['result'];
+		$comments = $record['comments'];
+
+		//Update specimen
+		$query_specimen = "SELECT * FROM specimen WHERE session_num = '$accession_number'";
+		$specimen = query_associative_one($query_specimen);
+
+		if (!$specimen){
+			return false;
+		}
+
+		$patient = API::get_patient($specimen['patient_id']);
+		$hash_value = $patient->generateHashValue();
+		$result_with_hash_value = $result.','.$hash_value;
+
+		$query_test = "SELECT * FROM test WHERE specimen_id = ".$specimen['specimen_id'].
+			" AND test_type_id = (SELECT test_type_id FROM test_type WHERE name = '$test_type_name' LIMIT 1)";
+		$test = query_associative_one($query_test);
+
+		if (!$specimen || !$test){
+					return false;
+		}
+
+		$specimen_id = $specimen['specimen_id'];
+
+		$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location)
+							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
+							$specimen_id, $date, $user_id, '$doctor', '$location' )";
+		$specimen_activity_log = query_insert_one($query_update_activity_log);
+
+		$specimen_status_code_id = Specimen::$STATUS_PENDING;
+		$test_status_code_id = Specimen::$STATUS_PENDING;
+
+		switch ($state) {
+			case 'Received':
+				$specimen_status_code_id = Specimen::$STATUS_PENDING;
+				$test_status_code_id = Specimen::$STATUS_PENDING;
+        		break;
+			case 'Collected':
+				$specimen_status_code_id =  Specimen::$STATUS_PENDING;
+				$test_status_code_id =  Specimen::$STATUS_PENDING;
+        		break;
+			case 'Testing':
+				$specimen_status_code_id =  Specimen::$STATUS_PENDING;
+				$test_status_code_id = Specimen::$STATUS_STARTED;
+        		break;
+			case 'Rejected':
+				$specimen_status_code_id =  Specimen::$STATUS_REJECTED;
+				$test_status_code_id = Specimen::$STATUS_REJECTED;
+				break;
+			case 'Disposed':
+				$specimen_status_code_id =  Specimen::$STATUS_DONE;
+				$test_status_code_id = Specimen::$STATUS_DONE;
+				break;
+			case 'Tested':
+				$specimen_status_code_id = Specimen::$STATUS_TOVERIFY;
+				$test_status_code_id = Specimen::$STATUS_TOVERIFY;
+				break;
+			case 'Verified':
+				$specimen_status_code_id = Specimen::$STATUS_TOVERIFY;
+				$test_status_code_id = Specimen::$STATUS_VERIFIED;
+				break;
+			default:
+				$specimen_status_code_id = $specimen['status_code_id'];
+				$test_status_code_id =  Specimen::$STATUS_PENDING;
+		}
+
+		$update_specimen_query = "UPDATE specimen SET ts = NOW(), status_code_id = $specimen_status_code_id WHERE specimen_id = $specimen_id";
+		$specimen = query_update($update_specimen_query);
+
+		$update_test_query = "UPDATE test SET ts = NOW(), status_code_id = $test_status_code_id WHERE test_id = ".$test['test_id'];
+		$test_update = query_update($update_test_query);
+
+		if ($test_status_code_id == Specimen::$STATUS_TOVERIFY){
+			//Update results
+			$update_test_query = "UPDATE test SET result = '".$result_with_hash_value."' , ts_result_entered = NOW() WHERE test_id = ".$test['test_id'];
+			$test = query_update($update_test_query);
+		}else if ($test_status_code_id == Specimen::$STATUS_REJECTED){
+			//update rejection attributes
+
+		}else if ($test_status_code_id == Specimen::$STATUS_STARTED){
+			//update started datetime and other attributes
+			$update_test_query = "UPDATE test SET ts_started = ".$record['date']." WHERE test_id = ".$test['test_id'];
+			$test = query_update($update_test_query);
+		}
+
+		//return updated $record parameters
+		$record['accession_number'] = $accession_number;
+		$record['test_type_name'] = $test_type_name;
+		return  $record;
+	}
+
+	public function get_patient_specimen_details($patient_id){
+		$patient = API::get_patient($patient_id);
+
+		$specimen_query = "SELECT s.session_num AS accession_number,
+						  (SELECT name FROM specimen_type WHERE specimen_type_id = s.specimen_type_id) AS sample_name,
+						  (SELECT name FROM specimen_activity WHERE state_id = sal.state_id) AS state,
+						   sal.date AS date, sal.location AS department, sal.doctor AS doctor
+ 						FROM specimen_activity_log sal
+							INNER JOIN specimen s ON s.patient_id = $patient_id
+												  AND s.specimen_id = sal.specimen_id
+						  ";
+		$test_query = "SELECT (SELECT session_num FROM specimen WHERE specimen_id = t.specimen_id) AS accession_number,
+ 							(SELECT name FROM test_type WHERE test_type_id = t.test_type_id) AS test_type,
+ 							 (SELECT name FROM specimen_activity WHERE state_id = sal.state_id) AS state,
+ 							 sal.date, sal.location AS department, sal.doctor AS doctor
+						FROM specimen_activity_log sal
+							INNER JOIN test t ON t.patient_id = $patient_id
+												  AND t.test_i = sal.test_id
+						  ";
+
+		$s_activity_logs = query_associative_all($specimen_query);
+		$t_activity_logs = query_associative_all($test_query);
+		$logs = array();
+
+		if (!$s_activity_logs && !$t_activity_logs){
+
+			foreach ($s_activity_logs AS $activity){
+				if (!array_key_exists($activity['accession_number'] , $logs)){
+					$logs[$activity['accession_number']] = array();
+				}
+				$temp = array();
+				$key = "Processing in ".$activity['department']." department";
+				$value = array(
+					"date" => $activity['date'],
+					"status" => $activity['state'],
+					"doctor" => $activity['doctor'],
+					"test_type" => $activity['test_type']
+				);
+				$temp[$key] = $value;
+				array_push($temp, $logs[$activity['accession_number']]);
+			}
+
+			foreach ($t_activity_logs as $activity){
+				if (!array_key_exists($activity['accession_number'] , $logs)){
+					$logs[$activity['accession_number']] = array();
+				}
+				$temp = array();
+				$key = "Processing in ".$activity['department']." department";
+				$value = array(
+					"date" => $activity['date'],
+					"status" => $activity['state'],
+					"doctor" => $activity['doctor'],
+					"sample_name" => $activity['sample_name']
+				);
+				$temp[$key] = $value;
+				array_push($temp, $logs[$activity['accession_number']]);
+			}
+		}
+		return $logs;
+	}
+
+    public function get_test_catalog()
+    {
+        global $CATALOG_TRANSLATION;
+        if($_SESSION['level'] < 2 || $_SESSION['level'] > 4)
+        {
+            $user = get_user_by_id($_SESSION['user_id']);
+            $lab_config_id = $user->labConfigId;
+        }
+	
+        if($lab_config_id == null)
+            {
+                $lab_config_id = get_lab_config_id_admin($_SESSION['user_id']);
+            }
+		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
+	$query_ttypes =
+		"SELECT test_type_id, name FROM test_type WHERE disabled=0 ORDER BY name";
+		
+	$query_ttypes =
+		"SELECT s_type.specimen_type_id AS specimen_id, s_type.name AS specimen_name, 
+				t_type.test_type_id AS test_type_id, t_type.name AS test_type_name,
+				t_type.loinc_code AS loinc_code, t_type.test_code AS test_code
+		FROM specimen_test s_test
+			INNER JOIN specimen_type s_type ON s_test.specimen_type_id = s_type.specimen_type_id
+			INNER JOIN test_type t_type ON s_test.test_type_id = t_type.test_type_id 
+		WHERE s_type.disabled = 0 AND t_type.disabled = 0
+		";
+	
+	$specimen_query = "SELECT distinct name AS name, specimen_type_id AS specimen_id FROM specimen_type WHERE disabled = 0";
+	$resultset = query_associative_all($query_ttypes, $row_count);	
+	$specimens = query_associative_all($specimen_query, $row_count);
+		
+	$retval = array();	
+	foreach($specimens as $spec){
+			//$retval[$spec['specimen_id'].'|'.$spec['name']] = array();
+	}
+
+	
+	if($resultset) {
+		foreach($resultset as $record)
+		{		
+			$key = $record['specimen_id'].'|'.$record['specimen_name'];
+			$name;
+						
+			if($CATALOG_TRANSLATION === true){				
+			
+				$name = LangUtil::getTestName($record['test_type_name']);				
+			}else{		
+				$name = $record['test_type_name'];
+			}
+		
+			$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];	
+			
+			$test_type_id = $record['test_type_id'];
+			$containers_query = "SELECT (select name FROM container_type 
+				 WHERE id = tc.container_type_id) AS name
+				 FROM test_type_container_type tc WHERE tc.test_type_id = $test_type_id";
+		
+		    $containerset = query_associative_all($containers_query);
+		    
+		    if ($containerset)
+		    {
+		    	$str = "";
+				foreach($containerset as $container)
+				{
+						if ($str == "")
+							$str = $container['name'];
+						else 
+							$str = $str.'/'.$container['name'];
+				}
+				$name = $name.'|'.$str;
+		    }	
+			
+			if (!isset($retval[$key])){
+					$retval[$key] = array();				
+			}
+			
+			array_push($retval[$key], $name);									
+		}
+	}	
+	
+	DbUtil::switchRestore($saved_db);
+        $catalog = $retval;
+        if(count($catalog) > 0)
+                $ret = $catalog;
+             else
+                $ret = 0;
+            
+        return $ret;
+    }    
+    
     public function search_patients($by, $str)
     {
         //by 1 = name, 2 = id, 3 = number
@@ -15620,42 +16118,88 @@ class API
         return $ret;
     }
     
-    
-    public function get_test_catalog()
-    {
-        global $CATALOG_TRANSLATION;
-        if($_SESSION['level'] < 2 || $_SESSION['level'] > 4)
-        {
-            $user = get_user_by_id($_SESSION['user_id']);
-            $lab_config_id = $user->labConfigId;
-        }
+    public function get_specimen_details($params){
+    	/*
+    		This method pulls all specimens filtered by 
+    		department and status. Main target was for dashboard display
+    		By: Kenneth Kapundi, Date: 29 Jan, 2015
+    	*/
+    	
+    	$date = $params['date'];
+    	$department = $params['department'];
+    	$status = $params['status'];
+    	if ($status){
+	    	$status_condition = "WHERE status_code_id = $status";
+    	}
+    	else {
+	    	$status_condition = "";
+    	}
 
-            if($lab_config_id == null)
-            {
-                $lab_config_id = get_lab_config_id_admin($_SESSION['user_id']);
-            }
-		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
-	$query_ttypes =
-		"SELECT test_type_id, name FROM test_type WHERE disabled=0 ORDER BY name";
-	$resultset = query_associative_all($query_ttypes, $row_count);
-	$retval = array();
-	if($resultset) {
-		foreach($resultset as $record)
-		{
-			if($CATALOG_TRANSLATION === true)
-				$retval[$record['test_type_id']] = LangUtil::getTestName($record['test_type_id']);
-			else
-				$retval[$record['test_type_id']] = $record['name'];
-		}
-	}
-	DbUtil::switchRestore($saved_db);
-        $catalog = $retval;
-        if(count($catalog) > 0)
-                $ret = $catalog;
-             else
-                $ret = 0;
-             
-        return $ret;
+    	if ($department){
+	    	$department_condition = "AND test_type_id in (SELECT test_type_id from test_type 
+										where test_category_id = (select test_category_id 
+										from test_category where name = '$department'))";
+    	}
+    	else {
+    		$department_condition = "";
+    	}
+    	    	
+    	$query_string = "SELECT (SELECT `name` from patient where patient_id = s.patient_id) AS patient_name, 
+									specimen_id,status_code_id, session_num, doctor, 
+									concat(date_collected, ' ' , time_collected) as collected_datetime  ,
+								(SELECT GROUP_CONCAT(`name` SEPARATOR ', ') AS tests from test_type where test_type_id in 
+								(select test_type_id from test where specimen_id = s.specimen_id) $department_condition 
+								) AS tests
+						FROM specimen as s $status_condition HAVING patient_name IS NOT NULL AND tests IS NOT NULL";
+    	
+    	$resultset = query_associative_all($query_string);
+    	
+    	$result = array();
+    	
+    	if ($resultset){
+    		foreach($resultset as $record){
+    			$sub = array();
+    			$sub['accession_number'] = $record['session_num'];		
+    			$sub['date_collected'] = $record['collected_datetime'];
+    			$sub['status'] = Specimen::readable_status($record['status_code_id']);
+    			$sub['patient_name'] = $record['patient_name'];
+    			$sub['doctor'] = $record['doctor'];	
+    			$sub['test_name'] = $record['tests'];
+    			array_push($result, $sub);	
+    		}
+    	}
+    	
+    	return $result;
+    }
+    
+    
+    public function get_specimen_details2($params){
+    	/*
+    		This method pulls all specimens filtered by 
+    		department and status. Main target was for dashboard display
+    		By: Kenneth Kapundi, Date: 29 Jan, 2015
+    	*/
+    	
+    	$date = $params['date'];
+    	$department = $params['dept'];
+    	$status = $params['status'];
+    	$query_string = 'SELECT * FROM specimen LIMIT 10';
+    	$resultset = query_associative_all($query_string);
+    	$result = array();
+    	
+    	if ($resultset){
+    		foreach($resultset as $record){
+    			$sub = array();
+    			$sub['accession_number'] = "record['accession_number']";		
+    			$sub['date_collected'] = "record['date_collected']";
+    			$sub['status'] = "Specimen::readable_status(record['status_code_id'])";
+    			$sub['patient_name'] = "record['name']";
+    			$sub['test_name'] = "record['name']";	
+    			array_push($result, $sub);	
+    		}
+    	}
+    	
+    	return $result;
     }
     
     
