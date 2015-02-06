@@ -19,7 +19,7 @@ if(!$debug){
   
 } else {
 
-  $request = "MSH|^~&||KCH^2.16.840.1.113883.3.5986.2.15^ISO||KCH^2.16.840.1.113883.3.5986.2.15^ISO|20150205215555||ORU^R01^ORU_R01|20150205215555|T|2.5.1\nPID|1||P700809902584||Test Patient ||19660101|M\nPV1|\nORC||||||||||1^Super^User|||^^^^^^^^MEDICINE||||||||KCH\nTQ1|1||||||||R^Routine^HL70485\nOBR|1|||Sputum Tb microscopy^Sputum Tb microscopy^LOINC|||20150205215555||||||Rule out diagnosis|||439234^Moyo^Chris\nOBX|1|CE|263^Sputum Tb microscopy^ISO||^Present||||||F|||20150205215555||439234^Moyo^Chris|||20150205215555||||KCH Laboratory|^^Lilongwe^^^Malawi|Limula^Henry\nSPM|1|||Sputum^Sputum";
+  $request = "MSH|^~&||KCH^2.16.840.1.113883.3.5986.2.15^ISO||KCH^2.16.840.1.113883.3.5986.2.15^ISO|20150205215555||ORU^R01^ORU_R01|20150205215555|T|2.5.1\nPID|1||P700809902584||Test Patient ||19660101|M\nPV1|\nORC||||||||||1^Super^User|||^^^^^^^^MEDICINE||||||||KCH\nTQ1|1||||||||R^Routine^HL70485\nOBR|1|||Sputum Tb microscopy^Sputum Tb microscopy^LOINC|||20150205215555||||||Rule out diagnosis|||439234^Moyo^Chris|||||||||Tested\nOBX|1|CE|263^Sputum Tb microscopy^ISO||^Present||||||F|||20150205215555||439234^Moyo^Chris|||20150205215555||||KCH Laboratory|^^Lilongwe^^^Malawi|Limula^Henry\nSPM|1|||Sputum^Sputum";
   
 }
 
@@ -96,10 +96,12 @@ $testName = $obr[0]->getField(4)[1];
 
 $result = $obx[0]->getField(5);
 
+$state = $obr[0]->getField(25);
+
 $comments = null;
 
 $record = array(
-  "state" => 'Tested',
+  "state" => $state,
   "location" => $enterersLocation,
   "doctor" => $whoOrderedTest,
   "date" => $messageDatetime,
