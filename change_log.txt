@@ -1,0 +1,28 @@
+Added an external order entry API -
+	*This API creates orders from an Hl7 message. 
+	*All orders made from external applications other than BLIS have to send an Hl7 message to this API.
+	*Works with valid user credentials, username and password using basic http aunthentication.
+
+Added test catalog API - 
+	*Maps sample/specimen type to compatible test types.
+	*Test types pulled with their corresponding test codes and loinc codes.
+	*An administrator can use BLIS to configure how specimen types map to corresponding sample types.
+	*Works with valid user credentials, username and password using basic http aunthentication.
+	
+Updated schema with custom tables to track specimen activity logs. 
+	*'specimen activity' table to keep static specimen/test possible states e.g collected, tested.
+	*'specimen_activity_log' to keep history of specimen/test state changes.
+	
+04-Jan-2015 : 05-Jan-2015
+ Cleaned database and added only relevant initial data.
+	*Removed patients and patient data e.g tests and specimens. 
+	*Added new test catalog ~ Specimen types and test types as per KCH lab specifications.
+	*Added new sample test type mapping for the new catalog.
+	*Added loinc table with a list of test types and loinc standards. Downloaded from loinc.org website.
+	*Fixed configuration issues arising due to baseline data changes.
+	
+06-Jan-2015
+Added a state management API to update states and related attributes.
+	*API expects to receive new state and other parameters extracted from an Hl7 message.
+	*Works with valid user credentials, username and password using basic http aunthentication.
+	

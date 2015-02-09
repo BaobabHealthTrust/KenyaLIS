@@ -10405,10 +10405,45 @@ function get_session_number()
 	return $returnValue;
 }
 
+function get_accession_number()
+{
+	# Generate the next accession number for specimen registration
+
+	$max_acc_num;
+	$return_value;
+	$sentinel = 999999;
+
+	$code_query = "SELECT facility_code FROM lab_config WHERE lab_config_id =
+	(SELECT lab_config_id FROM user WHERE user_id = ".$_SESSION['user_id'].")";
+
+	$user_lab = query_associative_one($code_query);
+
+	$code = $user_lab['facility_code'];
+
+	$query_string =
+		"SELECT * FROM specimen ORDER BY ts DESC LIMIT 1";
+		
+	$record = query_associative_one($query_string);
+
+	if($record != null){
+		$max_acc_num = (int)substr($record['accession_number'], 3);
+
+		if ($max_acc_num < $sentinel){
+			$max_acc_num += 1;
+		}else{
+			$max_acc_num = 1;
+		}
+	}else{
+		$max_acc_num = 1;
+	}
+
+	$return_value = $code.$max_acc_num;
+	return $return_value;
+}
+
 function get_session_current_number()
 {
-
-$today = date("Ymd");
+	$today = date("Ymd");
 	$query_string =
 		"SELECT * FROM specimen_session ".
 		"WHERE session_num='$today'";
@@ -15631,7 +15666,7 @@ class API
 			$patient->sex = $record['gender'];
 			$patient->regDate= $record['timestampForSpecimenCollection'];
 			$patient->surrogateId = $record['nationalID'];
-			$patient->createdBy = 53;
+			$patient->createdBy = $_SESSION['user_id'];
 			$patient->from_external_system = true;
 			$patient = add_patient($patient);
 			$patient = get_patient_by_npid($record['nationalID']);
@@ -15644,6 +15679,7 @@ class API
 			
 			$specimen = new Specimen();
 			$specimen->sessionNum = get_session_number();
+			$specimen->accession_number = get_accession_number();
 			$specimen->specimenId = bcadd(get_max_specimen_id(), 1); 
 			$specimen->dateCollected = date('Y-m-d',$time);
 			$specimen->timeCollected = date('H:i', $time); 
@@ -15652,7 +15688,7 @@ class API
 			
 			$specimen->specimenTypeId = Specimen::getIdByName($record['typeOfSample']);
 			$specimen->comments = '';
-			$specimen->userId = 53;
+			$specimen->userId = $_SESSION['user_id'];
 			$specimen->auxId = 0;
 			$specimen->statusCodeId = 8;
 			$specimen->dailyNum = get_daily_number();
@@ -15662,7 +15698,7 @@ class API
 			$specimen->reportTo = '0'; 
 			$specimen->doctor = $record['whoOrderedTest'];			
 			$specimen_id = add_specimen($specimen);
-			$accession_number = $specimen->sessionNum;
+			$accession_number = $specimen->accessionNumber;
 			$record['accessionNumber'] = $accession_number;
 		}else{
 			$spec_query = "SELECT * FROM specimen WHERE session_num = '".$accession_number."' LIMIT 1";
@@ -15680,7 +15716,7 @@ class API
 		$test->specimenId = $specimen_id;
 		$test->testTypeId = $test_type_id;
 		$test->comments = ""; 
-		$test->userId = 53; //from
+		$test->userId = $_SESSION['user_id'];
 		$test->result = "";		
 		$ex = API::getExternalParentLabNo($patient->surrogateId,  get_test_name_by_id($test->testTypeId));
 		$test->patientVisitNumber = API::getpatientVisitNumber($patient->surrogateId, 0);
@@ -15831,28 +15867,55 @@ class API
 							INNER JOIN specimen s ON s.patient_id = $patient_id
 												  AND s.specimen_id = sal.specimen_id
 						  ";
+		$test_query = "SELECT (SELECT session_num FROM specimen WHERE specimen_id = t.specimen_id) AS accession_number,
+ 							(SELECT name FROM test_type WHERE test_type_id = t.test_type_id) AS test_type,
+ 							 (SELECT name FROM specimen_activity WHERE state_id = sal.state_id) AS state,
+ 							 sal.date, sal.location AS department, sal.doctor AS doctor
+						FROM specimen_activity_log sal
 
+							INNER JOIN test t ON t.test_id = sal.test_id
+							INNER JOIN specimen s ON s.specimen_id = t.specimen_id
+								AND s.patient_id = $patient_id;
+						  ";
 
 		$s_activity_logs = query_associative_all($specimen_query);
 
-			$logs = array();
-			foreach ($s_activity_logs AS $activity){
+		$t_activity_logs = query_associative_all($test_query);
 
-				if (!array_key_exists($activity['accession_number'] , $logs)){
-					$logs[$activity['accession_number']] = array();
-				}
+		$logs = array();
+		foreach ($s_activity_logs AS $activity){
 
-				$temp = array();
-				$key = $activity['department'];
-				$value = array(
-					"date" => $activity['date'],
-					"status" => $activity['state'],
-					"doctor" => $activity['doctor'],
-					"sample_type" => $activity['sample_name']
-				);
-				$temp[$key] = $value;
-				array_push($logs[$activity['accession_number']], $temp);
+			if (!array_key_exists($activity['accession_number'] , $logs)){
+				$logs[$activity['accession_number']] = array();
 			}
+
+			$temp = array();
+			$key = $activity['department'];
+			$value = array(
+				"date" => $activity['date'],
+				"status" => $activity['state'],
+				"doctor" => $activity['doctor'],
+				"sample_type" => $activity['sample_name']
+			);
+			$temp[$key] = $value;
+			array_push($logs[$activity['accession_number']], $temp);
+		}
+
+		foreach ($t_activity_logs as $activity){
+			if (!array_key_exists($activity['accession_number'] , $logs)){
+				$logs[$activity['accession_number']] = array();
+			}
+			$temp = array();
+			$key = $activity['department'];
+			$value = array(
+				"date" => $activity['date'],
+				"status" => $activity['state'],
+				"doctor" => $activity['doctor'],
+				"test_type" => $activity['test_type']
+			);
+			$temp[$key] = $value;
+			array_push($temp, $logs[$activity['accession_number']]);
+		}
 
 		return $logs;
 	}
