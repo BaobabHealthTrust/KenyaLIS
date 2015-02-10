@@ -15652,7 +15652,7 @@ class API
     	$specimen;
     	$specimen_id;    	
     	$patient = get_patient_by_npid($record['nationalID']);
-    	$accession_number;
+    	$accession_number = $record['accessionNumber'];
     	if (!$patient){
     	
 			$date_receipt = date("Y-m-d H:i:s");
@@ -15679,7 +15679,7 @@ class API
 			
 			$specimen = new Specimen();
 			$specimen->sessionNum = get_session_number();
-			$specimen->accession_number = get_accession_number();
+			$specimen->accessionNumber = get_accession_number();
 			$specimen->specimenId = bcadd(get_max_specimen_id(), 1); 
 			$specimen->dateCollected = date('Y-m-d',$time);
 			$specimen->timeCollected = date('H:i', $time); 
@@ -15701,7 +15701,7 @@ class API
 			$accession_number = $specimen->accessionNumber;
 			$record['accessionNumber'] = $accession_number;
 		}else{
-			$spec_query = "SELECT * FROM specimen WHERE session_num = '".$accession_number."' LIMIT 1";
+			$spec_query = "SELECT * FROM specimen WHERE accession_number = '".$accession_number."' LIMIT 1";
 			$resultset = query_associative_one($spec_query);
 			
 			if ($resultset != null && $resultset != 1){
@@ -15725,7 +15725,7 @@ class API
 		#Get Test Measures and create Test Measure and insert into new Test_measure table. (new method)
 	
 		$test_type = TestType::getById($test->testTypeId);
-		$measures = $test_type->getMeasures();	
+		$measures = $test_type->getMeasures();
 		if ($test_id!=null){
 			foreach ($measures as $measure){
 				$test_measure = new TestMeasure();
@@ -15736,7 +15736,7 @@ class API
 				add_test_measure($test_measure);			
 			}
 		}
-		
+
 		$insert_query = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Ordered'  LIMIT 1), 
 							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
@@ -15768,7 +15768,7 @@ class API
 		$comments = $record['comments'];
 
 		//Update specimen
-		$query_specimen = "SELECT * FROM specimen WHERE session_num = '$accession_number'";
+		$query_specimen = "SELECT * FROM specimen WHERE accession_number = '$accession_number'";
 		$specimen = query_associative_one($query_specimen);
 
 		if (!$specimen){
@@ -15784,14 +15784,22 @@ class API
 		$test = query_associative_one($query_test);
 
 		if (!$specimen || !$test){
-					return false;
+			return false;
 		}
 
 		$specimen_id = $specimen['specimen_id'];
+		$test_id = $test['test_id'];
 
-		$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location)
+		if (!in_array($state, array('Testing', 'Tested', 'Verified'))){
+			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
 							$specimen_id, $date, $user_id, '$doctor', '$location' )";
+		}else{
+			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, test_id, `date`, user_id, doctor, location)
+							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
+							$test_id, $date, $user_id, '$doctor', '$location' )";
+		}
+
 		$specimen_activity_log = query_insert_one($query_update_activity_log);
 
 		$specimen_status_code_id = Specimen::$STATUS_PENDING;
@@ -15859,7 +15867,7 @@ class API
 	public function get_patient_specimen_details($patient_id){
 		$patient = API::get_patient($patient_id);
 
-		$specimen_query = "SELECT s.session_num AS accession_number,
+		$specimen_query = "SELECT s.accession_number AS accession_number,
 						  (SELECT name FROM specimen_type WHERE specimen_type_id = s.specimen_type_id) AS sample_name,
 						  (SELECT name FROM specimen_activity WHERE state_id = sal.state_id) AS state,
 						   sal.date AS date, sal.location AS department, sal.doctor AS doctor
@@ -15867,7 +15875,7 @@ class API
 							INNER JOIN specimen s ON s.patient_id = $patient_id
 												  AND s.specimen_id = sal.specimen_id
 						  ";
-		$test_query = "SELECT (SELECT session_num FROM specimen WHERE specimen_id = t.specimen_id) AS accession_number,
+		$test_query = "SELECT (SELECT accession_number FROM specimen WHERE specimen_id = t.specimen_id) AS accession_number,
  							(SELECT name FROM test_type WHERE test_type_id = t.test_type_id) AS test_type,
  							 (SELECT name FROM specimen_activity WHERE state_id = sal.state_id) AS state,
  							 sal.date, sal.location AS department, sal.doctor AS doctor
