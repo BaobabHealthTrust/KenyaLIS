@@ -15743,14 +15743,17 @@ class API
 							
 		$activity_state = query_insert_one($insert_query);
 
-		 $insert_query2 = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
+		$insert_query2 = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Collected'  LIMIT 1),
 							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
 
-		 $activity_state2 = query_insert_one($insert_query2);
-		//send a json response
-		
-		$t_name = query_associative_one("SELECT name FROM test_type 
+		$activity_state2 = query_insert_one($insert_query2);
+
+		//update timestamp for specimen collection
+		$specimen_update_query = "UPDATE specimen SET ts_collected = NOW() WHERE specimen_id = $specimen_id";
+		$updated_specimen = query_update($specimen_update_query);
+
+		 $t_name = query_associative_one("SELECT name FROM test_type
 										WHERE test_type_id = $test_type_id LIMIT 1"); 							
 		$record['testName'] = $t_name['name'];
 	
@@ -16198,7 +16201,7 @@ class API
     	}
     	    	
     	$query_string = "SELECT (SELECT `name` from patient where patient_id = s.patient_id) AS patient_name, 
-									specimen_id,status_code_id, session_num, doctor, 
+									specimen_id,status_code_id, accession_number, doctor,
 									concat(date_collected, ' ' , time_collected) as collected_datetime  ,
 								(SELECT GROUP_CONCAT(COALESCE(test_code,`name`) SEPARATOR ', ') AS tests from test_type where test_type_id in
 								(select test_type_id from test where specimen_id = s.specimen_id) $department_condition 
@@ -16212,11 +16215,11 @@ class API
     	if ($resultset){
     		foreach($resultset as $record){
     			$sub = array();
-    			$sub['accession_number'] = $record['session_num'];		
+    			$sub['accession_number'] = $record['accession_number'];
     			$sub['date_collected'] = $record['collected_datetime'];
     			$sub['status'] = Specimen::readable_status($record['status_code_id']);
     			$sub['patient_name'] = $record['patient_name'];
-    			$sub['doctor'] = $record['doctor'];	
+    			$sub['doctor'] = $record['doctor'];
     			$sub['test_name'] = $record['tests'];
     			array_push($result, $sub);	
     		}

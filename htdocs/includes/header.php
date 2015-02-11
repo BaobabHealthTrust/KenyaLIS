@@ -264,6 +264,16 @@ if(strpos($_SERVER['PHP_SELF'], 'login.php') === false)
 								</a>
 							</li>
 							<li>
+								<a href='javascript:load_right_pane(".$quote."test_panels_div".$quote.");' class='menu_option' id='test_panels_div_menu'>
+								<i class='icon-tag'></i> Test Panels
+								</a>
+							</li>
+							<li>
+								<a href='javascript:load_right_pane(".$quote."test_container_types_div".$quote.");' class='menu_option' id='test_container_types_div_menu'>
+								<i class='icon-tag'></i> Test Container Types
+								</a>
+							</li>
+							<li>
 								<a href='javascript:load_right_pane(".$quote."specimen_types_div".$quote.");' class='menu_option' id='specimen_types_div_menu'>
 								<i class='icon-tag'></i> ".LangUtil::$generalTerms['SPECIMEN_TYPES']."
 								</a>
