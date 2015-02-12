@@ -79,7 +79,36 @@ $page_elems->getTestTypeTable($_SESSION['lab_config_id']); ?>
 		</div>
 		</div>
 	</div>
-	
+
+	<div id='test_container_types_div' class='content_div'>
+		<div class="portlet box green">
+			<div class="portlet-title">
+				<h4><i class="icon-reorder"></i><?php echo
+					"Test Container Types"; ?></h4>
+				<div class="tools">
+					<a href="javascript:;"
+					   class="collapse"></a>
+
+				</div>
+			</div>
+			<div class="portlet-body">
+				<p style="text-align: right;"><a rel='facebox'
+												 href='#TestType_tc'>Page Help</a></p>
+
+				<br><br>
+				<div id='tdel_msg' class='clean-orange'
+					 style='display:none;'>
+					<?php echo
+					LangUtil::$generalTerms['MSG_DELETED']; ?>&nbsp;&nbsp;<a
+						href="javascript:toggle('tdel_msg');"><?php echo
+						LangUtil::$generalTerms['CMD_HIDE']; ?></a>
+				</div>
+				<?php
+				$page_elems->getTestContainerTypeTable($_SESSION['lab_config_id']); ?>
+			</div>
+		</div>
+	</div>
+
 	<div id='specimen_types_div' class='content_div'>
 	<div class="portlet box green">
 		<div class="portlet-title">
@@ -362,6 +391,8 @@ $(document).ready(function(){
 	$('div.content_div').hide();
 	$('#test_types_div').hide();
 	$('#specimen_types_div').hide();
+	$('#test_panels_div').hide();
+	$('#test_container_types_div').hide();
 	$('#test_categories_div').hide();
 	$('#specimen_rejection_div').hide();
 	$('#<?php echo $dialog_id; ?>').show();
@@ -378,9 +409,15 @@ $(document).ready(function(){
 		load_right_pane('specimen_types_div');
 		<?php
 	}
-	else if(isset($_REQUEST['show_tc']))
+	else if(isset($_REQUEST['show_tct']))
 	{
 		?>
+	load_right_pane('test_container_types_div');
+	<?php
+	}
+	else if(isset($_REQUEST['show_tc']))
+	{
+    ?>
 		load_right_pane('test_categories_div');
 		<?php
 	}

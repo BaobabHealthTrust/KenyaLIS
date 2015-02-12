@@ -473,7 +473,7 @@ class LabConfig
 		DbUtil::switchRestore($saved_db);
 		*/
 	}
-	
+
 	public function getTestTypeIds()
 	{
 		$saved_db = DbUtil::switchToLabConfigRevamp($this->id);
@@ -9380,6 +9380,19 @@ function get_specimen_types_catalog($lab_config_id=null, $reff=null)
 	return $retval;
 }
 
+function get_test_containers($test_type_id){
+
+	$query = "SELECT (SELECT name FROM container_type WHERE id = tc.container_type_id) AS name ".
+		"FROM test_type_container_type tc WHERE test_type_id = $test_type_id";
+	$resultset = query_associative_all($query);
+
+	$return_arr = array();
+	foreach($resultset AS $type){
+		array_push($return_arr, $type['name']);
+	}
+	return $return_arr;
+}
+
 function get_test_types_catalog($lab_config_id=null, $reff=null)
 {
 	# Returns a list of all test types available in catalog
@@ -9413,6 +9426,21 @@ function get_test_types_catalog($lab_config_id=null, $reff=null)
 	return $retval;
 }
 
+function get_container_types_catalog($lab_config_id=null, $reff=null)
+{
+
+	$query_ctypes = "SELECT id, name FROM container_type";
+	$resultset = query_associative_all($query_ctypes, $row_count);
+	$retval = array();
+	if($resultset) {
+		foreach($resultset as $record)
+		{
+				$retval[$record['id']] = $record['name'];
+		}
+	}
+
+	return $retval;
+}
 
 /******/
 function get_test_categories_catalog($lab_config_id=null, $reff=null)

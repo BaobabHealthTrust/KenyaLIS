@@ -1355,7 +1355,66 @@ $user=$_SESSION['user_id'];
 		</table>
 		<?php
 	}
-	
+
+	public function getTestContainerTypeTable($lab_config_id)
+	{
+		# Returns HTML table listing all test types in catalog
+		?>
+		<?php
+		$ttype_list = get_test_types_catalog($lab_config_id);
+		if(count($ttype_list) == 0)
+		{
+			echo "<div class='sidetip_nopos'>".LangUtil::$pageTerms['TIPS_TESTSNOTFOUND']."</div>";
+			return;
+		}
+		?>
+
+		<table id="sample_1" class='table table-striped table-condensed table-bordered table-hover' style="width: 100%;">
+			<thead>
+			<th>#</th>
+			<th><?php echo LangUtil::$generalTerms['TEST']; ?></th>
+			<th><?php echo "Compatible containers"; ?></th>
+			<th><?php echo "Action(s)"; ?></th>
+			<th></th>
+			</thead>
+			<tbody>
+			<?php
+			$count = 1;
+			foreach($ttype_list as $key => $value)
+			{
+				$test_type = get_test_type_by_id($key);
+				$cat_name = get_test_category_name_by_id($test_type->testCategoryId);
+				?>
+				<tr>
+					<td>
+						<?php echo $count; ?>.
+					</td>
+					<td>
+						<?php echo $value; ?>
+					</td>
+
+					<td>
+					<?php
+						$containers = get_test_containers($key);
+						echo implode('&nbsp;&nbsp, &nbsp', $containers);
+					?>
+					</td>
+
+					<td>
+						<a href='test_container_type_edit.php?tid=<?php echo $key; ?>' class="btn mini green-stripe" title='Click to Edit Test Info'><i class='icon-pencil'></i>  <?php echo LangUtil::$generalTerms['CMD_EDIT']; ?></a>
+
+					</td>
+
+				</tr>
+				<?php
+				$count++;
+			}
+			?>
+			</tbody>
+		</table>
+	<?php
+	}
+
 	public function getSpecimenTypeTable($lab_config_id)
 	{
 		# Returns HTML table listing all specimen types in catalog
@@ -5304,9 +5363,71 @@ public function getInfectionStatsTableAggregate($stat_list, $date_from, $date_to
 		</table>
 		<?php
 	}
-	
-        //NC3065
-        public function getTestTypeCheckboxes_dir($lab_config_id=null, $allCompatibleCheckingOn=true)
+
+	public function getTestContainerCheckboxes($test_type_id, $lab_config_id=null, $allCompatibleCheckingOn=true)
+	{
+
+		$lab_config = get_lab_config_by_id($lab_config_id);
+		if($lab_config == null && $lab_config_id != "")
+		{
+			?>
+			<div class='sidetip_nopos'>
+				ERROR: Lab configuration not found
+			</div>
+			<?php
+			return;
+		}
+
+		$reff = 1;
+		$containers_list = get_container_types_catalog($lab_config_id, $reff );
+	    $current_container_list = array();
+		$c_query = "SELECT tc.container_type_id FROM test_type_container_type tc WHERE tc.test_type_id = $test_type_id";
+		$rst = query_associative_all($c_query);
+
+		foreach($rst AS $rs){
+			array_push($current_container_list, $rs["container_type_id"]);
+		}
+
+		# For each container type, create a check box. Check it if container already mapped to test
+		?>
+		<table class='hor-minimalist-b' style='width:100%;'>
+			<tbody>
+			<tr>
+				<?php
+				$count = 0;
+				foreach($containers_list as $key=>$value)
+				{
+					$container_type_id = $key;
+					$container_name = $value;
+					$count++;
+					?>
+					<td  style='min-width: 200px !important' ><input type='checkbox' class='tcttype_entry' name='tct_type_<?php echo $key; ?>' id='tct_type_<?php echo $key; ?>'
+						<?php
+						if($allCompatibleCheckingOn==true) {
+							if(in_array($container_type_id, $current_container_list))
+							{
+								echo " checked ><span class='clean-ok'>$container_name</span>";
+							}
+							else
+								echo ">$container_name";
+						}
+						else
+							echo ">$container_name";
+						?>
+						</input></td>
+
+					<?php
+					if($count % 3 == 0)
+						echo "</tr><tr>";
+				}
+				?>
+			</tbody>
+		</table>
+	<?php
+	}
+
+	//NC3065
+	public function getTestTypeCheckboxes_dir($lab_config_id=null, $allCompatibleCheckingOn=true)
 	{
 		# Returns a set of checkboxes with existing test types checked, if allCompatibleCheckingOn is set to true,
 		# else only returns checkboxes with available test tpe names

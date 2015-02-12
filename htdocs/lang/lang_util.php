@@ -97,7 +97,7 @@ class LangUtil
 		}
 		return "[ERROR]";
 	}
-	
+
 	public static function getLabSectionName($test_category_id)
 	{
 		global $CATALOG_ARRAY;
