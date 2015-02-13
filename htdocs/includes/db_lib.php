@@ -7582,9 +7582,9 @@ function add_specimen($specimen)
 	# Adds a new specimen record in DB
 	$query_string = 
 		"INSERT INTO `specimen` ( specimen_id, patient_id, specimen_type_id, date_collected, date_recvd, user_id, status_code_id, referred_to, comments, aux_id, ".
-		"session_num, time_collected, report_to, doctor, referred_to_name, daily_num, external_lab_no,referral_facility_code ) VALUES ( $specimen->specimenId, $specimen->patientId, $specimen->specimenTypeId, ". 
+		"session_num, accession_number, time_collected, report_to, doctor, referred_to_name, daily_num, external_lab_no,referral_facility_code ) VALUES ( $specimen->specimenId, $specimen->patientId, $specimen->specimenTypeId, ".
 		"'$specimen->dateCollected', '$specimen->dateRecvd', $specimen->userId, $specimen->statusCodeId, $specimen->referredTo, '$specimen->comments', ".
-		"'$specimen->auxId', '$specimen->sessionNum', '$specimen->timeCollected', $specimen->reportTo, '$specimen->doctor', '$specimen->referredToName', '$specimen->dailyNum' , '$specimen->external_lab_no' ,'$specimen->referral_fac_code')";
+		"'$specimen->auxId', '$specimen->sessionNum', '$specimen->accessionNumber', '$specimen->timeCollected', $specimen->reportTo, '$specimen->doctor', '$specimen->referredToName', '$specimen->dailyNum' , '$specimen->external_lab_no' ,'$specimen->referral_fac_code')";
 	/*$query_string = 
 		"INSERT INTO `specimen` ( specimen_id, patient_id, specimen_type_id, date_collected, date_recvd, user_id, status_code_id, referred_to, comments, aux_id, ".
 		"session_num, time_collected, report_to, doctor, referred_to_name, daily_num) VALUES ( $specimen->specimenId, $specimen->patientId, $specimen->specimenTypeId, ". 
