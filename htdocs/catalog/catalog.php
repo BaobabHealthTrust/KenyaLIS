@@ -79,6 +79,38 @@ $page_elems->getTestTypeTable($_SESSION['lab_config_id']); ?>
 		</div>
 		</div>
 	</div>
+	<div id='test_panels_div' class='content_div'>
+		<div class="portlet box green">
+			<div class="portlet-title">
+				<h4><i class="icon-reorder"></i><?php echo
+					"Test Panels"; ?></h4>
+				<div class="tools">
+					<a href="javascript:;"
+					   class="collapse"></a>
+
+				</div>
+			</div>
+
+			<div class="portlet-body">
+				<p style="text-align: right;"><a rel='facebox'
+												 href='#TestPanel_tp'>Page Help</a></p>
+				<a href='javascript:add_panel();' class="btn
+blue-stripe" title='Click to Add a New Test Category'><i
+						class='icon-plus'></i> <?php echo LangUtil::$generalTerms['ADDNEW'];
+					?></a>
+				<br><br>
+				<div id='tdel_msg' class='clean-orange'
+					 style='display:none;'>
+					<?php echo
+					LangUtil::$generalTerms['MSG_DELETED']; ?>&nbsp;&nbsp;<a
+						href="javascript:toggle('tdel_msg');"><?php echo
+						LangUtil::$generalTerms['CMD_HIDE']; ?></a>
+				</div>
+				<?php
+				$page_elems->getTestpanelTable($_SESSION['lab_config_id']); ?>
+			</div>
+		</div>
+	</div>
 
 	<div id='test_container_types_div' class='content_div'>
 		<div class="portlet box green">
@@ -353,6 +385,24 @@ function add_section(){
 	);
 	
 }
+
+function add_panel(){
+	var el = jQuery('.portlet .tools a.reload').parents(".portlet");
+	App.blockUI(el);
+
+	var url = 'catalog/test_panel_new.php';
+	$('#form').html("");
+	var target_div = "form";
+	$("#"+ target_div).load(url,
+		{lab_config: "" },
+		function()
+		{
+			$('#'+target_div).modal('show');
+			App.unblockUI(el);
+		}
+	);
+
+}
 function add_phase(){
 	var el = jQuery('.portlet .tools a.reload').parents(".portlet");
 	App.blockUI(el);
@@ -413,6 +463,12 @@ $(document).ready(function(){
 	{
 		?>
 	load_right_pane('test_container_types_div');
+	<?php
+	}
+	else if(isset($_REQUEST['show_tp']))
+	{
+		?>
+	load_right_pane('test_panels_div');
 	<?php
 	}
 	else if(isset($_REQUEST['show_tc']))

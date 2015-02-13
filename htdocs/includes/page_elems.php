@@ -1382,8 +1382,7 @@ $user=$_SESSION['user_id'];
 			$count = 1;
 			foreach($ttype_list as $key => $value)
 			{
-				$test_type = get_test_type_by_id($key);
-				$cat_name = get_test_category_name_by_id($test_type->testCategoryId);
+
 				?>
 				<tr>
 					<td>
@@ -1396,7 +1395,7 @@ $user=$_SESSION['user_id'];
 					<td>
 					<?php
 						$containers = get_test_containers($key);
-						echo implode('&nbsp;&nbsp, &nbsp', $containers);
+						echo implode('<br />', $containers);
 					?>
 					</td>
 
@@ -1414,6 +1413,71 @@ $user=$_SESSION['user_id'];
 		</table>
 	<?php
 	}
+
+	public function getTestPanelTable($lab_config_id)
+	{
+		# Returns HTML table listing all test types in catalog
+		?>
+		<?php
+		$ttype_list = get_test_panels($lab_config_id);
+		//var_dump($ttype_list);
+		if(count($ttype_list) == 0)
+		{
+			echo "<div class='sidetip_nopos'>".LangUtil::$pageTerms['TIPS_TESTSNOTFOUND']."</div>";
+			return;
+		}
+		?>
+
+		<table id="sample_1" class='table table-striped table-condensed table-bordered table-hover' style="width: 100%;">
+			<thead>
+			<th>#</th>
+			<th><?php echo LangUtil::$generalTerms['TEST']; ?></th>
+			<th><?php echo "Child Test Types"; ?></th>
+			<th><?php echo "Action(s)"; ?></th>
+			<th></th>
+			<th></th>
+			</thead>
+			<tbody>
+			<?php
+			$count = 1;
+			foreach($ttype_list as $key => $value)
+			{
+
+				?>
+				<tr>
+					<td>
+						<?php echo $count; ?>.
+					</td>
+					<td>
+						<?php echo $value; ?>
+					</td>
+
+					<td>
+						<?php
+						$child_tests = get_panel_tests($key);
+						echo implode('<br />', $child_tests);
+						?>
+					</td>
+
+					<td>
+						<a href='test_panel_edit.php?tid=<?php echo $key; ?>' class="btn mini green-stripe" title='Click to Edit Test Info'><i class='icon-pencil'></i>  <?php echo LangUtil::$generalTerms['CMD_EDIT']; ?></a>
+
+					</td>
+
+					<td>
+						<a href='panel_delete.php?rp=<?php echo $key; ?>' class="btn mini red-stripe"><i class='icon-remove'></i> <?php echo LangUtil::$generalTerms['CMD_DELETE']; ?></a>
+					</td>
+
+				</tr>
+				<?php
+				$count++;
+			}
+			?>
+			</tbody>
+		</table>
+	<?php
+	}
+
 
 	public function getSpecimenTypeTable($lab_config_id)
 	{
@@ -5363,8 +5427,68 @@ public function getInfectionStatsTableAggregate($stat_list, $date_from, $date_to
 		</table>
 		<?php
 	}
+		public function getTestPanelCheckboxes($test_type_id, $lab_config_id=null, $allCompatibleCheckingOn=true)
+		{
+			$lab_config = get_lab_config_by_id($lab_config_id);
+			if($lab_config == null && $lab_config_id != "")
+			{
+				?>
+				<div class='sidetip_nopos'>
+					ERROR: Lab configuration not found
+				</div>
+				<?php
+				return;
+			}
 
-	public function getTestContainerCheckboxes($test_type_id, $lab_config_id=null, $allCompatibleCheckingOn=true)
+			$reff = 1;
+			$test_list = get_test_panel_candidates($lab_config_id, $reff );
+
+			$current_test_list = array();
+			if($lab_config_id != "")
+				$current_test_list = get_lab_config_panel_test_types($lab_config_id, $test_type_id);
+
+			# For each test type, create a check box. Check it if test already in lab configuration
+			?>
+			<table class='hor-minimalist-b' style='width:100%;'>
+				<tbody>
+				<tr>
+					<?php
+					$count = 0;
+					foreach($test_list as $key=>$value)
+					{
+						$test_type_id = $key;
+						$test_name = $value;
+						$count++;
+						?>
+						<td><input type='checkbox' class='tptype_entry' name='tp_type_<?php echo $key; ?>' id='tp_type_<?php echo $key; ?>'
+							<?php
+							if($allCompatibleCheckingOn==true) {
+								if(in_array($test_type_id, $current_test_list))
+								{
+
+									echo " checked ><span class='clean-ok'>$test_name</span>";
+
+								}
+								else
+									echo ">$test_name";
+							}
+							else
+								echo ">$test_name";
+							?>
+							</input></td>
+
+						<?php
+						if($count % 3 == 0)
+							echo "</tr><tr>";
+					}
+					?>
+				</tbody>
+			</table>
+		<?php
+		}
+
+
+		public function getTestContainerCheckboxes($test_type_id, $lab_config_id=null, $allCompatibleCheckingOn=true)
 	{
 
 		$lab_config = get_lab_config_by_id($lab_config_id);

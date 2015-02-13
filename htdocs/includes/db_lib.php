@@ -491,6 +491,25 @@ class LabConfig
 		return $retval;
 	}
 	
+	public function getPanelTestTypeIds($test_type_id)
+	{
+		$saved_db = DbUtil::switchToLabConfigRevamp($this->id);
+		# Returns a list of all panel test type IDs added to the lab configuration
+		$query_string =
+			"SELECT DISTINCT(tp.child_test_type_id) AS test_type_id FROM lab_config_test_type lt ".
+			"INNER JOIN test_panel tp ON lt.test_type_id = tp.child_test_type_id ".
+			"WHERE lab_config_id=$this->id AND parent_test_type_id = $test_type_id";
+		$resultset = query_associative_all($query_string, $row_count);
+		$retval = array();
+		foreach($resultset as $record)
+		{
+			$retval[] = $record['test_type_id'];
+		}
+		DbUtil::switchRestore($saved_db);
+
+		return $retval;
+	}
+	
 	public function getTestTypes()
 	{
 		$saved_db = DbUtil::switchToLabConfigRevamp($this->id);
@@ -9393,6 +9412,19 @@ function get_test_containers($test_type_id){
 	return $return_arr;
 }
 
+function get_panel_tests($test_type_id){
+
+	$query = "SELECT (SELECT name FROM test_type WHERE test_type_id = tp.child_test_type_id) AS name ".
+		"FROM test_panel tp WHERE parent_test_type_id = $test_type_id";
+	$resultset = query_associative_all($query);
+
+	$return_arr = array();
+	foreach($resultset AS $type){
+		array_push($return_arr, $type['name']);
+	}
+	return $return_arr;
+}
+
 function get_test_types_catalog($lab_config_id=null, $reff=null)
 {
 	# Returns a list of all test types available in catalog
@@ -9411,6 +9443,72 @@ function get_test_types_catalog($lab_config_id=null, $reff=null)
 		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
 	$query_ttypes =
 		"SELECT test_type_id, name FROM test_type WHERE disabled=0 ORDER BY name";
+	$resultset = query_associative_all($query_ttypes, $row_count);
+	$retval = array();
+	if($resultset) {
+		foreach($resultset as $record)
+		{
+			if($CATALOG_TRANSLATION === true)
+				$retval[$record['test_type_id']] = LangUtil::getTestName($record['test_type_id']);
+			else
+				$retval[$record['test_type_id']] = $record['name'];
+		}
+	}
+	DbUtil::switchRestore($saved_db);
+	return $retval;
+}
+
+function get_test_panel_candidates($lab_config_id=null, $reff=null)
+{
+	# Returns a list of all test types available in catalog
+	global $CATALOG_TRANSLATION;
+        //NC3065
+               // global $LIS_ADMIN, $LIS_SUPERADMIN, $LIS_COUNTRYDIR;
+        if($reff == 1 && $reff != 2)
+        {
+            $user = get_user_by_id($_SESSION['user_id']);
+            $lab_config_id = $user->labConfigId;
+        }
+        //-NC3065
+	if($lab_config_id == null)
+		return;
+	//else
+		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
+	$query_ttypes =
+		"SELECT test_type_id, name FROM test_type WHERE COALESCE(is_panel, 0) = 0 AND disabled=0 ORDER BY name";
+	$resultset = query_associative_all($query_ttypes, $row_count);
+	$retval = array();
+	if($resultset) {
+		foreach($resultset as $record)
+		{
+			if($CATALOG_TRANSLATION === true)
+				$retval[$record['test_type_id']] = LangUtil::getTestName($record['test_type_id']);
+			else
+				$retval[$record['test_type_id']] = $record['name'];
+		}
+	}
+	DbUtil::switchRestore($saved_db);
+	return $retval;
+}
+
+function get_test_panels($lab_config_id=null, $reff=null)
+{
+	# Returns a list of all test types available in catalog
+	global $CATALOG_TRANSLATION;
+        //NC3065
+               // global $LIS_ADMIN, $LIS_SUPERADMIN, $LIS_COUNTRYDIR;
+        if($reff == 1 && $reff != 2)
+        {
+            $user = get_user_by_id($_SESSION['user_id']);
+            $lab_config_id = $user->labConfigId;
+        }
+        //-NC3065
+	if($lab_config_id == null)
+		return;
+	//else
+		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
+	$query_ttypes =
+		"SELECT test_type_id, name FROM test_type WHERE COALESCE(is_panel, 0) = 1 AND disabled=0 ORDER BY name";
 	$resultset = query_associative_all($query_ttypes, $row_count);
 	$retval = array();
 	if($resultset) {
@@ -10805,6 +10903,15 @@ function get_lab_config_test_types($lab_config_id, $to_global=false)
 	$lab_config_id = mysql_real_escape_string($lab_config_id, $con);
 	$lab_config = LabConfig::getById($lab_config_id);
 	return $lab_config->getTestTypeIds();
+}
+
+function get_lab_config_panel_test_types($lab_config_id, $test_type_id, $to_global=false)
+{
+	## Moved to LabConfig::getTestTypeIds();
+	global $con;
+	$lab_config_id = mysql_real_escape_string($lab_config_id, $con);
+	$lab_config = LabConfig::getById($lab_config_id);
+	return $lab_config->getPanelTestTypeIds($test_type_id);
 }
 
 function get_lab_config_specimen_types($lab_config_id, $to_global=false)
