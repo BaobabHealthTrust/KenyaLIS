@@ -1465,7 +1465,7 @@ $user=$_SESSION['user_id'];
 					</td>
 
 					<td>
-						<a href='panel_delete.php?rp=<?php echo $key; ?>' class="btn mini red-stripe"><i class='icon-remove'></i> <?php echo LangUtil::$generalTerms['CMD_DELETE']; ?></a>
+						<a href='test_panel_delete.php?tpid=<?php echo $key; ?>' class="btn mini red-stripe"><i class='icon-remove'></i> <?php echo LangUtil::$generalTerms['CMD_DELETE']; ?></a>
 					</td>
 
 				</tr>
