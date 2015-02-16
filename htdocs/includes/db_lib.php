@@ -16001,7 +16001,31 @@ class API
 		$record['test_type_name'] = $test_type_name;
 		return  $record;
 	}
-
+	
+	function get_state_count($state, $date){
+		
+		"SELECT COUNT(*) AS count
+			FROM specimen sp
+				INNER JOIN test t ON t.specimen_id = sp.specimen_id
+				INNER JOIN specimen_activity_log sl ON (sl.specimen_id = sp.specimen_id OR sl.test_id = t.test_id)
+					AND sl.activity_state_id = 
+						(SELECT sl2.activity_state_id FROM specimen_activity_log sl2
+							WHERE sl2.specimen_id = sl.specimen_id 
+								OR sl.test_id = sl2.test_id ORDER BY sl2.activity_state_id DESC LIMIT 1)
+		WHERE state_id = (SELECT state_id FROM specimen_activity WHERE name = '$state') AND DATE(ts) <= DATE('$date')"
+	}
+	
+	function get_dashboard_stats($date){
+		
+		$result = array();
+		$states = array('Ordered', 'Drawn', 'Testing', 'Tested', 'Received In Lab',
+						'Received In Dept', 'Verified', 'Rejected', 'Disposed');
+		
+		foreach ($states AS $state){
+			$result[$state] = get_state_count($state, $date);
+		}
+	}
+	
 	public function get_patient_specimen_details($patient_id){
 		$patient = API::get_patient($patient_id);
 
