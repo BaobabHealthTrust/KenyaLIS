@@ -15879,7 +15879,7 @@ class API
 		$activity_state = query_insert_one($insert_query);
 
 		$insert_query2 = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
-							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Collected'  LIMIT 1),
+							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Drawn'  LIMIT 1),
 							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
 
 		$activity_state2 = query_insert_one($insert_query2);
@@ -15944,11 +15944,15 @@ class API
 		$test_status_code_id = Specimen::$STATUS_PENDING;
 
 		switch ($state) {
-			case 'Received':
+			case 'Received At Reception':
 				$specimen_status_code_id = Specimen::$STATUS_PENDING;
 				$test_status_code_id = Specimen::$STATUS_PENDING;
         		break;
-			case 'Collected':
+			case 'Received In Department':
+				$specimen_status_code_id = Specimen::$STATUS_PENDING;
+				$test_status_code_id = Specimen::$STATUS_PENDING;
+				break;
+			case 'Drawn':
 				$specimen_status_code_id =  Specimen::$STATUS_PENDING;
 				$test_status_code_id =  Specimen::$STATUS_PENDING;
         		break;
@@ -15969,6 +15973,10 @@ class API
 				$test_status_code_id = Specimen::$STATUS_TOVERIFY;
 				break;
 			case 'Verified':
+				$specimen_status_code_id = Specimen::$STATUS_TOVERIFY;
+				$test_status_code_id = Specimen::$STATUS_VERIFIED;
+				break;
+			case 'Reviewed':
 				$specimen_status_code_id = Specimen::$STATUS_TOVERIFY;
 				$test_status_code_id = Specimen::$STATUS_VERIFIED;
 				break;
