@@ -15990,6 +15990,11 @@ class API
 
 		$update_test_query = "UPDATE test SET ts = NOW(), status_code_id = $test_status_code_id WHERE test_id = ".$test['test_id'];
 		$test_update = query_update($update_test_query);
+		
+		if ($state == 'Testing'){
+			$update_test_query = "UPDATE test SET ts_started = NOW() WHERE test_id = ".$test['test_id'];
+			$test_update = query_update($update_test_query);
+		}
 
 		if ($test_status_code_id == Specimen::$STATUS_TOVERIFY){
 			//Update results
@@ -16010,9 +16015,36 @@ class API
 		return  $record;
 	}
 	
-	function get_state_count($state, $date){
+	public function get_dashboard_stats($date){
 		
-		"SELECT COUNT(*) AS count
+		$result = array();
+		
+		foreach (query_associative_all("SELECT name FROM specimen_activity") AS $st){
+		
+			$result[$st['name']] = API::get_state_count($st['name'], $date);
+		}
+		
+		$response = array();
+		$response['states'] = $result;
+		$response['avg_tat_in_min'] = API::get_average_turn_around_time($date);
+		return $response;
+	}
+	
+	public function get_average_turn_around_time($date){
+		
+		
+		return (int)query_associative_one("SELECT AVG(TIME_TO_SEC(TIMEDIFF((SELECT MAX(date) FROM specimen_activity_log sl WHERE sl.specimen_id = sp.specimen_id
+	OR sl.test_id = t.test_id),
+		(SELECT MIN(date) FROM specimen_activity_log sl WHERE sl.specimen_id = sp.specimen_id
+	OR sl.test_id = t.test_id)))/60) AS average
+	FROM specimen sp 
+	INNER JOIN test t ON sp.specimen_id = t.specimen_id
+	WHERE DATE(sp.ts_collected) <= DATE('$date')")['average'];	
+	}
+	
+	public function get_state_count($state, $date){
+		
+		$query = "SELECT COUNT(*) AS count
 			FROM specimen sp
 				INNER JOIN test t ON t.specimen_id = sp.specimen_id
 				INNER JOIN specimen_activity_log sl ON (sl.specimen_id = sp.specimen_id OR sl.test_id = t.test_id)
@@ -16020,18 +16052,10 @@ class API
 						(SELECT sl2.activity_state_id FROM specimen_activity_log sl2
 							WHERE sl2.specimen_id = sl.specimen_id 
 								OR sl.test_id = sl2.test_id ORDER BY sl2.activity_state_id DESC LIMIT 1)
-		WHERE state_id = (SELECT state_id FROM specimen_activity WHERE name = '$state') AND DATE(ts) <= DATE('$date')"
-	}
-	
-	function get_dashboard_stats($date){
+		WHERE state_id = (SELECT state_id FROM specimen_activity WHERE name = '$state') AND DATE(sl.date) <= DATE('$date')";
 		
-		$result = array();
-		$states = array('Ordered', 'Drawn', 'Testing', 'Tested', 'Received In Lab',
-						'Received In Dept', 'Verified', 'Rejected', 'Disposed');
-		
-		foreach ($states AS $state){
-			$result[$state] = get_state_count($state, $date);
-		}
+		$result = query_associative_one($query);
+		return $result['count'];
 	}
 	
 	public function get_patient_specimen_details($patient_id){
