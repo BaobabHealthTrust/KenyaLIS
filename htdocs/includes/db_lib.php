@@ -16150,8 +16150,58 @@ class API
 					$retval[$key] = array();				
 			}
 			
-			array_push($retval[$key], $name);									
+			$retval[$key][$name] = array();
+			
+			$panels_query = "SELECT tp.child_test_type_id AS test_type_id, 
+								(SELECT name FROM test_type WHERE test_type_id = tp.child_test_type_id)  AS test_type_name,
+								(SELECT loinc_code FROM test_type WHERE test_type_id = tp.child_test_type_id)  AS loinc_code,
+								(SELECT test_code FROM test_type WHERE test_type_id = tp.child_test_type_id)  AS test_code
+							FROM test_type tt
+								INNER JOIN test_panel tp ON tt.test_type_id = tp.parent_test_type_id AND tp.disabled = 0
+								WHERE tt.is_panel = 1 AND tp.parent_test_type_id = $test_type_id";
+			
+			$rset = query_associative_all($panels_query);
+				
+			
+			if ($rset && count($rset) > 0){
+				
+				foreach ($rset AS $precord){
+					
+					$pname;
+					if($CATALOG_TRANSLATION === true){			
+						$pname = LangUtil::getTestName($precord['test_type_name']);				
+					}else{						
+						$pname = $precord['test_type_name'];
+					}
+					
+					$pname = $precord['test_type_id'].'|'.$pname.'|'.$precord['loinc_code'].'|'.$precord['test_code'];
+					
+					$ptest_type_id = $precord['test_type_id'];
+					$pcontainers_query = "SELECT (select name FROM container_type 
+					 WHERE id = tc.container_type_id) AS name
+					 FROM test_type_container_type tc WHERE tc.test_type_id = $ptest_type_id";
+		
+	    			$pcontainerset = query_associative_all($pcontainers_query);
+	    			
+	    			if ($pcontainerset)
+					{
+						$pstr = "";
+						foreach($pcontainerset as $pcontainer)
+						{
+								if ($pstr == "")
+									$pstr = $pcontainer['name'];
+								else 
+									$pstr = $pstr.'/'.$pcontainer['name'];
+						}
+						$pname = $pname.'|'.$pstr;
+						array_push($retval[$key][$name], $pname);
+					}
+	    			
+				}
+			}				
+													
 		}
+		return $retval;
 	}	
 	
 	DbUtil::switchRestore($saved_db);
