@@ -19,14 +19,14 @@
       }
       
     // Expects calls made as: /api/remote_calls?action=by_session_num&id=ACCESSION_NUMBER
-    } else if($_REQUEST['action'] == 'by_session_num') {  
+    } else if($_REQUEST['action'] == 'by_accession_num') {  
     
       if(!isset($_REQUEST['id'])) {
           echo -2;
           return;
       } else {
       
-        getBySessionNum($_REQUEST["id"]);
+       getByAccessionNum($_REQUEST["id"]);
         
         return;
       
@@ -57,9 +57,9 @@
     
   }
   
-  function getBySessionNum($q){
+  function getByAccessionNum($q){
   
-    $specimens = search_specimens_by_session_exact($q);
+    $specimens = search_specimens_by_accession_exact($q);
     
     $result = array();
     
@@ -89,7 +89,7 @@
 
   function getPatientBySpId($id){
   
-    $spec = get_specimens_by_session($id);
+    $spec = get_specimens_by_accession($id);
   
     $response = get_patient_by_sp_id($spec[0]->specimenId);
     

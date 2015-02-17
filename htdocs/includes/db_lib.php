@@ -2678,6 +2678,7 @@ class Specimen
 	public $dateCollected;
 	public $timeCollected;
 	public $sessionNum;
+	public $accessionNumber;
 	public $auxId;
 	public $userId;
 	public $reportTo;
@@ -2725,6 +2726,10 @@ class Specimen
 			$specimen->sessionNum = $record['session_num'];
 		else
 			$specimen->sessionNum = null;
+		if(isset($record['accession_number']))
+			$specimen->accessionNumber = $record['accession_number'];
+		else
+			$specimen->accessionNumber = null;
 		if(isset($record['status_code_id']))
 			$specimen->statusCodeId = $record['status_code_id'];
 		else
@@ -7299,6 +7304,26 @@ function search_specimens_by_session_exact($q)
 	return $specimen_list;
 }
 
+function search_specimens_by_accession_exact($q)
+{
+	global $con;
+	$q = mysql_real_escape_string($q, $con);
+	# Searched for specimens in a single session
+	$query_string =
+		"SELECT * FROM specimen ".
+		"WHERE accession_number='$q'";
+	$resultset = query_associative_all($query_string, $row_count);
+	$specimen_list = array();
+	if(count($resultset) > 0)
+	{
+		foreach($resultset as $record)
+		{
+			$specimen_list[] = Specimen::getObject($record);
+		}
+	}
+	return $specimen_list;
+}
+
 function search_specimens_by_dailynum($q)
 {
 	global $con;
@@ -7879,6 +7904,21 @@ function get_specimen_by_id($specimen_id)
 		"SELECT * FROM specimen WHERE specimen_id=$specimen_id LIMIT 1";
 	$record = query_associative_one($query_string);
 	return Specimen::getObject($record);
+}
+
+function get_specimens_by_accession($accession_num)
+{
+	global $con;
+	$accession_num = mysql_real_escape_string($accession_num, $con);
+	# Returns all specimens registered in this session
+	$query_string = 
+		"SELECT * FROM specimen ".
+		"WHERE accession_number='$accession_num'";
+	$resultset = query_associative_all($query_string, $row_count);
+	$retval = array();
+	foreach($resultset as $record)
+		$retval[] = Specimen::getObject($record);
+	return $retval;
 }
 
 function get_specimens_by_session($session_num)
