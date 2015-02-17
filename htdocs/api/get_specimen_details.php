@@ -1,16 +1,17 @@
 <?php
 
-include "../includes/db_lib.php";
-
-
-//$specimen_id = $_REQUEST['specimen_id'];
+require_once "authenticate.php";
 
 $rcd = array();
 
 $rcd['department'] = $_REQUEST['department'];
 $rcd['status'] = $_REQUEST['status'];
-$rcd['date'] = $_REQUEST['date'];
 
+if ($_REQUEST['date'])
+	$rcd['date'] = $_REQUEST['date'];
+else
+	$rcd['date'] = date('Y-m-d H:i:s');	
+	
 $result = API::get_specimen_details($rcd);
 
 if($result < 1)

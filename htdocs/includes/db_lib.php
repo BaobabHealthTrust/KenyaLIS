@@ -16540,14 +16540,15 @@ class API
     	$department = $params['department'];
     	$status = $params['status'];
     	if ($status){
-	    	$status_condition = "WHERE status_code_id = $status";
+	    	$status_condition = " AND sl.state_id = (SELECT state_id FROM specimen_activity 
+								WHERE name = '$status')";
     	}
     	else {
 	    	$status_condition = "";
     	}
 
     	if ($department){
-	    	$department_condition = "AND test_type_id in (SELECT test_type_id from test_type 
+	    	$department_condition = " AND t.test_type_id in (SELECT test_type_id from test_type 
 										where test_category_id = (select test_category_id 
 										from test_category where name = '$department'))";
     	}
@@ -16563,6 +16564,21 @@ class API
 								) AS tests
 						FROM specimen as s $status_condition HAVING patient_name IS NOT NULL AND tests IS NOT NULL";
     	
+    	$query_string = "SELECT (SELECT name FROM patient WHERE patient_id = sp.patient_id LIMIT 1) AS patient_name, 
+	   							sp.accession_number, 
+	   							concat(sp.date_collected, ' ' , sp.time_collected) as collected_datetime,
+								(SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS status,
+								sp.doctor AS ordered_by, 
+								sl.doctor AS recently_updated_by, 
+								(SELECT name FROM test_type WHERE test_type_id = t.test_type_id) AS test_type_name
+						FROM specimen sp
+							INNER JOIN test t ON t.specimen_id = sp.specimen_id
+							INNER JOIN specimen_activity_log sl ON (sl.specimen_id = sp.specimen_id OR sl.test_id = t.test_id)
+								AND sl.activity_state_id = 
+									(SELECT sl2.activity_state_id FROM specimen_activity_log sl2
+										WHERE sl2.specimen_id = sl.specimen_id 
+											OR sl.test_id = sl2.test_id ORDER BY sl2.activity_state_id DESC LIMIT 1)
+						WHERE DATE(sl.date) <= DATE('$date') $status_condition $department_condition";
     	$resultset = query_associative_all($query_string);
     	
     	$result = array();
@@ -16572,10 +16588,10 @@ class API
     			$sub = array();
     			$sub['accession_number'] = $record['accession_number'];
     			$sub['date_collected'] = $record['collected_datetime'];
-    			$sub['status'] = Specimen::readable_status($record['status_code_id']);
+    			$sub['status'] = $record['status'];
     			$sub['patient_name'] = $record['patient_name'];
-    			$sub['doctor'] = $record['doctor'];
-    			$sub['test_name'] = $record['tests'];
+    			$sub['ordered_by'] = $record['ordered_by'];
+    			$sub['recently_updated_by'] = $record['recently_updated_by'];
     			array_push($result, $sub);	
     		}
     	}
