@@ -16153,11 +16153,85 @@ class API
 	$resultset = query_associative_all($query_ttypes, $row_count);	
 	$specimens = query_associative_all($specimen_query, $row_count);
 		
-	$retval = array();	
-	foreach($specimens as $spec){
-			//$retval[$spec['specimen_id'].'|'.$spec['name']] = array();
-	}
+	$retval = array();		
+	
+	if($resultset) {
+		foreach($resultset as $record)
+		 {		
+			$key = $record['specimen_id'].'|'.$record['specimen_name'];
+			$name;
+						
+			if($CATALOG_TRANSLATION === true){				
+			
+				$name = LangUtil::getTestName($record['test_type_name']);				
+			}else{		
+				$name = $record['test_type_name'];
+			}
+		
+			$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];	
+			
+			$test_type_id = $record['test_type_id'];
+			$containers_query = "SELECT (select name FROM container_type 
+				 WHERE id = tc.container_type_id) AS name
+				 FROM test_type_container_type tc WHERE tc.test_type_id = $test_type_id";
+		
+		    $containerset = query_associative_all($containers_query);
+		    
+		    if ($containerset)
+		    {
+		    	$str = "";
+				foreach($containerset as $container)
+				{
+						if ($str == "")
+							$str = $container['name'];
+						else 
+							$str = $str.'/'.$container['name'];
+				}
+				$name = $name.'|'.$str;
+		    }	
+			
+			if (!isset($retval[$key])){
+					$retval[$key] = array();				
+			}
+			
+			array_push($retval[$key], $name);													
+		  }		
+	  }	
+	return $retval;
+    }    
 
+	public function get_test_catalog_with_panels()
+    {
+        global $CATALOG_TRANSLATION;
+        if($_SESSION['level'] < 2 || $_SESSION['level'] > 4)
+        {
+            $user = get_user_by_id($_SESSION['user_id']);
+            $lab_config_id = $user->labConfigId;
+        }
+	
+        if($lab_config_id == null)
+            {
+                $lab_config_id = get_lab_config_id_admin($_SESSION['user_id']);
+            }
+		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
+	$query_ttypes =
+		"SELECT test_type_id, name FROM test_type WHERE disabled=0 ORDER BY name";
+		
+	$query_ttypes =
+		"SELECT s_type.specimen_type_id AS specimen_id, s_type.name AS specimen_name, 
+				t_type.test_type_id AS test_type_id, t_type.name AS test_type_name,
+				t_type.loinc_code AS loinc_code, t_type.test_code AS test_code
+		FROM specimen_test s_test
+			INNER JOIN specimen_type s_type ON s_test.specimen_type_id = s_type.specimen_type_id
+			INNER JOIN test_type t_type ON s_test.test_type_id = t_type.test_type_id 
+		WHERE s_type.disabled = 0 AND t_type.disabled = 0
+		";
+	
+	$specimen_query = "SELECT distinct name AS name, specimen_type_id AS specimen_id FROM specimen_type WHERE disabled = 0";
+	$resultset = query_associative_all($query_ttypes, $row_count);	
+	$specimens = query_associative_all($specimen_query, $row_count);
+		
+	$retval = array();	
 	
 	if($resultset) {
 		foreach($resultset as $record)
