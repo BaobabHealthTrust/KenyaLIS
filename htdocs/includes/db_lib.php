@@ -16560,6 +16560,7 @@ class API
 	   							sp.accession_number, 
 	   							concat(sp.date_collected, ' ' , sp.time_collected) as collected_datetime,
 								(SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS status,
+								(SELECT name FROM specimen_type WHERE specimen_type_id = sp.specimen_type_id) AS specimen_type,
 								sp.doctor AS ordered_by, 
 								sl.doctor AS recently_updated_by, 
 								(SELECT name FROM test_type WHERE test_type_id = t.test_type_id) AS test_type_name
@@ -16580,6 +16581,8 @@ class API
     			$sub = array();
     			$sub['accession_number'] = $record['accession_number'];
     			$sub['date_collected'] = $record['collected_datetime'];
+    			$sub['test_type_name'] = $record['test_type_name'];
+    			$sub['specimen_type'] = $record['specimen_type'];
     			$sub['status'] = $record['status'];
     			$sub['patient_name'] = $record['patient_name'];
     			$sub['ordered_by'] = $record['ordered_by'];
