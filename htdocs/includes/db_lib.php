@@ -16064,10 +16064,10 @@ class API
 			$result[$st['name']] = API::get_state_count($st['name'], $date);
 		}
 		
-		$response = array();
-		$response['states'] = $result;
-		$response['avg_tat_in_min'] = API::get_average_turn_around_time($date);
-		return $response;
+
+
+		$result['avg_tat_in_min'] = API::get_average_turn_around_time($date);
+		return $result;
 	}
 	
 	public function get_average_turn_around_time($date){
