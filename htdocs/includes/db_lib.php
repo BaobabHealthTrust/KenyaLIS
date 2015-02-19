@@ -16588,9 +16588,18 @@ class API
     	*/
     	
     	$date = $params['date'];
-    	$department = $params['department'];
-    	$status = $params['status'];
+    	$department = $params['department'];    	
     	$dashboard_type = $params['dashboard_type'];
+    	
+    	$status;
+    	if ($dashboard_type == 'labreception'){
+    		$status = "'Drawn'";
+    	}else if ($dashboard_type == 'ward'){
+    		$status = "'Ordered', 'Drawn', 'Rejected', 'Verified'";   		
+    	}else{
+    		$status = $params['status'];
+    	}
+    	
     	
     	if ($status){
 	    	$status_condition = " AND sl.state_id IN (SELECT state_id FROM specimen_activity 
@@ -16632,15 +16641,27 @@ class API
     	$patient_name = "(SELECT name FROM patient WHERE patient_id = sp.patient_id LIMIT 1) AS patient_name";
     	
     	$accession_number = "sp.accession_number";
+    	$location = "sl.location";
     	
     	//select fields based on dashboard type
     	$required = array();
     	if ($dashboard_type == 'labreception'){
     	
-    		$required = array("$patient_name", "$accession_number", "$department", "$priority", "$date_collected", "$lifespan");  		
+    		$required = array("$patient_name", "$accession_number", "$location", "$department", "$priority", "$date_collected", "$lifespan");  		
     	}
     	 
-    	$query_string = "SELECT ".implode(', ', $required)." FROM specimen sp
+    	if ($dashboard_type == 'labdepartment'){
+    	
+    		$required = array("$patient_name", "$accession_number", "$test_type_name", "$priority", "$date_collected", "$lifespan"); 
+    	}
+    	
+    	if ($dashboard_type == 'ward'){  	
+    		
+    		$required = array("$patient_name", "$accession_number", "$doctor", "$department", "$priority",
+    							 "$activity_status", "$date_collected", "$lifespan");
+    	}
+    	
+		$query_string = "SELECT ".implode(', ', $required)." FROM specimen sp
 							INNER JOIN test t ON t.specimen_id = sp.specimen_id
 							INNER JOIN specimen_activity_log sl ON (sl.specimen_id = sp.specimen_id OR sl.test_id = t.test_id)
 								AND sl.activity_state_id = 
@@ -16648,7 +16669,7 @@ class API
 										WHERE sl2.specimen_id = sl.specimen_id 
 											OR sl.test_id = sl2.test_id ORDER BY sl2.activity_state_id DESC LIMIT 1)
 						WHERE DATE(sl.date) <= DATE('$date') $status_condition $department_condition";
-		
+	
 		$sub_query = "";
 		if ($dashboard_type == 'labreception'){
 			$sub_query = "SELECT patient_name, accession_number, collected_datetime AS time_drawn,			
@@ -16658,17 +16679,30 @@ class API
 							FROM ($query_string) AS data 
 							GROUP BY accession_number";
 		}
-    	$resultset = query_associative_all($sub_query);
-    	
-    	$result = array();
-    	
-    	if ($resultset){
-    		foreach($resultset as $record){    			
-    			array_push($result, $record);    				
-    		}
-    	}
-    	
-    	return $result;
+	
+		if ($dashboard_type == 'labdepartment'){
+	
+			$sub_query = "SELECT patient_name, accession_number, collected_datetime AS time_drawn,									
+								GROUP_CONCAT(test_type_name SEPARATOR ', ')  AS test_type_name,
+								GROUP_CONCAT(lifespan SEPARATOR ', ')  AS lifespan,
+								GROUP_CONCAT(priority SEPARATOR ', ')  AS priority
+							FROM ($query_string) AS data 
+							GROUP BY accession_number";
+		}
+
+		if ($dashboard_type == 'ward'){
+					
+			$sub_query = "SELECT patient_name, accession_number, ordered_by,
+								collected_datetime AS time_drawn,
+								GROUP_CONCAT(lifespan SEPARATOR ', ')  AS lifespan,
+								GROUP_CONCAT(department SEPARATOR ', ')  AS department,
+								GROUP_CONCAT(status SEPARATOR ', ')  AS status,
+								GROUP_CONCAT(priority SEPARATOR ', ')  AS priority
+							FROM ($query_string) AS data 
+							GROUP BY accession_number";
+		}
+		$resultset = query_associative_all($sub_query);
+		return $resultset;
     }
     
     
