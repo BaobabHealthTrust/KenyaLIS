@@ -1244,7 +1244,7 @@ if($lab_config == null)
                                                     <div id='lifespan_msg' class='clean-orange' style='display:none;width:350px;'>
                                                     </div>
                                                     <div id='goal_lifespan_list'>
-                                                        <?php $page_elems->getGetGoalTatTable($lab_config->id); ?>
+                                                        <?php $page_elems->getGetGoalLifespanTable($lab_config->id); ?>
                                                     </div>
                                                     <form id='goal_lifespan_form' style='display:none' name='goal_lifespan_form' action='ajax/lab_config_lifespan_update.php' method='post'>
                                                         <?php $page_elems->getGoalTatForm($lab_config->id); ?>

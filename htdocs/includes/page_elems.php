@@ -4957,8 +4957,80 @@ public function getInfectionStatsTableAggregate($stat_list, $date_from, $date_to
 		</table>
 		<?php
 	}
-	
-	public function getCustomFieldTable($lab_config_id, $custom_field_list, $type)
+
+
+		public function getGetGoalLifespanTable($lab_config_id)
+		{
+			# Returns HTML table showing existing goal TAT values
+			$lab_config = get_lab_config_by_id($lab_config_id);
+			$lsp_list = $lab_config->getGoalLifespanValues();
+			?>
+			<table class="table table-striped table-bordered table-advance table-hover" style='width:100%;'>
+				<thead>
+				<tr valign='top'>
+					<th><i class="icon-table"></i> <?php echo LangUtil::$generalTerms['SPECIMEN_TYPE']; ?></th>
+					<th><i class="icon-table"></i> <?php echo LangUtil::$generalTerms['TEST_TYPE']; ?></th>
+					<th><i class="icon-time"></i> <?php echo 'Lifespan'; ?></th>
+				</tr>
+				</thead>
+				<tbody>
+				<?php
+				foreach($lsp_list as $key=>$value)
+				{
+					$t_id = explode('|', $key)[0];
+					$s_id = explode('|', $key)[1];
+					?>
+					<tr valign='top'>
+						<td>
+							<?php
+							if($t_id != 0)
+							{
+								echo get_specimen_name_by_id($s_id, $lab_config_id);
+							}
+							else
+							{
+								echo '-';
+							}
+							?>
+						</td>
+
+						<td>
+							<?php
+							if($t_id != 0)
+							{
+								echo get_test_name_by_id($t_id, $lab_config_id);
+							}
+							else
+							{
+								echo '-';
+							}
+							?>
+						</td>
+						<td>
+							<?php
+							echo "$value ".LangUtil::$generalTerms['HOURS'];
+							/*
+                            if($value < 24)
+                                echo "$value hours";
+                            else
+                            {
+                                $value_days = round($value/24, 2);
+                                echo "$value_days days";
+                            }
+                            */
+							?>
+						</td>
+					</tr>
+				<?php
+				}
+				?>
+				</tbody>
+			</table>
+		<?php
+		}
+
+
+		public function getCustomFieldTable($lab_config_id, $custom_field_list, $type)
 	{
 		# Returns a list of existing custom fields in a lab configuration
 		# $type = 1 for specimens

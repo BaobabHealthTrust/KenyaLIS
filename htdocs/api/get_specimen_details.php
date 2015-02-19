@@ -6,6 +6,7 @@ $rcd = array();
 
 $rcd['department'] = $_REQUEST['department'];
 $rcd['status'] = $_REQUEST['status'];
+$rcd['dashboard_type'] = $_REQUEST['dashboard_type'];
 
 if ($_REQUEST['date'])
 	$rcd['date'] = $_REQUEST['date'];
