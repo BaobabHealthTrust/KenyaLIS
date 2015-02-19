@@ -16182,7 +16182,7 @@ class API
 	$query_ttypes =
 		"SELECT s_type.specimen_type_id AS specimen_id, s_type.name AS specimen_name, 
 				t_type.test_type_id AS test_type_id, t_type.name AS test_type_name,
-				t_type.loinc_code AS loinc_code, t_type.test_code AS test_code
+				t_type.loinc_code AS loinc_code, t_type.min_specimen_qty, t_type.specimen_unit, t_type.test_code AS test_code
 		FROM specimen_test s_test
 			INNER JOIN specimen_type s_type ON s_test.specimen_type_id = s_type.specimen_type_id
 			INNER JOIN test_type t_type ON s_test.test_type_id = t_type.test_type_id 
@@ -16229,6 +16229,11 @@ class API
 				}
 				$name = $name.'|'.$str;
 		    }	
+			
+			if ($record['min_specimen_qty'] && $record['specimen_unit'])
+				$name = $name.'|'.$record['min_specimen_qty'].'|'.$record['specimen_unit'];
+			else
+				$name = $name.'|N/A|N/A';
 			
 			if (!isset($retval[$key])){
 					$retval[$key] = array();				
@@ -16582,7 +16587,7 @@ class API
     			$sub['accession_number'] = $record['accession_number'];
     			$sub['date_collected'] = $record['collected_datetime'];
     			$sub['test_type_name'] = $record['test_type_name'];
-    			$sub['specimen_type'] = $record['specimen_type'];
+    			$sub['specimen_type'] = $record['specimen'];
     			$sub['status'] = $record['status'];
     			$sub['patient_name'] = $record['patient_name'];
     			$sub['ordered_by'] = $record['ordered_by'];
