@@ -995,7 +995,7 @@ if($lab_config == null)
             echo "<li>";
             echo LangUtil::$pageTerms['TIPS_SPECIMENTESTTYPES'];
             echo "</li>";
-        }   
+        }
         if(LangUtil::$pageTerms['TIPS_TARGETTAT']!="-") {
             echo "<li>"; 
             echo LangUtil::$pageTerms['TIPS_TARGETTAT'];
@@ -1158,6 +1158,7 @@ if($lab_config == null)
                            <ul class="nav nav-tabs">
                                                 <li class="active"><a href="#tab_1_1" data-toggle="tab">Specimen/Test Types </a></li>
                                                 <li><a href="#tab_1_2" data-toggle="tab">Turnaround Time </a></li>
+                                                <li><a href="#tab_1_4" data-toggle="tab">Sample Lifespan </a></li>
                                                 <li><a href="#tab_1_3" data-toggle="tab">Results Interpretation </a></li>
                                             </ul>
                             <div class="tab-content">
@@ -1234,6 +1235,29 @@ if($lab_config == null)
                                                             </form>
                                                         </div>
                                                 </div>
+                                            <div class="tab-pane" id="tab_1_4">
+                                                <div class='target_lifespan' id='target_lifespan_div' style='margin-left:10px;'>
+                                                    <p style="text-align: right;"><a rel='facebox' href='#Tests_config'>Page Help</a></p>
+                                                    <b><?php echo 'Sample Lifespan'; ?></b>
+                                                    | <a href="javascript:togglelifespandivs();" id='togglelifespan_link'><?php echo LangUtil::$generalTerms['CMD_EDIT']; ?></a>
+                                                    <br><br>
+                                                    <div id='lifespan_msg' class='clean-orange' style='display:none;width:350px;'>
+                                                    </div>
+                                                    <div id='goal_lifespan_list'>
+                                                        <?php $page_elems->getGetGoalLifespanTable($lab_config->id); ?>
+                                                    </div>
+                                                    <form id='goal_lifespan_form' style='display:none' name='goal_lifespan_form' action='ajax/lab_config_lifespan_update.php' method='post'>
+                                                        <?php $page_elems->getGoalTatForm($lab_config->id); ?>
+                                                        <input type='button' value='<?php echo LangUtil::$generalTerms['CMD_SUBMIT']; ?>' onclick='javascript:submit_goal_tat();'></input>
+                                                        &nbsp;&nbsp;&nbsp;
+                                                        <small><a href='javascript:togglelifespandivs();'><?php echo LangUtil::$generalTerms['CMD_CANCEL']; ?></a></small>
+                                                        &nbsp;&nbsp;&nbsp;
+                                                                            <span id='tat_progress_spinner' style='display:none;'>
+                                                                                <?php $page_elems->getProgressSpinner(LangUtil::$generalTerms['CMD_SUBMITTING']); ?>
+                                                                            </span>
+                                                    </form>
+                                                </div>
+                                            </div>
                                             <div class="tab-pane" id="tab_1_3">
                                                  <p style="text-align: right;"><a rel='facebox' href='#Tests_config'>Page Help</a></p><br/>
                                                      <?php echo LangUtil::$generalTerms['TEST_TYPE']; ?>
@@ -2179,6 +2203,17 @@ function toggletatdivs()
 		$('#toggletat_link').html("<?php echo LangUtil::$generalTerms['CMD_CANCEL']; ?>");
 	else
 		$('#toggletat_link').html("<?php echo LangUtil::$generalTerms['CMD_EDIT']; ?>");
+}
+
+function togglelifespandivs()
+{
+    $('#goal_lifespan_list').toggle();
+    $('#goal_lifespan_form').toggle();
+    var curr_link_text = $('#togglelifespan_link').html();
+    if(curr_link_text == "<?php echo LangUtil::$generalTerms['CMD_EDIT']; ?>")
+        $('#togglelifespan_link').html("<?php echo LangUtil::$generalTerms['CMD_CANCEL']; ?>");
+    else
+        $('#togglelifespan_link').html("<?php echo LangUtil::$generalTerms['CMD_EDIT']; ?>");
 }
 
 function toggle_disease_report()
