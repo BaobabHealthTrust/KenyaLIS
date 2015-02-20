@@ -4819,8 +4819,7 @@ public function getInfectionStatsTableAggregate($stat_list, $date_from, $date_to
 		<?php
 	}
 	
-	
-	public function getGoalTatForm($lab_config_id)
+		public function getGoalTatForm($lab_config_id)
 	{
 		# Returns HTML form for setting/modifying goal TAT values
 		# Called from lab_config_home.php
@@ -4875,6 +4874,107 @@ public function getInfectionStatsTableAggregate($stat_list, $date_from, $date_to
 							# Entry not yet present
 							# Show default value in form
 							echo $DEFAULT_TARGET_TAT*24;
+						}
+						?>'></input>
+						&nbsp;&nbsp;&nbsp;
+						<select name='unit[]'>
+							<option value='1'
+							<?php
+							//if($curr_tat_value != null && $curr_tat_value < 24)
+							if(true)
+								echo " selected ";
+							?>
+							><?php echo LangUtil::$generalTerms['HOURS']; ?></option>
+							<option value='2'
+							<?php
+							//if($curr_tat_value != null && $curr_tat_value >= 24)
+							if(false)
+								echo " selected ";
+							?>
+							><?php echo LangUtil::$generalTerms['DAYS']; ?></option>
+						</select>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
+			</tbody>
+		</table>
+		<?php
+	}
+	
+	public function getLifespanForm($lab_config_id)
+	{
+		# Returns HTML form for setting/modifying goal TAT values
+		# Called from lab_config_home.php
+		global $DEFAULT_TARGET_TAT;
+		$test_type_list = get_test_types_by_site($lab_config_id);
+		$lab_config = get_lab_config_by_id($lab_config_id);
+		$lsp_list = $lab_config->getGoalLifespanValues();
+		?>
+		<input type='hidden' name='lid' value='<?php echo $lab_config_id; ?>'></input>
+		<table class='tablesorter' style='width:100%;'>
+			<thead>
+				<tr>
+					<th style='width: 22%' ><?php echo 'Specimen Type'; ?></th>
+					<th style='width: 25%'><?php echo 'Test Type'; ?></th>
+					<th><?php echo 'Lifespan'; ?></th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php
+			foreach($lsp_list as $key=>$value)
+			{
+				$curr_lsp_value = $value;
+				$t_id = explode('|', $key)[0];
+				$s_id = explode('|', $key)[1];
+				?>
+				<tr valign='top'>
+					<td>
+						<?php
+						if($key != 0)
+						{
+							echo get_specimen_name_by_id($s_id, $lab_config_id);
+						}
+						else
+						{
+							echo '-';
+						}
+						?>
+						<input type='hidden' name='stype[]' value='<?php echo $key; ?>'></input>
+					</td>
+					
+					<td>
+						<?php
+						if($key != 0)
+						{
+							echo get_test_name_by_id($t_id, $lab_config_id);
+						}
+						else
+						{
+							echo '-';
+						}
+						?>
+						<input type='hidden' name='ttype[]' value='<?php echo $key; ?>'></input>
+					</td>
+					<td>
+						<input type='text' name='lsp[]'
+						value='<?php
+						if($curr_lsp_value != null)
+						{	
+							echo $curr_lsp_value;
+							/*
+							if($curr_tat_value >=24)
+								echo round($curr_tat_value/24, 2);
+							else
+								echo $curr_tat_value;
+							*/
+						}
+						else
+						{
+							# Entry not yet present
+							# Show default value in form
+							echo 4;
 						}
 						?>'></input>
 						&nbsp;&nbsp;&nbsp;

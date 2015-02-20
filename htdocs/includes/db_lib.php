@@ -468,7 +468,25 @@ class LabConfig
 		return $retval;
 	}
 	*/
-	
+
+	public function updateGoalLifespanValue($test_type_id, $specimen_type_id, $lsp_value)
+	{					
+		$query_string =
+			"SELECT lifespan FROM specimen_test ".
+			"WHERE test_type_id=$test_type_id AND specimen_type_id=$specimen_type_id LIMIT 1";
+		$existing_record = query_associative_one($query_string);
+		
+		if($existing_record != null) {
+			
+			if((int)$existing_record['lifespan'] != (int)$lsp_value) {
+				
+				$query_string = 
+					"UPDATE specimen_test SET lifespan=$lsp_value
+						WHERE test_type_id=$test_type_id AND specimen_type_id=$specimen_type_id";
+				query_update($query_string);
+			}		
+		}
+	}
 	public function updateGoalTatValue($test_type_id, $tat_value)
 	{	
 		# Updates goal TAT value for a single test type
@@ -16647,12 +16665,12 @@ class API
     	$required = array();
     	if ($dashboard_type == 'labreception'){
     	
-    		$required = array("$patient_name", "$accession_number", "$location", "$department", "$priority", "$date_collected", "$lifespan");  		
+    		$required = array("$patient_name", "$accession_number", "$department", "$priority", "$date_collected", "$lifespan");  		
     	}
     	 
     	if ($dashboard_type == 'labdepartment'){
     	
-    		$required = array("$patient_name", "$accession_number", "$test_type_name", "$priority", "$date_collected", "$lifespan"); 
+    		$required = array("$patient_name", "$accession_number", "$test_type_name", "$priority", "$location", "$date_collected", "$lifespan"); 
     	}
     	
     	if ($dashboard_type == 'ward'){  	
@@ -16682,10 +16700,10 @@ class API
 	
 		if ($dashboard_type == 'labdepartment'){
 	
-			$sub_query = "SELECT patient_name, accession_number, collected_datetime AS time_drawn,									
+			$sub_query = "SELECT patient_name, accession_number, collected_datetime AS time_drawn, location, 							
 								GROUP_CONCAT(test_type_name SEPARATOR ', ')  AS test_type_name,
 								GROUP_CONCAT(lifespan SEPARATOR ', ')  AS lifespan,
-								GROUP_CONCAT(priority SEPARATOR ', ')  AS priority
+								GROUP_CONCAT(priority SEPARATOR ', ')  AS priority								
 							FROM ($query_string) AS data 
 							GROUP BY accession_number";
 		}
