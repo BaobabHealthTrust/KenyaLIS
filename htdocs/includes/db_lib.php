@@ -339,6 +339,52 @@ class LabConfig
 		return $retval;
 	}
 
+	public function getGoalLifespanValues()
+	{
+		# Returns a list of latest goal TAT values for all tests in the lab
+		global $DEFAULT_TARGET_TAT;
+		$specimen_tests = query_associative_all('SELECT test_type_id, specimen_type_id, lifespan FROM specimen_test');
+		$saved_db = DbUtil::switchToLabConfig($this->id);
+		$retval = array();
+		foreach($specimen_tests as $st)
+		{
+			/*
+			$query_string = 
+				"SELECT tat FROM test_type_tat ".
+				"WHERE test_type_id=$test_type->testTypeId ORDER BY ts DESC LIMIT 1";
+			*/
+						
+			if($st['lifespan'] == null || $st['lifespan'] == '')
+			{
+				# Entry not yet added by lab admin: Show default
+				$retval[$st['test_type_id'].'|'.$st['specimen_type_id']] = 4;
+			}
+			else
+			{
+				$retval[$st['test_type_id'].'|'.$st['specimen_type_id']] = $st['lifespan'];
+			}
+		}
+		# Append TAT value for pending tests
+		//$query_string = "SELECT tat FROM test_type_tat WHERE test_type_id=0 LIMIT 1";
+		$query_string = "SELECT target_tat FROM test_type_tat WHERE test_type_id=0 LIMIT 1";
+		$record = query_associative_one($query_string);
+		if($record == null)
+		{
+			$retval[0] = null;
+		}
+		else if($record['tat'] == null)
+		{
+			$retval[0] = null;
+		}
+		else
+		{
+			# Default value present in table
+			$retval[0] = $record['tat'];
+		}
+		DbUtil::switchRestore($saved_db);
+		return $retval;
+	}
+	
 	public function getPendingTatValue()
 	{
 		# Returns default TAT value (in hours) to be assigned for samples that are pending
@@ -422,7 +468,25 @@ class LabConfig
 		return $retval;
 	}
 	*/
-	
+
+	public function updateGoalLifespanValue($test_type_id, $specimen_type_id, $lsp_value)
+	{					
+		$query_string =
+			"SELECT lifespan FROM specimen_test ".
+			"WHERE test_type_id=$test_type_id AND specimen_type_id=$specimen_type_id LIMIT 1";
+		$existing_record = query_associative_one($query_string);
+		
+		if($existing_record != null) {
+			
+			if((int)$existing_record['lifespan'] != (int)$lsp_value) {
+				
+				$query_string = 
+					"UPDATE specimen_test SET lifespan=$lsp_value
+						WHERE test_type_id=$test_type_id AND specimen_type_id=$specimen_type_id";
+				query_update($query_string);
+			}		
+		}
+	}
 	public function updateGoalTatValue($test_type_id, $tat_value)
 	{	
 		# Updates goal TAT value for a single test type
@@ -16064,10 +16128,10 @@ class API
 			$result[$st['name']] = API::get_state_count($st['name'], $date);
 		}
 		
-		$response = array();
-		$response['states'] = $result;
-		$response['avg_tat_in_min'] = API::get_average_turn_around_time($date);
-		return $response;
+
+
+		$result['avg_tat_in_min'] = API::get_average_turn_around_time($date);
+		return $result;
 	}
 	
 	public function get_average_turn_around_time($date){
@@ -16542,11 +16606,24 @@ class API
     	*/
     	
     	$date = $params['date'];
-    	$department = $params['department'];
-    	$status = $params['status'];
+    	$department = $params['department'];    	
+    	$dashboard_type = $params['dashboard_type'];
+    	
+    	$status;
+    	if ($dashboard_type == 'labreception'){
+    		$status = "'Drawn'";
+    	}else if ($dashboard_type == 'ward'){
+    		$status = "'Ordered', 'Drawn', 'Rejected', 'Verified'";
+		}else if ($dashboard_type == 'labdepartment'){
+			$status = "'Received At Reception', 'Received In Department', 'Testing'";   		   		
+    	}else{
+    		$status = $params['status'];
+    	}
+    	
+    	
     	if ($status){
-	    	$status_condition = " AND sl.state_id = (SELECT state_id FROM specimen_activity 
-								WHERE name = '$status')";
+	    	$status_condition = " AND sl.state_id IN (SELECT state_id FROM specimen_activity 
+								WHERE name IN ($status))";
     	}
     	else {
 	    	$status_condition = "";
@@ -16555,48 +16632,97 @@ class API
     	if ($department){
 	    	$department_condition = " AND t.test_type_id in (SELECT test_type_id from test_type 
 										where test_category_id = (select test_category_id 
-										from test_category where name = '$department'))";
+										from test_category where name IN ($department)))";
     	}
     	else {
     		$department_condition = "";
     	}
-    	    	
-    	$query_string = "SELECT (SELECT name FROM patient WHERE patient_id = sp.patient_id LIMIT 1) AS patient_name, 
-	   							sp.accession_number, 
-	   							concat(sp.date_collected, ' ' , sp.time_collected) as collected_datetime,
-								(SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS status,
-								(SELECT name FROM specimen_type WHERE specimen_type_id = sp.specimen_type_id) AS specimen_type,
-								sp.doctor AS ordered_by, 
-								sl.doctor AS recently_updated_by, 
-								(SELECT name FROM test_type WHERE test_type_id = t.test_type_id) AS test_type_name
-						FROM specimen sp
-							INNER JOIN test t ON t.specimen_id = sp.specimen_id
-							INNER JOIN specimen_activity_log sl ON (sl.specimen_id = sp.specimen_id OR sl.test_id = t.test_id)
-								AND sl.activity_state_id = 
-									(SELECT sl2.activity_state_id FROM specimen_activity_log sl2
-										WHERE sl2.specimen_id = sl.specimen_id 
-											OR sl.test_id = sl2.test_id ORDER BY sl2.activity_state_id DESC LIMIT 1)
-						WHERE DATE(sl.date) <= DATE('$date') $status_condition $department_condition";
-    	$resultset = query_associative_all($query_string);
     	
-    	$result = array();
+    	$lifespan = '(SELECT lifespan FROM specimen_test WHERE specimen_type_id = sp.specimen_type_id 
+    								AND test_type_id = t.test_type_id) AS lifespan';
+    								
+    	$priority = '(SELECT priority FROM test_type WHERE test_type_id = t.test_type_id) AS priority';
     	
-    	if ($resultset){
-    		foreach($resultset as $record){
-    			$sub = array();
-    			$sub['accession_number'] = $record['accession_number'];
-    			$sub['date_collected'] = $record['collected_datetime'];
-    			$sub['test_type_name'] = $record['test_type_name'];
-    			$sub['specimen_type'] = $record['specimen'];
-    			$sub['status'] = $record['status'];
-    			$sub['patient_name'] = $record['patient_name'];
-    			$sub['ordered_by'] = $record['ordered_by'];
-    			$sub['recently_updated_by'] = $record['recently_updated_by'];
-    			array_push($result, $sub);	
-    		}
+    	$department = '(SELECT name FROM test_category WHERE test_category_id = 
+									(SELECT test_category_id FROM test_type WHERE test_type_id = t.test_type_id)) AS department';
+		
+    	$test_type_name = '(SELECT name FROM test_type WHERE test_type_id = t.test_type_id) AS test_type_name';
+    	
+    	$recent_doctor = 'sl.doctor AS recently_updated_by';
+    	
+    	$doctor = 'sp.doctor AS ordered_by';
+    	
+    	$specimen_type = '(SELECT name FROM specimen_type WHERE specimen_type_id = sp.specimen_type_id) AS specimen_type';
+    	
+    	$activity_status = '(SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS status';
+    	
+    	$date_collected = "concat(sp.date_collected, ' ' , sp.time_collected) as collected_datetime";
+    	
+    	$patient_name = "(SELECT name FROM patient WHERE patient_id = sp.patient_id LIMIT 1) AS patient_name";
+    	
+    	$accession_number = "sp.accession_number";
+    	$location = "sl.location";
+    	
+    	//select fields based on dashboard type
+    	$required = array();
+    	if ($dashboard_type == 'labreception'){
+    	
+    		$required = array("$patient_name", "$accession_number", "$department", "$priority", "$date_collected", "$lifespan");  		
+    	}
+    	 
+    	if ($dashboard_type == 'labdepartment'){
+    	
+    		$required = array("$patient_name", "$accession_number", "$activity_status", "$test_type_name", "$priority", "$location", "$date_collected", "$lifespan"); 
     	}
     	
-    	return $result;
+    	if ($dashboard_type == 'ward'){  	
+    		
+    		$required = array("$patient_name", "$accession_number", "$doctor", "$department", "$priority",
+    							 "$activity_status", "$date_collected", "$lifespan");
+    	}
+    	
+		$query_string = "SELECT ".implode(', ', $required)." FROM specimen sp
+							INNER JOIN test t ON t.specimen_id = sp.specimen_id
+							INNER JOIN specimen_activity_log sl
+								ON sl.activity_state_id = 
+									(SELECT MAX(activity_state_id) FROM specimen_activity_log 
+									WHERE specimen_id = sp.specimen_id OR test_id = t.test_id)	
+						WHERE DATE(sl.date) <= DATE('$date') $status_condition $department_condition";
+	
+		$sub_query = "";
+		if ($dashboard_type == 'labreception'){
+			$sub_query = "SELECT patient_name, accession_number, collected_datetime AS time_drawn,			
+								GROUP_CONCAT(department SEPARATOR ', ')  AS department,
+								GROUP_CONCAT(lifespan SEPARATOR ', ')  AS lifespan,
+								GROUP_CONCAT(priority SEPARATOR ', ')  AS priority
+							FROM ($query_string) AS data 
+							GROUP BY accession_number";
+		}
+	
+		if ($dashboard_type == 'labdepartment'){
+	
+			$sub_query = "SELECT patient_name, accession_number, collected_datetime AS time_drawn, location, 							
+								GROUP_CONCAT(test_type_name SEPARATOR ', ')  AS test_type_name,
+								GROUP_CONCAT(lifespan SEPARATOR ', ')  AS lifespan,
+								GROUP_CONCAT(status SEPARATOR ', ')  AS status,
+								GROUP_CONCAT(priority SEPARATOR ', ')  AS priority								
+							FROM ($query_string) AS data 
+							GROUP BY accession_number";
+		}
+
+		if ($dashboard_type == 'ward'){
+					
+			$sub_query = "SELECT patient_name, accession_number, ordered_by,
+								collected_datetime AS time_drawn,
+								GROUP_CONCAT(lifespan SEPARATOR ', ')  AS lifespan,
+								GROUP_CONCAT(department SEPARATOR ', ')  AS department,
+								GROUP_CONCAT(status SEPARATOR ', ')  AS status,
+								GROUP_CONCAT(priority SEPARATOR ', ')  AS priority
+							FROM ($query_string) AS data 
+							GROUP BY accession_number";
+		}
+		$resultset = query_associative_all($sub_query);
+		return $resultset;
     }
     
     

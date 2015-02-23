@@ -1244,11 +1244,11 @@ if($lab_config == null)
                                                     <div id='lifespan_msg' class='clean-orange' style='display:none;width:350px;'>
                                                     </div>
                                                     <div id='goal_lifespan_list'>
-                                                        <?php $page_elems->getGetGoalTatTable($lab_config->id); ?>
+                                                        <?php $page_elems->getGetGoalLifespanTable($lab_config->id); ?>
                                                     </div>
                                                     <form id='goal_lifespan_form' style='display:none' name='goal_lifespan_form' action='ajax/lab_config_lifespan_update.php' method='post'>
-                                                        <?php $page_elems->getGoalTatForm($lab_config->id); ?>
-                                                        <input type='button' value='<?php echo LangUtil::$generalTerms['CMD_SUBMIT']; ?>' onclick='javascript:submit_goal_tat();'></input>
+                                                        <?php $page_elems->getLifespanForm($lab_config->id); ?>
+                                                        <input type='button' value='<?php echo LangUtil::$generalTerms['CMD_SUBMIT']; ?>' onclick='javascript:submit_goal_lifespan();'></input>
                                                         &nbsp;&nbsp;&nbsp;
                                                         <small><a href='javascript:togglelifespandivs();'><?php echo LangUtil::$generalTerms['CMD_CANCEL']; ?></a></small>
                                                         &nbsp;&nbsp;&nbsp;
@@ -2189,6 +2189,18 @@ function submit_goal_tat()
 	$('#goal_tat_form').ajaxSubmit({
 		success: function() {
 			$('#tat_progress_spinner').hide();
+			window.location="lab_config_home.php?id=<?php echo $lab_config->id; ?>&tupdate=1";
+		}
+	});
+}
+
+function submit_goal_lifespan()
+{
+	$('#tat_progress_spinner').show();
+	$('#goal_lifespan_form').ajaxSubmit({
+		success: function(result) {
+			$('#tat_progress_spinner').hide();
+		
 			window.location="lab_config_home.php?id=<?php echo $lab_config->id; ?>&tupdate=1";
 		}
 	});
