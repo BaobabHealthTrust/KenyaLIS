@@ -16613,7 +16613,9 @@ class API
     	if ($dashboard_type == 'labreception'){
     		$status = "'Drawn'";
     	}else if ($dashboard_type == 'ward'){
-    		$status = "'Ordered', 'Drawn', 'Rejected', 'Verified'";   		
+    		$status = "'Ordered', 'Drawn', 'Rejected', 'Verified'";
+		}else if ($dashboard_type == 'labdepartment'){
+			$status = "'Received At Reception', 'Received In Department', 'Testing'";   		   		
     	}else{
     		$status = $params['status'];
     	}
@@ -16670,7 +16672,7 @@ class API
     	 
     	if ($dashboard_type == 'labdepartment'){
     	
-    		$required = array("$patient_name", "$accession_number", "$test_type_name", "$priority", "$location", "$date_collected", "$lifespan"); 
+    		$required = array("$patient_name", "$accession_number", "$activity_status", "$test_type_name", "$priority", "$location", "$date_collected", "$lifespan"); 
     	}
     	
     	if ($dashboard_type == 'ward'){  	
@@ -16681,11 +16683,10 @@ class API
     	
 		$query_string = "SELECT ".implode(', ', $required)." FROM specimen sp
 							INNER JOIN test t ON t.specimen_id = sp.specimen_id
-							INNER JOIN specimen_activity_log sl ON (sl.specimen_id = sp.specimen_id OR sl.test_id = t.test_id)
-								AND sl.activity_state_id = 
-									(SELECT sl2.activity_state_id FROM specimen_activity_log sl2
-										WHERE sl2.specimen_id = sl.specimen_id 
-											OR sl.test_id = sl2.test_id ORDER BY sl2.activity_state_id DESC LIMIT 1)
+							INNER JOIN specimen_activity_log sl
+								ON sl.activity_state_id = 
+									(SELECT MAX(activity_state_id) FROM specimen_activity_log 
+									WHERE specimen_id = sp.specimen_id OR test_id = t.test_id)	
 						WHERE DATE(sl.date) <= DATE('$date') $status_condition $department_condition";
 	
 		$sub_query = "";
@@ -16703,6 +16704,7 @@ class API
 			$sub_query = "SELECT patient_name, accession_number, collected_datetime AS time_drawn, location, 							
 								GROUP_CONCAT(test_type_name SEPARATOR ', ')  AS test_type_name,
 								GROUP_CONCAT(lifespan SEPARATOR ', ')  AS lifespan,
+								GROUP_CONCAT(status SEPARATOR ', ')  AS status,
 								GROUP_CONCAT(priority SEPARATOR ', ')  AS priority								
 							FROM ($query_string) AS data 
 							GROUP BY accession_number";
