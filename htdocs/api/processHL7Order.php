@@ -21,7 +21,7 @@ if(!$debug){
   
 } else {
 
-  $request = "MSH|^~&||KCH^2.16.840.1.113883.3.5986.2.15^ISO||KCH^2.16.840.1.113883.3.5986.2.15^ISO|20150126145826||OML^O21^OML_O21|20150126145826|T|2.5\r\nPID|1||P17020012293||Kenneth^Kapundi||19641004|M\r\nORC||||||||||1^Super^User|||^^^^^^^^MEDICINE||||||||KCH\r\nTQ1|1||||||||S\r\nOBR|1|||626-2^MICROORGANISM IDENTIFIED:PRID:PT:THRT:NOM:THROAT CULTURE^LOINC^78335^Throat Culture^L|||20150126145826||||||Rule out diagnosis|||439234^Moyo^Chris\r\nSPM|1|||^Urine";
+  $request = "MSH|^~&||KCH^2.16.840.1.113883.3.5986.2.15^ISO||KCH^2.16.840.1.113883.3.5986.2.15^ISO|20150222200401||OML^O21^OML_O21|20150222200401|T|2.5\nPID|1||P170000000031||Patient^Test^N/A||19930701|F\nORC||||||||||1^Super^User|||^^^^^^^^MEDICINE||||||||KCH\nTQ1|1||||||||S\nOBR|1|||5909-7^Blood films^LOINC|||20150222200401||||||Rule out diagnosis|||439234^Moyo^Chris\nOBR|2|||65758-5^CD4^LOINC|||20150222200401||||||Rule out diagnosis|||439234^Moyo^Chris\nOBR|3|||4537-7^Erythrocyte sedimentation rate^LOINC|||20150222200401||||||Rule out diagnosis|||439234^Moyo^Chris\nOBR|4|||57021-8^Full blood count^LOINC|||20150222200401||||||Rule out diagnosis|||439234^Moyo^Chris\nSPM|1|||Whole blood^Whole blood";
   
 }
 
@@ -56,6 +56,8 @@ $hl7VersionID = $msh[0]->getField(12);       // MSH.12
 $obrSetID = $obr[0]->getField(1);           // OBR.01
 
 $testCode = $obr[0]->getField(4)[0];           // OBR.04
+
+$testName = $obr[0]->getField(4)[1];           // OBR.04
 
 $timestampForSpecimenCollection = $obr[0]->getField(7);     // OBR.07
 
@@ -189,6 +191,108 @@ if (!$debug){
 
 }
 
-echo json_encode($response);
+$accessionNumber = $response["accessionNumber"];
+
+$finalResult = array(
+  "sendingFacility" => $sendingFacility,
+  "receivingFacility" => $receivingFacility,
+  "messageDatetime" => $messageDatetime,
+  "messageType" => $messageType,
+  "messageControlID" => $messageControlID,
+  "processingID" => $processingID,
+  "hl7VersionID" => $hl7VersionID,
+  "tests" => array(
+  		array(
+				"obrSetID" => $response["obrSetID"],
+				"testCode" => $response["testCode"],
+				"testName" => $testName,
+				"timestampForSpecimenCollection" => $response["timestampForSpecimenCollection"],
+				"reasonTestPerformed" => $response["reasonTestPerformed"],
+				"whoOrderedTest" => $response["whoOrderedTest"]
+			)
+	),
+  "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
+  "pidSetID" => $pidSetID,
+  "nationalID" => $nationalID,
+  "patientName" => $patientName,
+  "dateOfBirth" => $dateOfBirth,
+  "gender" => $gender,
+  "spmSetID" => $spmSetID,
+  "accessionNumber" => $accessionNumber,
+  "typeOfSample" => $typeOfSample,
+  "tq1SetID" => $tq1SetID,
+  "priority" => $priority,
+  "enteredBy" => $enteredBy,
+  "enterersLocation" => $enterersLocation
+);
+
+for($i = 1; $i < sizeof($obr); $i++){
+
+	$obrSetID = $obr[$i]->getField(1);           // OBR.01
+
+	$testCode = $obr[$i]->getField(4)[0];           // OBR.04
+
+	$testName = $obr[$i]->getField(4)[1];           // OBR.04
+	
+	$timestampForSpecimenCollection = $obr[$i]->getField(7);     // OBR.07
+
+	$reasonTestPerformed = $obr[$i]->getField(13);                // OBR.13
+
+	$whoOrderedTest = $obr[$i]->getField(16)[2] . " " . $obr[$i]->getField(16)[1] . " (" . $obr[$i]->getField(1)[0] . ")";                     // OBR.16
+
+	$priority = $tq1[$i]->getField(9);           // TQ1.09
+
+	$result = array(
+		"sendingFacility" => $sendingFacility,
+		"receivingFacility" => $receivingFacility,
+		"messageDatetime" => $messageDatetime,
+		"messageType" => $messageType,
+		"messageControlID" => $messageControlID,
+		"processingID" => $processingID,
+		"hl7VersionID" => $hl7VersionID,
+		"obrSetID" => $obrSetID,
+		"testCode" => $testCode,
+		"timestampForSpecimenCollection" => $timestampForSpecimenCollection,
+		"reasonTestPerformed" => $reasonTestPerformed,
+		"whoOrderedTest" => $whoOrderedTest,
+		"healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
+		"pidSetID" => $pidSetID,
+		"nationalID" => $nationalID,
+		"patientName" => $patientName,
+		"dateOfBirth" => $dateOfBirth,
+		"gender" => $gender,
+		"spmSetID" => $spmSetID,
+		"accessionNumber" => $accessionNumber,
+		"typeOfSample" => $typeOfSample,
+		"tq1SetID" => $tq1SetID,
+		"priority" => $priority,
+		"enteredBy" => $enteredBy,
+		"enterersLocation" => $enterersLocation
+	);
+
+	if (!$debug){
+
+		$response = API::create_order($result);
+		
+	} else {
+
+		$response = $result;
+
+	}
+
+	$set = array(
+		"obrSetID" => $response["obrSetID"],
+		"testCode" => $response["testCode"],
+		"testName" => $testName,
+		"timestampForSpecimenCollection" => $response["timestampForSpecimenCollection"],
+		"reasonTestPerformed" => $response["reasonTestPerformed"],
+		"whoOrderedTest" => $response["whoOrderedTest"]
+	);
+
+	array_push($finalResult["tests"], $set);
+
+}
+
+echo json_encode($finalResult);
 ?>
 
