@@ -39,6 +39,8 @@ $obr = $msg->getSegmentsByName("OBR");
 
 $spm = $msg->getSegmentsByName("SPM");
 
+$nte = $msg->getSegmentsByName("NTE");
+
 $sendingFacility = $msh[0]->getField(4)[0];    // MSH.04
 
 $receivingFacility = $msh[0]->getField(6)[0];  // MSH.06
@@ -90,6 +92,8 @@ $priority = $tq1[0]->getField(9);           // TQ1.09
 $enteredBy = $orc[0]->getField(10)[2] . " " . $orc[0]->getField(10)[1] . " (" . $orc[0]->getField(10)[0] . ")";          // ORC.10
 
 $enterersLocation = $orc[0]->getField(11);   // ORC.13
+
+$status = $nte[0]->getField(3);
 
 if($debugPrint && false){
 
@@ -178,7 +182,8 @@ $result = array(
   "tq1SetID" => $tq1SetID,
   "priority" => $priority,
   "enteredBy" => $enteredBy,
-  "enterersLocation" => $enterersLocation
+  "enterersLocation" => $enterersLocation,
+  "status" => $status
 );
 
 if (!$debug){
@@ -223,7 +228,8 @@ $finalResult = array(
   "tq1SetID" => $tq1SetID,
   "priority" => $priority,
   "enteredBy" => $enteredBy,
-  "enterersLocation" => $enterersLocation
+  "enterersLocation" => $enterersLocation,
+  "status" => $status
 );
 
 for($i = 1; $i < sizeof($obr); $i++){
@@ -267,7 +273,8 @@ for($i = 1; $i < sizeof($obr); $i++){
 		"tq1SetID" => $tq1SetID,
 		"priority" => $priority,
 		"enteredBy" => $enteredBy,
-		"enterersLocation" => $enterersLocation
+		"enterersLocation" => $enterersLocation,
+  	"status" => $status
 	);
 
 	if (!$debug){
