@@ -16673,7 +16673,7 @@ class API
     	$lifespan = '(SELECT lifespan FROM specimen_test WHERE specimen_type_id = sp.specimen_type_id 
     								AND test_type_id = t.test_type_id) AS lifespan';
     								
-    	$priority = '(SELECT priority FROM test_type WHERE test_type_id = t.test_type_id) AS priority';
+    	$priority = 't.priority AS priority';
     	
     	$department = '(SELECT name FROM test_category WHERE test_category_id = 
 									(SELECT test_category_id FROM test_type WHERE test_type_id = t.test_type_id)) AS department';
