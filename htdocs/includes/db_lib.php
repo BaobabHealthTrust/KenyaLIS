@@ -16010,8 +16010,7 @@ class API
 	
         $t_name = query_associative_one("SELECT name FROM test_type
 										WHERE test_type_id = $test_type_id LIMIT 1"); 							
-		$record['testName'] = $t_name['name'];
-		$record['testCode'] = $t_name['name'];
+		$record['testName'] = $t_name['name'];		
 		
 		return $record;
 	}
@@ -16111,6 +16110,22 @@ class API
 
 		$update_test_query = "UPDATE test SET ts = NOW(), status_code_id = $test_status_code_id WHERE test_id = ".$test['test_id'];
 		$test_update = query_update($update_test_query);
+
+		
+		if ($state == 'Drawn'){		
+			//update timestamp for specimen collection
+
+			$date = date('Y-m-d',$time);
+			$time = date('H:i', $time);
+				
+			$specimen_update_query = "UPDATE specimen SET
+											ts_collected = NOW(),
+											date_collected = DATE($date),
+											time_collected = '$time',
+											date_recvd = DATE($date)
+										WHERE specimen_id = $specimen_id";
+			$updated_specimen = query_update($specimen_update_query);
+		}
 		
 		if ($state == 'Testing'){
 			$update_test_query = "UPDATE test SET ts_started = NOW() WHERE test_id = ".$test['test_id'];
