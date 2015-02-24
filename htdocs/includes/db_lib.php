@@ -17369,14 +17369,14 @@ class API
 				FROM specimen_activity_log AS sl WHERE sl.test_id = (SELECT test_id FROM test
 				where test_type_id = (SELECT test_type_id FROM test_type WHERE name = '$test_name') AND
 				specimen_id = (SELECT specimen_id FROM specimen WHERE accession_number = '$accession_num'))
-				ORDER BY date DESC LIMIT 1";
+				ORDER BY date DESC, activity_state_id DESC LIMIT 1";
 
 		}
 		else
 		{
 			$query = "SELECT (SELECT name FROM specimen_activity where state_id  = sl.state_id) AS state
 				FROM specimen_activity_log AS sl WHERE sl.specimen_id = (SELECT specimen_id FROM specimen WHERE accession_number = '$accession_num')
-				ORDER BY date DESC LIMIT 1";
+				ORDER BY date DESC, activity_state_id DESC LIMIT 1";
 		}
 
 		$state = (string)query_associative_one($query)['state'];
