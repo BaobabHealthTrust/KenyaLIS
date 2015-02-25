@@ -16647,7 +16647,7 @@ class API
     	}else if ($dashboard_type == 'ward'){
     		$status = "'Ordered', 'Drawn', 'Rejected', 'Tested', 'Verified'";
 		}else if ($dashboard_type == 'labdepartment'){
-			$status = "'Received At Reception', 'Received In Department'";   		   		
+			$status = "'Received At Reception', 'Testing', 'Received In Department'";   		   		
     	}else{
     		$status = $params['status'];
     	}
