@@ -41,6 +41,8 @@ $obx = $msg->getSegmentsByName("OBX");
 
 $spm = $msg->getSegmentsByName("SPM");
 
+$nte = $msg->getSegmentsByName("NTE");
+
 
 $sendingFacility = $msh[0]->getField(4)[0];    // MSH.04
 
@@ -90,13 +92,13 @@ $priority = $tq1[0]->getField(9);           // TQ1.09
 
 $enteredBy = $orc[0]->getField(10)[2] . " " . $orc[0]->getField(10)[1] . " (" . $orc[0]->getField(10)[0] . ")";          // ORC.10
 
-$enterersLocation = $orc[0]->getField(11);   // ORC.13
+$enterersLocation = $orc[0]->getField(13);   // ORC.13
 
 $testName = $obr[0]->getField(4)[1];
 
 $result = $obx[0]->getField(5);
 
-$state = $obr[0]->getField(25);
+$state = $nte[0]->getField(3);		// $obr[0]->getField(25);
 
 $comments = null;
 

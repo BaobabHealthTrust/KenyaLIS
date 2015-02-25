@@ -91,7 +91,7 @@ $priority = $tq1[0]->getField(9);           // TQ1.09
 
 $enteredBy = $orc[0]->getField(10)[2] . " " . $orc[0]->getField(10)[1] . " (" . $orc[0]->getField(10)[0] . ")";          // ORC.10
 
-$enterersLocation = $orc[0]->getField(11);   // ORC.13
+$enterersLocation = $orc[0]->getField(13);   // ORC.13
 
 $status = $nte[0]->getField(3);
 
