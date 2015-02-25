@@ -102,6 +102,34 @@ $state = $nte[0]->getField(3);		// $obr[0]->getField(25);
 
 $comments = null;
 
+$result = array(
+  "sendingFacility" => $sendingFacility,
+  "receivingFacility" => $receivingFacility,
+  "messageDatetime" => $messageDatetime,
+  "messageType" => $messageType,
+  "messageControlID" => $messageControlID,
+  "processingID" => $processingID,
+  "hl7VersionID" => $hl7VersionID,
+  "obrSetID" => $obrSetID,
+  "testCode" => $testCode,
+  "timestampForSpecimenCollection" => $timestampForSpecimenCollection,
+  "reasonTestPerformed" => $reasonTestPerformed,
+  "whoOrderedTest" => $whoOrderedTest,
+  "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
+  "pidSetID" => $pidSetID,
+  "nationalID" => $nationalID,
+  "patientName" => $patientName,
+  "dateOfBirth" => $dateOfBirth,
+  "gender" => $gender,
+  "spmSetID" => $spmSetID,
+  "accessionNumber" => $accessionNumber,
+  "typeOfSample" => $typeOfSample,
+  "tq1SetID" => $tq1SetID,
+  "priority" => $priority,
+  "enteredBy" => $enteredBy,
+  "enterersLocation" => $enterersLocation,
+  "status" => $state
+);
 $record = array(
   "state" => $state,
   "location" => $enterersLocation,
@@ -117,6 +145,38 @@ $record = array(
 
 $result = API::update_order($record, $accessionNumber, $testName);
 
-echo json_encode($result);
+if ($result != false){
+	$response = array(
+	  "sendingFacility" => $sendingFacility,
+	  "receivingFacility" => $receivingFacility,
+	  "messageDatetime" => $messageDatetime,
+	  "messageType" => $messageType,
+	  "messageControlID" => $messageControlID,
+	  "processingID" => $processingID,
+	  "hl7VersionID" => $hl7VersionID,
+	  "obrSetID" => $obrSetID,
+	  "testCode" => $testCode,
+	  "timestampForSpecimenCollection" => $timestampForSpecimenCollection,
+	  "reasonTestPerformed" => $reasonTestPerformed,
+	  "whoOrderedTest" => $whoOrderedTest,
+	  "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
+	  "pidSetID" => $pidSetID,
+	  "nationalID" => $nationalID,
+	  "patientName" => $patientName,
+	  "dateOfBirth" => $dateOfBirth,
+	  "gender" => $gender,
+	  "spmSetID" => $spmSetID,
+	  "accessionNumber" => $accessionNumber,
+	  "typeOfSample" => $typeOfSample,
+	  "tq1SetID" => $tq1SetID,
+	  "priority" => $priority,
+	  "enteredBy" => $enteredBy,
+	  "enterersLocation" => $enterersLocation,
+	  "status" => $state
+	);
+	echo json_encode($response);
+}else{
+	echo json_encode($result);
+}
 ?>
 
