@@ -10651,7 +10651,7 @@ function get_accession_number()
 	$code = $user_lab['facility_code'];
 
 	$query_string =
-		"SELECT * FROM specimen ORDER BY ts DESC LIMIT 1";
+		"SELECT * FROM specimen ORDER BY specimen_id DESC LIMIT 1";
 		
 	$record = query_associative_one($query_string);
 
