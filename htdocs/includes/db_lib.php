@@ -7713,12 +7713,12 @@ function add_test($test, $testId=null)
 	if( $testId == null)
 		$testId = bcadd(get_max_test_id(),1);
 	$query_string = 
-		"INSERT INTO `test` ( test_id, specimen_id, test_type_id, result, comments, verified_by, user_id, external_lab_no, external_parent_lab_no ) ".
-		"VALUES ( $testId, $test->specimenId, $test->testTypeId, '$test->result', '$test->comments', 0, $test->userId, '$test->external_lab_no', '$test->external_parent_lab_no' )";
+		"INSERT INTO `test` (priority, test_id, specimen_id, test_type_id, result, comments, verified_by, user_id, external_lab_no, external_parent_lab_no ) ".
+		"VALUES ('$test->priority', $testId, $test->specimenId, $test->testTypeId, '$test->result', '$test->comments', 0, $test->userId, '$test->external_lab_no', '$test->external_parent_lab_no' )";
 	//die($query_string);
 	$result = query_insert_one($query_string);
 	$last_insert_id = get_last_insert_id();
-	
+		
 	if($result){
 		//Add event to audit trail
 		$auditTrail = new AuditTrail();		
@@ -15892,6 +15892,8 @@ class API
     	$specimen_id;    	
     	$patient = get_patient_by_npid($record['nationalID']);
     	$accession_number = $record['accessionNumber'];
+		$skip_order_log = false;
+		
     	if (!$patient){
     	
 			$date_receipt = date("Y-m-d H:i:s");
@@ -15919,10 +15921,14 @@ class API
 			$specimen = new Specimen();
 			$specimen->sessionNum = get_session_number();
 			$specimen->accessionNumber = get_accession_number();
-			$specimen->specimenId = bcadd(get_max_specimen_id(), 1); 
-			$specimen->dateCollected = date('Y-m-d',$time);
-			$specimen->timeCollected = date('H:i', $time); 
-			$specimen->dateRecvd = date("Y-m-d"); 
+			$specimen->specimenId = get_max_specimen_id() + 1;
+
+			if ($record['status'] == 'Drawn'){
+				$specimen->dateCollected = date('Y-m-d',$time);
+				$specimen->timeCollected = date('H:i', $time);
+				$specimen->dateRecvd = date("Y-m-d"); 
+			}			
+
 			$specimen->patientId = $patient_id;
 			
 			$specimen->specimenTypeId = Specimen::getIdByName($record['typeOfSample']);
@@ -15940,9 +15946,12 @@ class API
 			$accession_number = $specimen->accessionNumber;
 			$record['accessionNumber'] = $accession_number;
 		}else{
+
 			$spec_query = "SELECT * FROM specimen WHERE accession_number = '".$accession_number."' LIMIT 1";
 			$resultset = query_associative_one($spec_query);
-			
+
+			$skip_order_log = true;
+
 			if ($resultset != null && $resultset != 1){
 				$specimen = $resultset;
 				$specimen_id = $specimen['specimen_id'];
@@ -15954,7 +15963,8 @@ class API
     	$test_type_id = TestType::getByLoincCode($record['testCode'])->testTypeId;
 		$test->specimenId = $specimen_id;
 		$test->testTypeId = $test_type_id;
-		$test->comments = ""; 
+		$test->comments = "";
+		$test->priority = $record['priority'];
 		$test->userId = $_SESSION['user_id'];
 		$test->result = "";		
 		$ex = API::getExternalParentLabNo($patient->surrogateId,  get_test_name_by_id($test->testTypeId));
@@ -15976,26 +15986,32 @@ class API
 			}
 		}
 
-		$insert_query = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
-							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Ordered'  LIMIT 1), 
-							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
-							
-		$activity_state = query_insert_one($insert_query);
+		if ($skip_order_log == false){
+		
+				$insert_query = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
+									VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Ordered'  LIMIT 1), 
+									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
+									
+				$activity_state = query_insert_one($insert_query);
+			
+			
+			if ($record['status'] == 'Drawn'){
+				$insert_query2 = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
+									VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Drawn'  LIMIT 1),
+									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
+			
+				$activity_state2 = query_insert_one($insert_query2);
 
-		$insert_query2 = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
-							VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Drawn'  LIMIT 1),
-							$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
-
-		$activity_state2 = query_insert_one($insert_query2);
-
-		//update timestamp for specimen collection
-		$specimen_update_query = "UPDATE specimen SET ts_collected = NOW() WHERE specimen_id = $specimen_id";
-		$updated_specimen = query_update($specimen_update_query);
-
-		 $t_name = query_associative_one("SELECT name FROM test_type
-										WHERE test_type_id = $test_type_id LIMIT 1"); 							
-		$record['testName'] = $t_name['name'];
+				//update timestamp for specimen collection
+				$specimen_update_query = "UPDATE specimen SET ts_collected = NOW() WHERE specimen_id = $specimen_id";
+				$updated_specimen = query_update($specimen_update_query);
+			}
+	    }
 	
+        $t_name = query_associative_one("SELECT name FROM test_type
+										WHERE test_type_id = $test_type_id LIMIT 1"); 							
+		$record['testName'] = $t_name['name'];		
+		
 		return $record;
 	}
 	
@@ -16094,6 +16110,22 @@ class API
 
 		$update_test_query = "UPDATE test SET ts = NOW(), status_code_id = $test_status_code_id WHERE test_id = ".$test['test_id'];
 		$test_update = query_update($update_test_query);
+
+		
+		if ($state == 'Drawn'){		
+			//update timestamp for specimen collection
+
+			$date = date('Y-m-d',$time);
+			$time = date('H:i', $time);
+				
+			$specimen_update_query = "UPDATE specimen SET
+											ts_collected = NOW(),
+											date_collected = DATE($date),
+											time_collected = '$time',
+											date_recvd = DATE($date)
+										WHERE specimen_id = $specimen_id";
+			$updated_specimen = query_update($specimen_update_query);
+		}
 		
 		if ($state == 'Testing'){
 			$update_test_query = "UPDATE test SET ts_started = NOW() WHERE test_id = ".$test['test_id'];
@@ -16615,7 +16647,7 @@ class API
     	}else if ($dashboard_type == 'ward'){
     		$status = "'Ordered', 'Drawn', 'Rejected', 'Verified'";
 		}else if ($dashboard_type == 'labdepartment'){
-			$status = "'Received At Reception', 'Received In Department', 'Testing'";   		   		
+			$status = "'Received At Reception', 'Received In Department'";   		   		
     	}else{
     		$status = $params['status'];
     	}
@@ -16641,7 +16673,7 @@ class API
     	$lifespan = '(SELECT lifespan FROM specimen_test WHERE specimen_type_id = sp.specimen_type_id 
     								AND test_type_id = t.test_type_id) AS lifespan';
     								
-    	$priority = '(SELECT priority FROM test_type WHERE test_type_id = t.test_type_id) AS priority';
+    	$priority = 't.priority AS priority';
     	
     	$department = '(SELECT name FROM test_category WHERE test_category_id = 
 									(SELECT test_category_id FROM test_type WHERE test_type_id = t.test_type_id)) AS department';
@@ -17324,6 +17356,33 @@ class API
     
     	DbUtil::switchRestore($saved_db);
     }
+
+	public function getStatus($params){
+
+		$query = "";
+		$accession_num = $params['accession_num'];
+
+		if ($params['test_name'])
+		{
+			$test_name = $params['test_name'];
+			$query = "SELECT (SELECT name FROM specimen_activity where state_id  = sl.state_id) AS state
+				FROM specimen_activity_log AS sl WHERE sl.test_id = (SELECT test_id FROM test
+				where test_type_id = (SELECT test_type_id FROM test_type WHERE name = '$test_name') AND
+				specimen_id = (SELECT specimen_id FROM specimen WHERE accession_number = '$accession_num'))
+				ORDER BY date DESC, activity_state_id DESC LIMIT 1";
+
+		}
+		else
+		{
+			$query = "SELECT (SELECT name FROM specimen_activity where state_id  = sl.state_id) AS state
+				FROM specimen_activity_log AS sl WHERE sl.specimen_id = (SELECT specimen_id FROM specimen WHERE accession_number = '$accession_num')
+				ORDER BY date DESC, activity_state_id DESC LIMIT 1";
+		}
+
+		$state = (string)query_associative_one($query)['state'];
+
+		return $state;
+	}
 }
 	
 
