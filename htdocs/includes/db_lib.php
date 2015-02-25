@@ -10651,7 +10651,7 @@ function get_accession_number()
 	$code = $user_lab['facility_code'];
 
 	$query_string =
-		"SELECT * FROM specimen ORDER BY ts DESC LIMIT 1";
+		"SELECT * FROM specimen ORDER BY specimen_id DESC LIMIT 1";
 		
 	$record = query_associative_one($query_string);
 
@@ -10666,7 +10666,7 @@ function get_accession_number()
 	}else{
 		$max_acc_num = 1;
 	}
-
+	$max_acc_num = str_pad($max_acc_num, 6, '0', STR_PAD_LEFT);
 	$return_value = $code.$max_acc_num;
 	return $return_value;
 }
@@ -15990,7 +15990,7 @@ class API
 		
 				$insert_query = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
 									VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Ordered'  LIMIT 1), 
-									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
+									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['enterersLocation']."')";
 									
 				$activity_state = query_insert_one($insert_query);
 			
@@ -15998,7 +15998,7 @@ class API
 			if ($record['status'] == 'Drawn'){
 				$insert_query2 = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
 									VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Drawn'  LIMIT 1),
-									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
+									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['enterersLocation']."')";
 			
 				$activity_state2 = query_insert_one($insert_query2);
 
@@ -16645,9 +16645,9 @@ class API
     	if ($dashboard_type == 'labreception'){
     		$status = "'Drawn'";
     	}else if ($dashboard_type == 'ward'){
-    		$status = "'Ordered', 'Drawn', 'Rejected', 'Verified'";
+    		$status = "'Ordered', 'Drawn', 'Rejected', 'Tested', 'Verified'";
 		}else if ($dashboard_type == 'labdepartment'){
-			$status = "'Received At Reception', 'Received In Department'";   		   		
+			$status = "'Received At Reception', 'Testing', 'Received In Department'";   		   		
     	}else{
     		$status = $params['status'];
     	}
