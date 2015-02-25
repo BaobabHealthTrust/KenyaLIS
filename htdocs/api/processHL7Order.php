@@ -213,7 +213,8 @@ $finalResult = array(
 				"testName" => $testName,
 				"timestampForSpecimenCollection" => $response["timestampForSpecimenCollection"],
 				"reasonTestPerformed" => $response["reasonTestPerformed"],
-				"whoOrderedTest" => $response["whoOrderedTest"]
+				"enteredBy" => $enteredBy,
+				"enterersLocation" => $enterersLocation
 			)
 	),
   "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
@@ -227,8 +228,7 @@ $finalResult = array(
   "typeOfSample" => $typeOfSample,
   "tq1SetID" => $tq1SetID,
   "priority" => $priority,
-  "enteredBy" => $enteredBy,
-  "enterersLocation" => $enterersLocation,
+	"whoOrderedTest" => $response["whoOrderedTest"],
   "status" => $status
 );
 
@@ -293,7 +293,8 @@ for($i = 1; $i < sizeof($obr); $i++){
 		"testName" => $testName,
 		"timestampForSpecimenCollection" => $response["timestampForSpecimenCollection"],
 		"reasonTestPerformed" => $response["reasonTestPerformed"],
-		"whoOrderedTest" => $response["whoOrderedTest"]
+		"enteredBy" => $enteredBy,
+		"enterersLocation" => $enterersLocation
 	);
 
 	array_push($finalResult["tests"], $set);
