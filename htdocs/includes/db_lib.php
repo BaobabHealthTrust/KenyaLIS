@@ -16042,7 +16042,7 @@ class API
 		$test = query_associative_one($query_test);
 
 		if (!$specimen || !$test){
-			return false;
+			//return false;
 		}
 
 		$specimen_id = $specimen['specimen_id'];
@@ -16108,9 +16108,10 @@ class API
 		$update_specimen_query = "UPDATE specimen SET ts = NOW(), status_code_id = $specimen_status_code_id WHERE specimen_id = $specimen_id";
 		$specimen = query_update($update_specimen_query);
 
-		$update_test_query = "UPDATE test SET ts = NOW(), status_code_id = $test_status_code_id WHERE test_id = ".$test['test_id'];
-		$test_update = query_update($update_test_query);
-
+		if ($test){
+			$update_test_query = "UPDATE test SET ts = NOW(), status_code_id = $test_status_code_id WHERE test_id = ".$test['test_id'];
+			$test_update = query_update($update_test_query);
+		}
 		
 		if ($state == 'Drawn'){		
 			//update timestamp for specimen collection
@@ -16147,7 +16148,10 @@ class API
 
 		//return updated $record parameters
 		$record['accession_number'] = $accession_number;
-		$record['test_type_name'] = $test_type_name;
+
+		if ($test)
+			$record['test_type_name'] = $test_type_name;
+			
 		return  $record;
 	}
 	
