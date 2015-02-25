@@ -15990,7 +15990,7 @@ class API
 		
 				$insert_query = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
 									VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Ordered'  LIMIT 1), 
-									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
+									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['enterersLocation']."')";
 									
 				$activity_state = query_insert_one($insert_query);
 			
@@ -15998,7 +15998,7 @@ class API
 			if ($record['status'] == 'Drawn'){
 				$insert_query2 = "INSERT INTO specimen_activity_log (state_id, specimen_id, date, user_id, doctor, location)
 									VALUES((SELECT state_id FROM specimen_activity WHERE name = 'Drawn'  LIMIT 1),
-									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['healthFacilitySiteCodeAndName']."')";
+									$specimen_id, NOW(), ".$_SESSION['user_id'].", '".$record['whoOrderedTest']."', '".$record['enterersLocation']."')";
 			
 				$activity_state2 = query_insert_one($insert_query2);
 
