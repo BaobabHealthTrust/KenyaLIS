@@ -10666,7 +10666,7 @@ function get_accession_number()
 	}else{
 		$max_acc_num = 1;
 	}
-
+	$max_acc_num = str_pad($max_acc_num, 6, '0', STR_PAD_LEFT);
 	$return_value = $code.$max_acc_num;
 	return $return_value;
 }
