@@ -113,57 +113,7 @@ $record = array(
   "comments" => $comments
 );
 
-// var_dump($record);
-
 $result = API::update_order($record, $accessionNumber, $testName);
-
-if ($result != false){
-	
-	$finalResult = array(
-	  "sendingFacility" => $sendingFacility,
-	  "receivingFacility" => $receivingFacility,
-	  "messageDatetime" => $messageDatetime,
-	  "messageType" => $messageType,
-	  "messageControlID" => $messageControlID,
-	  "processingID" => $processingID,
-	  "hl7VersionID" => $hl7VersionID,
-	  "tests" => array(),
-	  "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
-	  "pidSetID" => $pidSetID,
-	  "nationalID" => $nationalID,
-	  "patientName" => $patientName,
-	  "dateOfBirth" => $dateOfBirth,
-	  "gender" => $gender,
-	  "spmSetID" => $spmSetID,
-	  "accessionNumber" => $accessionNumber,
-	  "typeOfSample" => $typeOfSample,
-	  "tq1SetID" => $tq1SetID,
-	  "priority" => $priority,
-		"whoOrderedTest" => $response["whoOrderedTest"],
-	  "status" => $state
-	);
-	
-	for($i = 0; $i < sizeof($obr); $i++){
-	
-		$set = array(
-			"obrSetID" => $obr[$i]->getField(1),
-			"testCode" => $obr[$i]->getField(4)[0],
-			"testName" => $obr[$i]->getField(4)[1],
-			"timestampForSpecimenCollection" => $obr[$i]->getField(7),
-			"reasonTestPerformed" => $obr[$i]->getField(13),
-			"enteredBy" => $enteredBy,
-			"enterersLocation" => $enterersLocation
-		);
-		
-		array_push($finalResult["tests"], $set);
-	}
-	
-	echo json_encode($finalResult);
-	
-}else{
-	
-	echo json_encode($result);
-	
-}
+echo json_encode($result);
 ?>
 
