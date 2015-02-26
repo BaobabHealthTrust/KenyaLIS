@@ -102,34 +102,6 @@ $state = $nte[0]->getField(3);		// $obr[0]->getField(25);
 
 $comments = null;
 
-$result = array(
-  "sendingFacility" => $sendingFacility,
-  "receivingFacility" => $receivingFacility,
-  "messageDatetime" => $messageDatetime,
-  "messageType" => $messageType,
-  "messageControlID" => $messageControlID,
-  "processingID" => $processingID,
-  "hl7VersionID" => $hl7VersionID,
-  "obrSetID" => $obrSetID,
-  "testCode" => $testCode,
-  "timestampForSpecimenCollection" => $timestampForSpecimenCollection,
-  "reasonTestPerformed" => $reasonTestPerformed,
-  "whoOrderedTest" => $whoOrderedTest,
-  "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
-  "pidSetID" => $pidSetID,
-  "nationalID" => $nationalID,
-  "patientName" => $patientName,
-  "dateOfBirth" => $dateOfBirth,
-  "gender" => $gender,
-  "spmSetID" => $spmSetID,
-  "accessionNumber" => $accessionNumber,
-  "typeOfSample" => $typeOfSample,
-  "tq1SetID" => $tq1SetID,
-  "priority" => $priority,
-  "enteredBy" => $enteredBy,
-  "enterersLocation" => $enterersLocation,
-  "status" => $state
-);
 $record = array(
   "state" => $state,
   "location" => $enterersLocation,
@@ -146,7 +118,8 @@ $record = array(
 $result = API::update_order($record, $accessionNumber, $testName);
 
 if ($result != false){
-	$response = array(
+	
+	$finalResult = array(
 	  "sendingFacility" => $sendingFacility,
 	  "receivingFacility" => $receivingFacility,
 	  "messageDatetime" => $messageDatetime,
@@ -154,11 +127,7 @@ if ($result != false){
 	  "messageControlID" => $messageControlID,
 	  "processingID" => $processingID,
 	  "hl7VersionID" => $hl7VersionID,
-	  "obrSetID" => $obrSetID,
-	  "testCode" => $testCode,
-	  "timestampForSpecimenCollection" => $timestampForSpecimenCollection,
-	  "reasonTestPerformed" => $reasonTestPerformed,
-	  "whoOrderedTest" => $whoOrderedTest,
+	  "tests" => array(),
 	  "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
 	  "pidSetID" => $pidSetID,
 	  "nationalID" => $nationalID,
@@ -170,13 +139,31 @@ if ($result != false){
 	  "typeOfSample" => $typeOfSample,
 	  "tq1SetID" => $tq1SetID,
 	  "priority" => $priority,
-	  "enteredBy" => $enteredBy,
-	  "enterersLocation" => $enterersLocation,
+		"whoOrderedTest" => $response["whoOrderedTest"],
 	  "status" => $state
 	);
-	echo json_encode($response);
+	
+	for($i = 0; $i < sizeof($obr); $i++){
+	
+		$set = array(
+			"obrSetID" => $obr[$i]->getField(1),
+			"testCode" => $obr[$i]->getField(4)[0],
+			"testName" => $obr[$i]->getField(4)[1],
+			"timestampForSpecimenCollection" => $obr[$i]->getField(7),
+			"reasonTestPerformed" => $obr[$i]->getField(13),
+			"enteredBy" => $enteredBy,
+			"enterersLocation" => $enterersLocation
+		);
+		
+		array_push($finalResult["tests"], $set);
+	}
+	
+	echo json_encode($finalResult);
+	
 }else{
+	
 	echo json_encode($result);
+	
 }
 ?>
 
