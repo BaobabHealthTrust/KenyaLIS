@@ -15940,7 +15940,7 @@ class API
     	$patient_id = $patient->patientId;
     	
     	if (!$accession_number){
-			$time = strtotime($record['date']);
+			$time = strtotime($record['messageDatetime']);
 			
 			$specimen = new Specimen();
 			$specimen->sessionNum = get_session_number();
@@ -16140,8 +16140,8 @@ class API
 		if ($state == 'Drawn'){		
 			//update timestamp for specimen collection
 
-			$date = date('Y-m-d',$time);
-			$time = date('H:i', $time);
+			$date = date('Y-m-d',$date);
+			$time = date('H:i', $date);
 				
 			$specimen_update_query = "UPDATE specimen SET
 											ts_collected = NOW(),
