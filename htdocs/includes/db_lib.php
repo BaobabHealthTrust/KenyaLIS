@@ -10268,6 +10268,30 @@ function get_test_name_by_id($test_type_id, $lab_config_id=null)
 	}
 }
 
+function get_loinc_code_by_id($test_type_id, $lab_config_id=null)
+{
+	global $con;
+	$test_type_id = mysql_real_escape_string($test_type_id, $con);
+	$lab_config_id = mysql_real_escape_string($lab_config_id, $con);
+	# Returns test type name string
+	global $CATALOG_TRANSLATION;
+	if($CATALOG_TRANSLATION === true)
+	return LangUtil::getTestName($test_type_id);
+	else
+	{
+		$saved_db = DbUtil::switchToLabConfigRevamp($lab_config_id);
+		$query_string = 
+			"SELECT loinc_code FROM test_type ".
+			"WHERE test_type_id=$test_type_id LIMIT 1";
+		$record = query_associative_one($query_string);
+		DbUtil::switchRestore($saved_db);
+		if($record == null)
+			return LangUtil::$generalTerms['NOTKNOWN'];
+		else
+			return $record['loinc_code'];
+	}
+}
+
 function get_clinical_data_by_id($test_type_id)
 {
 	global $con;
