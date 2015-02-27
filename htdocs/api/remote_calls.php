@@ -90,7 +90,9 @@
         
         $name = get_test_name_by_id($tests[$t]->testTypeId);
         
-        $result["$name|".$tests[$t]->testTypeId."|".$type->name] = $test;
+        $loincCode = get_loinc_code_by_id($tests[$t]->testTypeId);
+        
+        $result["$name|".$tests[$t]->testTypeId."|".$type->name."|".$loincCode] = $test;
       
       }
       
