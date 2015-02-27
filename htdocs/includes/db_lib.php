@@ -15948,9 +15948,9 @@ class API
 			$specimen->specimenId = get_max_specimen_id() + 1;
 
 			if ($record['status'] == 'Drawn'){
-				$specimen->dateCollected = date('Y-m-d',$time);
-				$specimen->timeCollected = date('H:i', $time);
-				$specimen->dateRecvd = date("Y-m-d"); 
+				$specimen->dateCollected = date_format(date_create($time), "Y-m-d");
+				$specimen->timeCollected = date_format(date_create($time), "H:i");
+				$specimen->dateRecvd = date_format(date_create($time), "Y-m-d"); 
 			}			
 
 			$specimen->patientId = $patient_id;
@@ -16140,14 +16140,14 @@ class API
 		if ($state == 'Drawn'){		
 			//update timestamp for specimen collection
 
-			$dateCollected = date('Y-m-d',$date);
-			$time = date('H:i', $date);
-				
+			$dateCollected = date_format(date_create($date), "Y-m-d");
+			$time = date_format(date_create($date), "H:i");
+							
 			$specimen_update_query = "UPDATE specimen SET
 											ts_collected = NOW(),
 											date_collected = '$dateCollected',
 											time_collected = '$time',
-											date_recvd = DATE(NOW)
+											date_recvd = DATE(NOW())
 										WHERE specimen_id = $specimen_id";
 			$updated_specimen = query_update($specimen_update_query);
 		}
