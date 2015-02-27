@@ -15916,7 +15916,7 @@ class API
     	$patient_id = $patient->patientId;
     	
     	if (!$accession_number){
-			$time = strtotime($record['timestampForSpecimenCollection']);
+			$time = strtotime($record['date']);
 			
 			$specimen = new Specimen();
 			$specimen->sessionNum = get_session_number();
