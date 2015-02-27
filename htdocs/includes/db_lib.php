@@ -16286,6 +16286,42 @@ class API
 		return $logs;
 	}
 
+    function get_test_type_measure_ranges($test_type_id, $patient_id){
+		$patient = API::get_patient($patient_id);
+		
+		$measures = query_associative_all("SELECT * FROM test_type_measure WHERE test_type_id = $test_type_id");
+		$result = array();
+		
+		foreach ($measures AS $record){
+			$msr = query_associative_all('SELECT * FROM measure WHERE measure_id = '.$record['measure_id']);
+			foreach($msr AS $mr){
+				$ar = array();
+				$ar['name'] = $mr['name'];				
+				$age = $patient->getAgeNumber();
+				$sex = $patient->sex;
+				
+				$query = "SELECT * FROM reference_range WHERE measure_id = ".$mr['measure_id'].
+					" AND age_min <= $age AND age_max >= $age AND (sex = '$sex' OR sex = 'B') LIMIT 1";
+			
+				$range = query_associative_all($query);
+				
+				if (sizeof($range) == 1){
+					$ar['type'] = 'numeric';
+					$ar['range_lower'] = $range[0]['range_lower'];
+					$ar['range_upper'] = $range[0]['range_upper'];
+				}else if (strstr($mr['measure_range'], '/')){
+					$ar['name'] = 'list';
+					$ar['options'] = explode('/', $mr['measure_range']); 
+				}else{
+					$ar['type'] = 'freetext';
+				}
+				array_push($result, $ar);
+			}
+			
+		}
+		return $result;		
+	}
+	
     public function get_test_catalog()
     {
         global $CATALOG_TRANSLATION;
@@ -16675,7 +16711,7 @@ class API
     	}else if ($dashboard_type == 'ward'){
     		$status = "'Ordered', 'Drawn', 'Rejected', 'Tested', 'Verified'";
 		}else if ($dashboard_type == 'labdepartment'){
-			$status = "'Received At Reception', 'Testing', 'Received In Department'";   		   		
+			$status = "'Received At Reception', 'Received In Department'";   		   		
     	}else{
     		$status = $params['status'];
     	}
