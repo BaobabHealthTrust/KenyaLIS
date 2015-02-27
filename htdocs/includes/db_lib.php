@@ -16140,14 +16140,14 @@ class API
 		if ($state == 'Drawn'){		
 			//update timestamp for specimen collection
 
-			$date = date('Y-m-d',$date);
+			$dateCollected = date('Y-m-d',$date);
 			$time = date('H:i', $date);
 				
 			$specimen_update_query = "UPDATE specimen SET
 											ts_collected = NOW(),
-											date_collected = DATE($date),
+											date_collected = '$dateCollected',
 											time_collected = '$time',
-											date_recvd = DATE($date)
+											date_recvd = DATE(NOW)
 										WHERE specimen_id = $specimen_id";
 			$updated_specimen = query_update($specimen_update_query);
 		}
