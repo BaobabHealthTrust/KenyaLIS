@@ -45,6 +45,19 @@
       
       }
     
+    } else if($_REQUEST['action'] == 'get_tests_by_specimen_id') {  
+    
+      if(!isset($_REQUEST['id'])) {
+          echo -2;
+          return;
+      } else {
+      
+        getTestsBySpecimenId($_REQUEST["id"]);
+        
+        return;
+      
+      }
+    
     }
     
   }
@@ -93,6 +106,18 @@
   
     $response = get_patient_by_sp_id($spec[0]->specimenId);
     
+    echo json_encode($response);
+  
+  }
+
+  function getTestsBySpecimenId($id){
+  
+    $spec = get_specimens_by_accession($id);
+  
+  	echo json_encode($spec);
+  
+    $response = get_tests_by_specimen_id($spec[0]->specimenId);
+  
     echo json_encode($response);
   
   }

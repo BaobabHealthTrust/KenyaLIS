@@ -58,47 +58,47 @@ $processingID = $msh[0]->getField(11);       // MSH.11
 
 $hl7VersionID = $msh[0]->getField(12);       // MSH.12
 
-$obrSetID = $obr[0]->getField(1);           // OBR.01
+$obrSetID = (count($obr) > 0 ? $obr[0]->getField(1) : null);           // OBR.01
 
-$testCode = $obr[0]->getField(4)[0];           // OBR.04
+$testCode = (count($obr) > 0 ? $obr[0]->getField(4)[0] : null);           // OBR.04
 
-$timestampForSpecimenCollection = $obr[0]->getField(7);     // OBR.07
+$timestampForSpecimenCollection = (count($obr) > 0 ? $obr[0]->getField(7) : null);     // OBR.07
 
-$reasonTestPerformed = $obr[0]->getField(13);                // OBR.13
+$reasonTestPerformed = (count($obr) > 0 ? $obr[0]->getField(13) : null);                // OBR.13
 
-$whoOrderedTest = $obr[0]->getField(16)[2] . " " . $obr[0]->getField(16)[1] . " (" . $obr[0]->getField(1)[0] . ")";                     // OBR.16
+$whoOrderedTest = (count($obr) > 0 ? $obr[0]->getField(16)[2] : "") . " " . (count($obr) > 0 ? $obr[0]->getField(16)[1] : "") . " (" . (count($obr) > 0 ? $obr[0]->getField(1)[0] : "") . ")";                     // OBR.16
 
-$healthFacilitySiteCodeAndName = $orc[0]->getField(21);      // ORC.21
+$healthFacilitySiteCodeAndName = (count($orc) > 0 ? $orc[0]->getField(21) : null);      // ORC.21
 
-$pidSetID = $pid[0]->getField(1);           // PID.01
+$pidSetID = (count($pid) > 0 ? $pid[0]->getField(1) : null);           // PID.01
 
-$nationalID = $pid[0]->getField(3);         // PID.03
+$nationalID = (count($pid) > 0 ? $pid[0]->getField(3) : null);         // PID.03
 
-$patientName = $pid[0]->getField(5)[1] . " " . $pid[0]->getField(5)[2] . " " . $pid[0]->getField(5)[0] . " " . $pid[0]->getField(5)[3];        // PID.05
+$patientName = (count($pid) > 0 ? $pid[0]->getField(5)[1] : "") . " " . (count($pid) > 0 ? $pid[0]->getField(5)[2] : "") . " " . (count($pid) > 0 ? $pid[0]->getField(5)[0] : "") . " " . (count($pid) > 0 ? $pid[0]->getField(5)[3] : "");        // PID.05
 
-$dateOfBirth = $pid[0]->getField(7);        // PID.07
+$dateOfBirth = (count($pid) > 0 ? $pid[0]->getField(7) : null);        // PID.07
 
-$gender = $pid[0]->getField(8);             // PID.08
+$gender = (count($pid) > 0 ? $pid[0]->getField(8) : null);             // PID.08
 
-$spmSetID = $spm[0]->getField(1);           // SPM.01
+$spmSetID = (count($spm) > 0 ? $spm[0]->getField(1) : null);           // SPM.01
 
-$accessionNumber = $spm[0]->getField(2);    // SPM.02
+$accessionNumber = (count($spm) > 0 ? $spm[0]->getField(2) : null);    // SPM.02
 
-$typeOfSample = $spm[0]->getField(4)[1];       // SPM.04
+$typeOfSample = (count($spm) > 0 ? $spm[0]->getField(4)[1] : null);       // SPM.04
 
-$tq1SetID = $tq1[0]->getField(1);           // TQ1.01
+$tq1SetID = (count($tq1) > 0 ? $tq1[0]->getField(1) : null);           // TQ1.01
 
-$priority = $tq1[0]->getField(9);           // TQ1.09
+$priority = (count($tq1) > 0 ? $tq1[0]->getField(9) : null);           // TQ1.09
 
-$enteredBy = $orc[0]->getField(10)[2] . " " . $orc[0]->getField(10)[1] . " (" . $orc[0]->getField(10)[0] . ")";          // ORC.10
+$enteredBy = (count($orc) > 0 ? $orc[0]->getField(10)[2] : "") . " " . (count($orc) > 0 ? $orc[0]->getField(10)[1] : "") . " (" . (count($orc) > 0 ? $orc[0]->getField(10)[0] : "") . ")";          // ORC.10
 
-$enterersLocation = $orc[0]->getField(13);   // ORC.13
+$enterersLocation = (count($orc) > 0 ? $orc[0]->getField(13) : null);   // ORC.13
 
-$testName = $obr[0]->getField(4)[1];
+$testName = (count($obr) > 0 ? $obr[0]->getField(4)[1] : null);
 
-$result = $obx[0]->getField(5);
+$result = (count($obx) > 0 ? $obx[0]->getField(5) : null);
 
-$state = $nte[0]->getField(3);		// $obr[0]->getField(25);
+$state = (count($nte) > 0 ? $nte[0]->getField(3) : null);		// $obr[0]->getField(25);
 
 $comments = null;
 
@@ -107,13 +107,93 @@ $record = array(
   "location" => $enterersLocation,
   "doctor" => $whoOrderedTest,
   "date" => $messageDatetime,
-  "reason" => null,
+  "reason" => $reasonTestPerformed,
   "user_id" => $_SESSION['user_id'],
   "result" => $result,
   "comments" => $comments
 );
 
+$spec = get_specimens_by_accession($accessionNumber);
+
+$patient = get_patient_by_sp_id($spec[0]->specimenId);
+  
+$finalResult = array(
+  "sendingFacility" => $sendingFacility,
+  "receivingFacility" => $receivingFacility,
+  "messageDatetime" => $messageDatetime,
+  "messageType" => $messageType,
+  "messageControlID" => $messageControlID,
+  "processingID" => $processingID,
+  "hl7VersionID" => $hl7VersionID,
+  "tests" => array(
+  		array(
+				"obrSetID" => 1,
+				"testCode" => $testCode,
+				"testName" => $testName,
+				"timestampForSpecimenCollection" => $messageDatetime,
+				"reasonTestPerformed" => $reasonTestPerformed,
+				"enteredBy" => $enteredBy,
+				"enterersLocation" => $enterersLocation,
+  			"result" => $result,
+  			"status" => $state
+			)
+	),
+  "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
+  "pidSetID" => $pidSetID,
+  "nationalID" => ($nationalID == null ? $patient->surrogateId : $nationalID),
+  "patientName" => ($patientName == null ? $patient->name : $patientName),
+  "dateOfBirth" => ($dateOfBirth == null ? $patient->dob : $dateOfBirth),
+  "gender" => ($gender == null ? $patient->sex : $gender),
+  "spmSetID" => $spmSetID,
+  "accessionNumber" => $accessionNumber,
+  "typeOfSample" => $typeOfSample,
+  "tq1SetID" => $tq1SetID,
+  "priority" => $priority,
+	"whoOrderedTest" => $response["whoOrderedTest"]
+);
+  
 $result = API::update_order($record, $accessionNumber, $testName);
-echo json_encode($result);
+
+if(strtolower($state) == "drawn"){
+	
+	for($i = 1; $i < sizeof($obr); $i++){
+	
+		$obrSetID = $obr[$i]->getField(1);           // OBR.01
+
+		$testCode = $obr[$i]->getField(4)[0];           // OBR.04
+
+		$testName = $obr[$i]->getField(4)[1];           // OBR.04
+	
+		$timestampForSpecimenCollection = $obr[$i]->getField(7);     // OBR.07
+
+		$reasonTestPerformed = $obr[$i]->getField(13);                // OBR.13
+		
+		$set = array(
+			"obrSetID" => $obrSetID,
+			"testCode" => $testCode,
+			"testName" => $testName,
+			"timestampForSpecimenCollection" => $timestampForSpecimenCollection,
+			"reasonTestPerformed" => $reasonTestPerformed,
+			"enteredBy" => $enteredBy,
+			"enterersLocation" => $enterersLocation,
+  		"status" => $state
+		);
+
+		array_push($finalResult["tests"], $set);
+	
+	}
+	
+}
+
+if($result){
+
+	echo json_encode($finalResult);
+	
+} else {
+
+	echo json_encode($result);
+	
+}
+
 ?>
 
