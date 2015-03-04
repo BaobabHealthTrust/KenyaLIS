@@ -16187,8 +16187,6 @@ class API
 		
 			$result[$st['name']] = API::get_state_count($st['name'], $date);
 		}
-		
-
 
 		$result['avg_tat_in_min'] = API::get_average_turn_around_time($date);
 		return $result;
@@ -16310,7 +16308,7 @@ class API
 					$ar['range_lower'] = $range[0]['range_lower'];
 					$ar['range_upper'] = $range[0]['range_upper'];
 				}else if (strstr($mr['measure_range'], '/')){
-					$ar['name'] = 'list';
+					$ar['type'] = 'list';
 					$ar['options'] = explode('/', $mr['measure_range']); 
 				}else{
 					$ar['type'] = 'freetext';
@@ -16696,7 +16694,7 @@ class API
     
     public function get_specimen_details($params){
     	/*
-    		This method pulls all specimens filtered by 
+    		This method pulls all specimens filtered by dashboard_type, 
     		department and status. Main target was for dashboard display
     		By: Kenneth Kapundi, Date: 29 Jan, 2015
     	*/
@@ -16783,7 +16781,8 @@ class API
 								ON sl.activity_state_id = 
 									(SELECT MAX(activity_state_id) FROM specimen_activity_log 
 									WHERE specimen_id = sp.specimen_id OR test_id = t.test_id)	
-						WHERE DATE(sl.date) <= DATE('$date') $status_condition $department_condition";
+						WHERE sl.state_id NOT IN (SELECT state_id FROM specimen_activity 
+								WHERE name = 'Voided') AND DATE(sl.date) <= DATE('$date') $status_condition $department_condition";
 	
 		$sub_query = "";
 		if ($dashboard_type == 'labreception'){
