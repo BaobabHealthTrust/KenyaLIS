@@ -16286,8 +16286,8 @@ class API
 		return $logs;
 	}
 
-    function get_test_type_measure_ranges($test_type_id, $patient_id){
-		$patient = API::get_patient($patient_id);
+    function get_test_type_measure_ranges($test_type_id, $npid){
+		$patient = get_patient_by_npid($npid);
 		
 		$measures = query_associative_all("SELECT * FROM test_type_measure WHERE test_type_id = $test_type_id");
 		$result = array();
