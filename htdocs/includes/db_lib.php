@@ -15940,7 +15940,7 @@ class API
     	$patient_id = $patient->patientId;
     	
     	if (!$accession_number){
-			$time = strtotime($record['messageDatetime']);
+			$time = $record['messageDatetime'];
 			
 			$specimen = new Specimen();
 			$specimen->sessionNum = get_session_number();
