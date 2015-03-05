@@ -154,35 +154,31 @@ $finalResult = array(
   
 $result = API::update_order($record, $accessionNumber, $testName);
 
-if(strtolower($state) == "drawn"){
-	
-	for($i = 1; $i < sizeof($obr); $i++){
-	
-		$obrSetID = $obr[$i]->getField(1);           // OBR.01
+for($i = 1; $i < sizeof($obr); $i++){
 
-		$testCode = $obr[$i]->getField(4)[0];           // OBR.04
+	$obrSetID = $obr[$i]->getField(1);           // OBR.01
 
-		$testName = $obr[$i]->getField(4)[1];           // OBR.04
-	
-		$timestampForSpecimenCollection = $obr[$i]->getField(7);     // OBR.07
+	$testCode = $obr[$i]->getField(4)[0];           // OBR.04
 
-		$reasonTestPerformed = $obr[$i]->getField(13);                // OBR.13
-		
-		$set = array(
-			"obrSetID" => $obrSetID,
-			"testCode" => $testCode,
-			"testName" => $testName,
-			"timestampForSpecimenCollection" => $timestampForSpecimenCollection,
-			"reasonTestPerformed" => $reasonTestPerformed,
-			"enteredBy" => $enteredBy,
-			"enterersLocation" => $enterersLocation,
-  		"status" => $state
-		);
+	$testName = $obr[$i]->getField(4)[1];           // OBR.04
 
-		array_push($finalResult["tests"], $set);
+	$timestampForSpecimenCollection = $obr[$i]->getField(7);     // OBR.07
+
+	$reasonTestPerformed = $obr[$i]->getField(13);                // OBR.13
 	
-	}
-	
+	$set = array(
+		"obrSetID" => $obrSetID,
+		"testCode" => $testCode,
+		"testName" => $testName,
+		"timestampForSpecimenCollection" => $timestampForSpecimenCollection,
+		"reasonTestPerformed" => $reasonTestPerformed,
+		"enteredBy" => $enteredBy,
+		"enterersLocation" => $enterersLocation,
+		"status" => $state
+	);
+
+	array_push($finalResult["tests"], $set);
+
 }
 
 if($result){
