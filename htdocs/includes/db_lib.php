@@ -16072,7 +16072,7 @@ class API
 		$specimen_id = $specimen['specimen_id'];
 		$test_id = $test['test_id'];
 
-		if (!in_array($state, array('Testing', 'Tested', 'Verified'))){
+		if (!in_array($state, array('Testing', 'Test Rejected', 'Result Rejected', 'Tested', 'Verified'))){
 			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
 							$specimen_id, $date, $user_id, '$doctor', '$location' )";
@@ -16104,7 +16104,15 @@ class API
 				$specimen_status_code_id =  Specimen::$STATUS_PENDING;
 				$test_status_code_id = Specimen::$STATUS_STARTED;
         		break;
-			case 'Rejected':
+			case 'Sample Rejected':
+				$specimen_status_code_id =  Specimen::$STATUS_REJECTED;
+				$test_status_code_id = Specimen::$STATUS_REJECTED;
+				break;
+			case 'Test Rejected':
+				$specimen_status_code_id =  Specimen::$STATUS_REJECTED;
+				$test_status_code_id = Specimen::$STATUS_REJECTED;
+				break;
+			case 'Result Rejected':
 				$specimen_status_code_id =  Specimen::$STATUS_REJECTED;
 				$test_status_code_id = Specimen::$STATUS_REJECTED;
 				break;
@@ -16284,13 +16292,18 @@ class API
 		return $logs;
 	}
 
-    function get_test_type_measure_ranges($test_type_id, $acc_num){
+    function get_test_type_measure_ranges($test_type_code, $acc_num){
 
 		$npid = query_associative_one("SELECT p.surr_id AS npid FROM patient p INNER JOIN specimen s ON p.patient_id = s.patient_id
 										AND s.accession_number = '$acc_num' ORDER BY s.date_collected DESC LIMIT 1")['npid'];
 		
+		$test_type_id = query_associative_one("SELECT t.test_type_id FROM test_type t
+									   WHERE loinc_code = '$test_type_code' LIMIT 1")['test_type_id'];
+				
 		$patient = get_patient_by_npid($npid);		
-		
+		if (!$patient)
+			return -2;
+			
 		$measures = query_associative_all("SELECT * FROM test_type_measure WHERE test_type_id = $test_type_id");
 		$result = array();
 		
@@ -16712,7 +16725,7 @@ class API
     	if ($dashboard_type == 'labreception'){
     		$status = "'Drawn'";
     	}else if ($dashboard_type == 'ward'){
-    		$status = "'Ordered', 'Drawn', 'Rejected', 'Tested', 'Verified'";
+    		$status = "'Ordered', 'Drawn', 'Sample Rejected', 'Test Rejected', 'Result Rejected', 'Tested', 'Verified'";
 		}else if ($dashboard_type == 'labdepartment'){
 			$status = "'Received At Reception', 'Received In Department', 'Testing'";
     	}else{

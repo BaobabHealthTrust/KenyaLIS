@@ -4,15 +4,15 @@
 
   if(isset($_REQUEST['action'])) {
   
-    // Expects calls made as: /api/remote_calls?action=get_test_type_measure_by_patient&id=TEST_ID&accession_num=ACCESSION_NUMBER
-	if($_REQUEST['action'] == 'get_test_type_measure_by_patient') {
+    // Expects calls made as: /api/remote_calls?action=get_test_type_measure_by_patient&loinc_code=LOINC_CODE&accession_num=ACCESSION_NUMBER
+	if($_REQUEST['action'] == 'get_test_type_measure_by_accession_num') {
     
-      if(!isset($_REQUEST['id']) || !isset($_REQUEST['accession_num'])) {
+      if(!isset($_REQUEST['loinc_code']) || !isset($_REQUEST['accession_num'])) {
           echo -2;
           return;
       } else {
       
-        $result = API::get_test_type_measure_ranges($_REQUEST["id"], $_REQUEST["accession_num"]);
+        $result = API::get_test_type_measure_ranges($_REQUEST["loinc_code"], $_REQUEST["accession_num"]);
 
         echo json_encode($result);
 
