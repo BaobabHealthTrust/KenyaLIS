@@ -16284,14 +16284,19 @@ class API
 		return $logs;
 	}
 
-    function get_test_type_measure_ranges($test_type_id, $npid){
-		$patient = get_patient_by_npid($npid);
+    function get_test_type_measure_ranges($test_type_id, $acc_num){
+
+		$npid = query_associative_one("SELECT p.surr_id AS npid FROM patient p INNER JOIN specimen s ON p.patient_id = s.patient_id
+										AND s.accession_number = '$acc_num' ORDER BY s.date_collected DESC LIMIT 1")['npid'];
+		
+		$patient = get_patient_by_npid($npid);		
 		
 		$measures = query_associative_all("SELECT * FROM test_type_measure WHERE test_type_id = $test_type_id");
 		$result = array();
 		
 		foreach ($measures AS $record){
 			$msr = query_associative_all('SELECT * FROM measure WHERE measure_id = '.$record['measure_id']);
+			
 			foreach($msr AS $mr){
 				$ar = array();
 				$ar['name'] = $mr['name'];				
