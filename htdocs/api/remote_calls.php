@@ -5,7 +5,23 @@
   if(isset($_REQUEST['action'])) {
   
     // Expects calls made as: /api/remote_calls?action=get_test_type_measure&id=TEST_ID
-    if($_REQUEST['action'] == 'get_test_type_measure') {
+	if($_REQUEST['action'] == 'get_test_type_measure_by_patient') {
+    
+      if(!isset($_REQUEST['id']) || !isset($_REQUEST['npid'])) {
+          echo -2;
+          return;
+      } else {
+      
+        $result = get_test_type_measure_ranges($_REQUEST["id"], $_REQUEST["npid"]);
+
+        json_encode($result);
+
+        return;
+      
+      }
+      
+    // Expects calls made as: /api/remote_calls?action=by_session_num&id=ACCESSION_NUMBER
+    } else if ($_REQUEST['action'] == 'get_test_type_measure') {
     
       if(!isset($_REQUEST['id'])) {
           echo -2;
