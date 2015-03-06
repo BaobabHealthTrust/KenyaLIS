@@ -146,10 +146,10 @@
         
         $loincCode = get_loinc_code_by_id($tests[$t]->testTypeId);
 
-		$params = {
+		$params = array(
 				"test_name" => $name,
 				"accession_num" => $q
-		}
+		);
 		
 		$status = API::getStatus($params);
         
