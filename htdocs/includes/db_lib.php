@@ -16302,7 +16302,7 @@ class API
 				
 		$patient = get_patient_by_npid($npid);		
 		if (!$patient)
-			return -2;
+			return ;
 			
 		$measures = query_associative_all("SELECT * FROM test_type_measure WHERE test_type_id = $test_type_id");
 		$result = array();

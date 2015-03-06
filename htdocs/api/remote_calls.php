@@ -34,8 +34,46 @@
       
       }
       
-    // Expects calls made as: /api/remote_calls?action=by_session_num&id=ACCESSION_NUMBER
-    } else if($_REQUEST['action'] == 'by_accession_num') {  
+    // Expects calls made as: /api/remote_calls?action=get_panel_info&loinc_code=LOINC_CODE&accession_num=ACCESSION_NUMBER
+    }else if ($_REQUEST['action'] == 'get_panel_info'){
+
+	  if(!isset($_REQUEST['loinc_code']) || !isset($_REQUEST['accession_num'])) {
+          echo -2;
+          return;
+      } else {
+
+       $loinc_code = $_REQUEST['loinc_code']; 
+
+	   $parent_test = query_associative_one("SELECT * FROM test_type WHERE loinc_code = '$loinc_code' LIMIT 1");
+			
+       $tests = get_panel_tests($parent_test['name']);
+
+	   $result = array();
+	   
+       foreach ($tests AS $test_name){
+
+			$test_data = query_associative_one("SELECT * FROM test_type WHERE name = '$test_name' LIMIT 1");
+
+			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_type['loinc_code'];
+
+			$result[$str] = API::get_test_type_measure_ranges($test_data["loinc_code"], $_REQUEST["accession_num"]);
+			
+	   }
+
+	   if (count($result) == 0){
+		   			
+			$str = $parent_test['test_type_id'].'|'.$parent_test['name'].'|'.$parent_test['loinc_code'];
+
+			$result[$str] = API::get_test_type_measure_ranges($parent_test['loinc_code'], $_REQUEST["accession_num"]);
+	   }
+	   
+	   echo json_encode($result);
+
+       return;
+      
+	}
+      
+	}else if($_REQUEST['action'] == 'by_accession_num'){  
     
       if(!isset($_REQUEST['id'])) {
           echo -2;
