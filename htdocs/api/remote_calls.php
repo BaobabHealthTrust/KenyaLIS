@@ -145,8 +145,15 @@
         $name = get_test_name_by_id($tests[$t]->testTypeId);
         
         $loincCode = get_loinc_code_by_id($tests[$t]->testTypeId);
+
+		$params = {
+				"test_name" => $name,
+				"accession_num" => $q
+		}
+		
+		$status = API::getStatus($params);
         
-        $result["$name|".$tests[$t]->testTypeId."|".$type->name."|".$loincCode] = $test;
+        $result["$name|".$tests[$t]->testTypeId."|".$type->name."|".$loincCode."|".$status] = $test;
       
       }
       
