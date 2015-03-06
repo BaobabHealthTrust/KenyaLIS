@@ -54,7 +54,7 @@
 
 			$test_data = query_associative_one("SELECT * FROM test_type WHERE name = '$test_name' LIMIT 1");
 
-			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_type['loinc_code'];
+			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_data['loinc_code'];
 
 			$result[$str] = API::get_test_type_measure_ranges($test_data["loinc_code"], $_REQUEST["accession_num"]);
 			
