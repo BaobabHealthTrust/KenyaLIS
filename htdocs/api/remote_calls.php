@@ -46,7 +46,7 @@
 
 	   $parent_test = query_associative_one("SELECT * FROM test_type WHERE loinc_code = '$loinc_code' LIMIT 1");
 			
-       $tests = get_panel_tests($parent_test['name']);
+       $tests = get_panel_tests($parent_test['test_type_id']);
 
 	   $result = array();
 	   
