@@ -16166,9 +16166,22 @@ class API
 		}
 
 		if ($test_status_code_id == Specimen::$STATUS_TOVERIFY){
+
 			//Update results
+
 			$update_test_query = "UPDATE test SET result = '".$result_with_hash_value."' , ts_result_entered = NOW() WHERE test_id = ".$test['test_id'];
+
 			$test = query_update($update_test_query);
+
+			//Add a test result record in test result table;
+
+			$test_id = $test['test_id'];
+			
+			$test_result_insert = "INSERT into test_result (test_id, user_id, result, ts)
+									VALUES ($test_id, $user_id, $result, NOW())";
+
+			$new_result_record = query_insert_one($test_result_insert);
+						
 		}else if ($test_status_code_id == Specimen::$STATUS_REJECTED){
 			//update rejection attributes
 

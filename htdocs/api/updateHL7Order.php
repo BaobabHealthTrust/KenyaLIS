@@ -165,6 +165,20 @@ for($i = 1; $i < sizeof($obr); $i++){
 	$timestampForSpecimenCollection = $obr[$i]->getField(7);     // OBR.07
 
 	$reasonTestPerformed = $obr[$i]->getField(13);                // OBR.13
+
+	$rst;
+	try{
+		$rst = $obx[$i]->getField(5);
+	}catch(Exception $ex){
+		$rst = "";
+	}
+
+	$state;
+	try{
+		$state = $nte[$i]->getField(3);
+	}catch(Exception $ex){
+		$state = "";
+	}	
 	
 	$set = array(
 		"obrSetID" => $obrSetID,
@@ -174,6 +188,7 @@ for($i = 1; $i < sizeof($obr); $i++){
 		"reasonTestPerformed" => $reasonTestPerformed,
 		"enteredBy" => $enteredBy,
 		"enterersLocation" => $enterersLocation,
+		"result" => $rst,
 		"status" => $state
 	);
 
