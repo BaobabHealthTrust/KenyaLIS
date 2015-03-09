@@ -16336,6 +16336,7 @@ class API
 				
 				if (sizeof($range) == 1){
 					$ar['type'] = 'numeric';
+					$ar['unit'] = $mr['unit'];
 					$ar['range_lower'] = $range[0]['range_lower'];
 					$ar['range_upper'] = $range[0]['range_upper'];
 				}else if (strstr($mr['measure_range'], '/')){

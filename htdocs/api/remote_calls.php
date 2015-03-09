@@ -43,18 +43,29 @@
       } else {
 
        $loinc_code = $_REQUEST['loinc_code']; 
-
+		
 	   $parent_test = query_associative_one("SELECT * FROM test_type WHERE loinc_code = '$loinc_code' LIMIT 1");
 			
        $tests = get_panel_tests($parent_test['test_type_id']);
 
 	   $result = array();
 	   
-       foreach ($tests AS $test_name){
-
+       foreach ($tests AS $test_name){			
+			
 			$test_data = query_associative_one("SELECT * FROM test_type WHERE name = '$test_name' LIMIT 1");
 
-			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_data['loinc_code'];
+			$result_query = "
+					SELECT tr.result FROM specimen s
+						INNER JOIN test t ON t.specimen_id = s.specimen_id AND s.accession_num = '".$_REQUEST['accession_num']."' 
+						INNER JOIN test_result tr ON tr.test_id = t.test_id 			
+					WHERE t.test_type_id = ".$test_data['test_type_id']." ORDER BY tr.ts DESC LIMIT 1";
+		
+			$result_last = query_associative_one($result_query);
+			$rst = '';
+			if ($result_last)
+				$rst = $result_last['result'];
+			
+			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_data['loinc_code'].'|'.$rst;
 
 			$result[$str] = API::get_test_type_measure_ranges($test_data["loinc_code"], $_REQUEST["accession_num"]);
 			
