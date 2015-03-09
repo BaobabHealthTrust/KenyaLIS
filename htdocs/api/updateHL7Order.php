@@ -58,16 +58,6 @@ $processingID = $msh[0]->getField(11);       // MSH.11
 
 $hl7VersionID = $msh[0]->getField(12);       // MSH.12
 
-$obrSetID = (count($obr) > 0 ? $obr[0]->getField(1) : null);           // OBR.01
-
-$testCode = (count($obr) > 0 ? $obr[0]->getField(4)[0] : null);           // OBR.04
-
-$timestampForSpecimenCollection = (count($obr) > 0 ? $obr[0]->getField(7) : null);     // OBR.07
-
-$reasonTestPerformed = (count($obr) > 0 ? $obr[0]->getField(13) : null);                // OBR.13
-
-$whoOrderedTest = (count($obr) > 0 ? $obr[0]->getField(16)[2] : "") . " " . (count($obr) > 0 ? $obr[0]->getField(16)[1] : "") . " (" . (count($obr) > 0 ? $obr[0]->getField(1)[0] : "") . ")";                     // OBR.16
-
 $healthFacilitySiteCodeAndName = (count($orc) > 0 ? $orc[0]->getField(21) : null);      // ORC.21
 
 $pidSetID = (count($pid) > 0 ? $pid[0]->getField(1) : null);           // PID.01
@@ -86,13 +76,23 @@ $accessionNumber = (count($spm) > 0 ? $spm[0]->getField(2) : null);    // SPM.02
 
 $typeOfSample = (count($spm) > 0 ? $spm[0]->getField(4)[1] : null);       // SPM.04
 
+$enteredBy = (count($orc) > 0 ? $orc[0]->getField(10)[2] : "") . " " . (count($orc) > 0 ? $orc[0]->getField(10)[1] : "") . " (" . (count($orc) > 0 ? $orc[0]->getField(10)[0] : "") . ")";          // ORC.10
+
+$enterersLocation = (count($orc) > 0 ? $orc[0]->getField(13) : null);   // ORC.13
+
 $tq1SetID = (count($tq1) > 0 ? $tq1[0]->getField(1) : null);           // TQ1.01
 
 $priority = (count($tq1) > 0 ? $tq1[0]->getField(9) : null);           // TQ1.09
 
-$enteredBy = (count($orc) > 0 ? $orc[0]->getField(10)[2] : "") . " " . (count($orc) > 0 ? $orc[0]->getField(10)[1] : "") . " (" . (count($orc) > 0 ? $orc[0]->getField(10)[0] : "") . ")";          // ORC.10
+$obrSetID = (count($obr) > 0 ? $obr[0]->getField(1) : null);           // OBR.01
 
-$enterersLocation = (count($orc) > 0 ? $orc[0]->getField(13) : null);   // ORC.13
+$testCode = (count($obr) > 0 ? $obr[0]->getField(4)[0] : null);           // OBR.04
+
+$timestampForSpecimenCollection = (count($obr) > 0 ? $obr[0]->getField(7) : null);     // OBR.07
+
+$reasonTestPerformed = (count($obr) > 0 ? $obr[0]->getField(13) : null);                // OBR.13
+
+$whoOrderedTest = (count($obr) > 0 ? $obr[0]->getField(16)[2] : "") . " " . (count($obr) > 0 ? $obr[0]->getField(16)[1] : "") . " (" . (count($obr) > 0 ? $obr[0]->getField(1)[0] : "") . ")";                     // OBR.16
 
 $testName = (count($obr) > 0 ? $obr[0]->getField(4)[1] : null);
 
@@ -152,9 +152,9 @@ $finalResult = array(
 	"whoOrderedTest" => $response["whoOrderedTest"]
 );
   
-$result = API::update_order($record, $accessionNumber, $testName);
+// $result = API::update_order($record, $accessionNumber, $testName);
 
-for($i = 1; $i < sizeof($obr); $i++){
+for($i = 0; $i < sizeof($obr); $i++){
 
 	$obrSetID = $obr[$i]->getField(1);           // OBR.01
 
@@ -166,20 +166,26 @@ for($i = 1; $i < sizeof($obr); $i++){
 
 	$reasonTestPerformed = $obr[$i]->getField(13);                // OBR.13
 
-	$rst;
-	try{
-		$rst = $obx[$i]->getField(5);
-	}catch(Exception $ex){
-		$rst = "";
-	}
+	$tq1SetID = (count($tq1) > $i ? $tq1[$i]->getField(1) : null);           // TQ1.01
 
-	$state;
-	try{
-		$state = $nte[$i]->getField(3);
-	}catch(Exception $ex){
-		$state = "";
-	}	
-	
+	$priority = (count($tq1) > $i ? $tq1[$i]->getField(9) : null);           // TQ1.09
+
+	$obrSetID = (count($obr) > $i ? $obr[$i]->getField(1) : null);           // OBR.01
+
+	$testCode = (count($obr) > $i ? $obr[$i]->getField(4)[0] : null);           // OBR.04
+
+	$timestampForSpecimenCollection = (count($obr) > $i ? $obr[$i]->getField(7) : null);     // OBR.07
+
+	$reasonTestPerformed = (count($obr) > $i ? $obr[$i]->getField(13) : null);                // OBR.13
+
+	$whoOrderedTest = (count($obr) > $i ? $obr[$i]->getField(16)[2] : "") . " " . (count($obr) > 0 ? $obr[$i]->getField(16)[1] : "") . " (" . (count($obr) > 0 ? $obr[$i]->getField(1)[0] : "") . ")";                     // OBR.16
+
+	$testName = (count($obr) > $i ? $obr[$i]->getField(4)[1] : null);
+
+	$result = (count($obx) > $i ? $obx[$i]->getField(5) : null);
+
+	$state = (count($nte) > 0 ? $nte[0]->getField(3) : null);		// $obr[0]->getField(25);
+
 	$set = array(
 		"obrSetID" => $obrSetID,
 		"testCode" => $testCode,
@@ -191,6 +197,19 @@ for($i = 1; $i < sizeof($obr); $i++){
 		"result" => $rst,
 		"status" => $state
 	);
+ 
+	$record = array(
+		"state" => $state,
+		"location" => $enterersLocation,
+		"doctor" => $whoOrderedTest,
+		"date" => $messageDatetime,
+		"reason" => $reasonTestPerformed,
+		"user_id" => $_SESSION['user_id'],
+		"result" => $result,
+		"comments" => $comments
+	);
+
+	$result = API::update_order($record, $accessionNumber, $testName);
 
 	array_push($finalResult["tests"], $set);
 
