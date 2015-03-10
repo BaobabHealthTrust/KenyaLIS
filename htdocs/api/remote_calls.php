@@ -4,8 +4,23 @@
 
   if(isset($_REQUEST['action'])) {
   
+  	if($_REQUEST['action'] == 'get_panel_tests_by_loinc_code') {
+  	
+  		if(!isset($_REQUEST['loinc_code'])) {
+          echo -2;
+          return;
+      } else {
+      
+        $result = API::get_panel_tests_by_accession_number($_REQUEST["loinc_code"]);
+
+        echo json_encode($result);
+
+        return;
+      
+      }
+  	
     // Expects calls made as: /api/remote_calls?action=get_test_type_measure_by_patient&loinc_code=LOINC_CODE&accession_num=ACCESSION_NUMBER
-	if($_REQUEST['action'] == 'get_test_type_measure_by_accession_num') {
+		} else if($_REQUEST['action'] == 'get_test_type_measure_by_accession_num') {
     
       if(!isset($_REQUEST['loinc_code']) || !isset($_REQUEST['accession_num'])) {
           echo -2;
@@ -35,9 +50,9 @@
       }
       
     // Expects calls made as: /api/remote_calls?action=get_panel_info&loinc_code=LOINC_CODE&accession_num=ACCESSION_NUMBER
-    }else if ($_REQUEST['action'] == 'get_panel_info'){
+    } else if ($_REQUEST['action'] == 'get_panel_info'){
 
-	  if(!isset($_REQUEST['loinc_code']) || !isset($_REQUEST['accession_num'])) {
+	  	if(!isset($_REQUEST['loinc_code']) || !isset($_REQUEST['accession_num'])) {
           echo -2;
           return;
       } else {

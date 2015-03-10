@@ -148,8 +148,6 @@ for($i = 0; $i < sizeof($obr); $i++){
 
 	$testCode = $obr[$i]->getField(4)[0];           // OBR.04
 
-	$testName = $obr[$i]->getField(4)[1];           // OBR.04
-
 	$timestampForSpecimenCollection = $obr[$i]->getField(7);     // OBR.07
 
 	$reasonTestPerformed = $obr[$i]->getField(13);                // OBR.13

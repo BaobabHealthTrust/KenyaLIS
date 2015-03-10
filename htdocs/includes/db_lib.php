@@ -16435,6 +16435,101 @@ class API
 	return $retval;
     }    
 
+	public function get_panel_tests_by_accession_number($loinc_code) {        
+		global $CATALOG_TRANSLATION;
+		
+		if($_SESSION['level'] < 2 || $_SESSION['level'] > 4) {
+			$user = get_user_by_id($_SESSION['user_id']);
+			$lab_config_id = $user->labConfigId;
+		}
+	
+		if($lab_config_id == null) {
+			$lab_config_id = get_lab_config_id_admin($_SESSION['user_id']);
+    }
+    
+		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
+		
+		$query_ttypes =
+			"SELECT s_type.specimen_type_id AS specimen_id, s_type.name AS specimen_name, 
+					t_type.test_type_id AS test_type_id, t_type.name AS test_type_name,
+					t_type.loinc_code AS loinc_code, t_type.test_code AS test_code
+			FROM specimen_test s_test
+				INNER JOIN specimen_type s_type ON s_test.specimen_type_id = s_type.specimen_type_id
+				INNER JOIN test_type t_type ON s_test.test_type_id = t_type.test_type_id 
+			WHERE s_type.disabled = 0 AND t_type.disabled = 0 AND loinc_code = '$loinc_code'
+			";
+	
+		$specimen_query = "SELECT distinct name AS name, specimen_type_id AS specimen_id FROM specimen_type WHERE disabled = 0";
+		$resultset = query_associative_all($query_ttypes, $row_count);	
+		$specimens = query_associative_all($specimen_query, $row_count);
+		
+		$retval = array();	
+		
+		$name;
+						
+		if($resultset) {
+			foreach($resultset as $record) {		
+				
+				if($CATALOG_TRANSLATION === true){				
+			
+					$name = LangUtil::getTestName($record['test_type_name']);				
+				}else{		
+					$name = $record['test_type_name'];
+				}
+		
+				$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];	
+			
+				$test_type_id = $record['test_type_id'];				
+			
+				$panels_query = "SELECT tp.child_test_type_id AS test_type_id, 
+								(SELECT name FROM test_type WHERE test_type_id = tp.child_test_type_id)  AS test_type_name,
+								(SELECT loinc_code FROM test_type WHERE test_type_id = tp.child_test_type_id)  AS loinc_code,
+								(SELECT test_code FROM test_type WHERE test_type_id = tp.child_test_type_id)  AS test_code
+							FROM test_type tt
+								INNER JOIN test_panel tp ON tt.test_type_id = tp.parent_test_type_id AND tp.disabled = 0
+								WHERE tt.is_panel = 1 AND tp.parent_test_type_id = $test_type_id";
+			
+				$rset = query_associative_all($panels_query);
+				
+			
+				if ($rset && count($rset) > 0){
+				
+					foreach ($rset AS $precord){
+						$pname;
+						
+						if($CATALOG_TRANSLATION === true){			
+							$pname = LangUtil::getTestName($precord['test_type_name']);				
+						} else {						
+							$pname = $precord['test_type_name'];
+						}
+					
+						$pname = $precord['test_type_id'].'|'.$pname.'|'.$precord['loinc_code'].'|'.$precord['test_code'];
+					
+						array_push($retval, $pname);
+					    			
+					}
+				}																	
+			}
+			
+			if(count($retval) == 0){
+			
+				array_push($retval, $name);
+			
+			}
+			
+			return $retval;
+		}	
+	
+		DbUtil::switchRestore($saved_db);
+    $catalog = $retval;
+    if(count($catalog) > 0)
+    	$ret = $catalog;
+		else
+    	$ret = 0;
+            
+    return $ret;
+  }
+    
 	public function get_test_catalog_with_panels()
     {
         global $CATALOG_TRANSLATION;
