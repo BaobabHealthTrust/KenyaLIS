@@ -16073,13 +16073,13 @@ class API
 		$test_id = $test['test_id'];
 
 		if (!in_array($state, array('Testing', 'Test Rejected', 'Result Rejected', 'Tested', 'Verified'))){
-			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location)
+			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location, comments)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
-							$specimen_id, $date, $user_id, '$doctor', '$location' )";
+							$specimen_id, $date, $user_id, '$doctor', '$location', '$comments' )";
 		}else{
-			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, test_id, `date`, user_id, doctor, location)
+			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, test_id, `date`, user_id, doctor, location, comments)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
-							$test_id, $date, $user_id, '$doctor', '$location' )";
+							$test_id, $date, $user_id, '$doctor', '$location', '$comments')";
 		}
 
 		$specimen_activity_log = query_insert_one($query_update_activity_log);
