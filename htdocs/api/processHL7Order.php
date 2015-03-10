@@ -217,7 +217,8 @@ $finalResult = array(
 				"timestampForSpecimenCollection" => $response["timestampForSpecimenCollection"],
 				"reasonTestPerformed" => $response["reasonTestPerformed"],
 				"enteredBy" => $enteredBy,
-				"enterersLocation" => $enterersLocation
+				"enterersLocation" => $enterersLocation,
+  			"panel_loinc_code" => $panel_loinc_code
 			)
 	),
   "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
@@ -300,7 +301,8 @@ for($i = 1; $i < sizeof($obr); $i++){
 		"timestampForSpecimenCollection" => $response["timestampForSpecimenCollection"],
 		"reasonTestPerformed" => $response["reasonTestPerformed"],
 		"enteredBy" => $enteredBy,
-		"enterersLocation" => $enterersLocation
+		"enterersLocation" => $enterersLocation,
+		"panel_loinc_code" => $panel_loinc_code
 	);
 
 	array_push($finalResult["tests"], $set);
