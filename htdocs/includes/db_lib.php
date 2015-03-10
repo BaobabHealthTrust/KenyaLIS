@@ -16177,8 +16177,8 @@ class API
 
 			$test_id = $test['test_id'];
 			
-			$test_result_insert = "INSERT into test_result (test_id, user_id, result, ts)
-									VALUES ($test_id, $user_id, $result, NOW())";
+			$test_result_insert = "INSERT into test_result (test_id, user_id, result, ts, interpretation)
+									VALUES ($test_id, $user_id, $result, NOW(), '$comments')";
 
 			$new_result_record = query_insert_one($test_result_insert);
 						
