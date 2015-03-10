@@ -55,17 +55,21 @@
 			$test_data = query_associative_one("SELECT * FROM test_type WHERE name = '$test_name' LIMIT 1");
 
 			$result_query = "
-					SELECT tr.result FROM specimen s
+					SELECT tr.result, tr.interpretation FROM specimen s
 						INNER JOIN test t ON t.specimen_id = s.specimen_id AND s.accession_num = '".$_REQUEST['accession_num']."' 
 						INNER JOIN test_result tr ON tr.test_id = t.test_id 			
 					WHERE t.test_type_id = ".$test_data['test_type_id']." ORDER BY tr.ts DESC LIMIT 1";
 		
 			$result_last = query_associative_one($result_query);
+
 			$rst = '';
+			$interpretation = '';
+
 			if ($result_last)
 				$rst = $result_last['result'];
-			
-			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_data['loinc_code'].'|'.$rst;
+				$interpretation = $result_last['interpretation'];
+				
+			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_data['loinc_code'].'|'.$rst.'|'.$interpretation;
 
 			$result[$str] = API::get_test_type_measure_ranges($test_data["loinc_code"], $_REQUEST["accession_num"]);
 			
@@ -74,17 +78,21 @@
 	   if (count($result) == 0){
 
 		   	$result_query = "
-					SELECT tr.result FROM specimen s
+					SELECT tr.result, tr.interpretation FROM specimen s
 						INNER JOIN test t ON t.specimen_id = s.specimen_id AND s.accession_num = '".$_REQUEST['accession_num']."' 
 						INNER JOIN test_result tr ON tr.test_id = t.test_id 			
 					WHERE t.test_type_id = ".$parent_test['test_type_id']." ORDER BY tr.ts DESC LIMIT 1";
 		
 			$result_last = query_associative_one($result_query);
+
 			$rst = '';
+			$interpretation = '';
+			
 			if ($result_last)
 				$rst = $result_last['result'];
+				$interpretation = $result_last['interpretation'];
 				
-			$str = $parent_test['test_type_id'].'|'.$parent_test['name'].'|'.$parent_test['loinc_code'].'|'.$rst;
+			$str = $parent_test['test_type_id'].'|'.$parent_test['name'].'|'.$parent_test['loinc_code'].'|'.$rst.'|'.$interpretation;
 
 			$result[$str] = API::get_test_type_measure_ranges($parent_test['loinc_code'], $_REQUEST["accession_num"]);
 	   }
