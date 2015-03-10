@@ -125,19 +125,7 @@ $finalResult = array(
   "messageControlID" => $messageControlID,
   "processingID" => $processingID,
   "hl7VersionID" => $hl7VersionID,
-  "tests" => array(
-  		array(
-				"obrSetID" => 1,
-				"testCode" => $testCode,
-				"testName" => $testName,
-				"timestampForSpecimenCollection" => $messageDatetime,
-				"reasonTestPerformed" => $reasonTestPerformed,
-				"enteredBy" => $enteredBy,
-				"enterersLocation" => $enterersLocation,
-  			"result" => $result,
-  			"status" => $state
-			)
-	),
+  "tests" => array(),
   "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
   "pidSetID" => $pidSetID,
   "nationalID" => ($nationalID == null ? $patient->surrogateId : $nationalID),
@@ -184,7 +172,13 @@ for($i = 0; $i < sizeof($obr); $i++){
 
 	$result = (count($obx) > $i ? $obx[$i]->getField(5) : null);
 
-	$state = (count($nte) > 0 ? $nte[0]->getField(3) : null);		// $obr[0]->getField(25);
+	$comment = (count($nte) > $i ? $nte[$i]->getField(3) : null);		// $obr[0]->getField(25);
+
+	$tmp = explode("|", $comment);
+
+	$state = $tmp[0];
+
+	$comments = (count($tmp) > 1 ? $tmp[1] : null);
 
 	$set = array(
 		"obrSetID" => $obrSetID,
@@ -195,7 +189,8 @@ for($i = 0; $i < sizeof($obr); $i++){
 		"enteredBy" => $enteredBy,
 		"enterersLocation" => $enterersLocation,
 		"result" => $rst,
-		"status" => $state
+		"status" => $state,
+		"comments" => $comments
 	);
  
 	$record = array(
