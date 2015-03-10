@@ -7713,8 +7713,8 @@ function add_test($test, $testId=null)
 	if( $testId == null)
 		$testId = bcadd(get_max_test_id(),1);
 	$query_string = 
-		"INSERT INTO `test` (priority, test_id, specimen_id, test_type_id, result, comments, verified_by, user_id, external_lab_no, external_parent_lab_no ) ".
-		"VALUES ('$test->priority', $testId, $test->specimenId, $test->testTypeId, '$test->result', '$test->comments', 0, $test->userId, '$test->external_lab_no', '$test->external_parent_lab_no' )";
+		"INSERT INTO `test` (panel_loinc_code, priority, test_id, specimen_id, test_type_id, result, comments, verified_by, user_id, external_lab_no, external_parent_lab_no ) ".
+		"VALUES ('$test->panelLoincCode', '$test->priority', $testId, $test->specimenId, $test->testTypeId, '$test->result', '$test->comments', 0, $test->userId, '$test->external_lab_no', '$test->external_parent_lab_no' )";
 	//die($query_string);
 	$result = query_insert_one($query_string);
 	$last_insert_id = get_last_insert_id();
@@ -15990,7 +15990,8 @@ class API
 		$test->comments = "";
 		$test->priority = $record['priority'];
 		$test->userId = $_SESSION['user_id'];
-		$test->result = "";		
+		$test->result = "";
+		$test->panelLoincCode = $record['panel_loinc_code'];	
 		$ex = API::getExternalParentLabNo($patient->surrogateId,  get_test_name_by_id($test->testTypeId));
 		$test->patientVisitNumber = API::getpatientVisitNumber($patient->surrogateId, 0);
 		$test_id = add_test($test);
