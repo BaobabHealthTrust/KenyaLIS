@@ -100,7 +100,7 @@ $result = (count($obx) > 0 ? $obx[0]->getField(5) : null);
 
 $state = (count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[0] : $nte[0]->getField(3));
 
-$comments = (count($nte) > 0 && count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[1] : null);
+$comments = (count($nte) > 0 && gettype($nte[0]->getField(3)) == "array" ? $nte[0]->getField(3)[1] : null);
 
 $record = array(
   "state" => $state,
@@ -172,9 +172,11 @@ for($i = 0; $i < sizeof($obr); $i++){
 
 	// $state = (count($nte[$i]->getField(3)) > $i ? $nte[$i]->getField(3)[0] : $nte[$i]->getField(3));
 
-	$state = (count($nte[$i]->getField(3)) > 1 ? $nte[$i]->getField(3)[0] : $nte[$i]->getField(3));
+	$state = (count($nte) > $i && gettype($nte[$i]->getField(3)) == "array" ? $nte[$i]->getField(3)[0] : $nte[$i]->getField(3));
 
-	$comments = (count($nte) > 0 && count($nte[$i]->getField(3)) > $i ? $nte[$i]->getField(3)[1] : null);
+	$comments = (count($nte) > $i && gettype($nte[$i]->getField(3)) == "array" ? $nte[$i]->getField(3)[1] : null);
+
+	echo $comments;
 
 	$set = array(
 		"obrSetID" => $obrSetID,
@@ -184,7 +186,7 @@ for($i = 0; $i < sizeof($obr); $i++){
 		"reasonTestPerformed" => $reasonTestPerformed,
 		"enteredBy" => $enteredBy,
 		"enterersLocation" => $enterersLocation,
-		"result" => $rst,
+		"result" => $result,
 		"status" => $state,
 		"comments" => $comments
 	);

@@ -93,13 +93,11 @@ $enteredBy = $orc[0]->getField(10)[2] . " " . $orc[0]->getField(10)[1] . " (" . 
 
 $enterersLocation = $orc[0]->getField(13);   // ORC.13
 
-$status = (count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[0] : $nte[0]->getField(3));
+$status = (gettype($nte[0]->getField(3)) == "array" && count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[0] : $nte[0]->getField(3));
 
-$panel_loinc_code = (count($nte[0]->getField(3)) > 2 ? $nte[0]->getField(3)[2] : null);
+$parent = (count($nte) > 0 && gettype($nte[0]->getField(3)) == "array" && count($nte[0]->getField(3)) > 1 ? ($nte[0]->getField(3)[1] == "parent" ? true : false) : false);
 
-$parent = (count($nte) > 0 && count($nte[0]->getField(3)) > 1 ? ($nte[0]->getField(3)[1] == "parent" ? true : false) : false);
-
-$panel_loinc_code = (count($nte) > 0 && count($nte[0]->getField(3)) > 2 ? $nte[0]->getField(3)[2] : ($parent ? null : $testCode));
+$panel_loinc_code = (count($nte) > 0 && gettype($nte[0]->getField(3)) == "array" && count($nte[0]->getField(3)) > 2 ? $nte[0]->getField(3)[2] : ($parent ? null : $testCode));
 
 if($debugPrint && false){
 
@@ -256,9 +254,9 @@ for($i = 1; $i < sizeof($obr); $i++){
 
 	$priority = $tq1[$i]->getField(9);           // TQ1.09
 
-	$parent = (count($nte) > $i && count($nte[$i]->getField(3)) > 1 ? ($nte[$i]->getField(3)[1] == "parent" ? true : false) : false);
+	$parent = (count($nte) > $i && gettype($nte[$i]->getField(3)) == "array" && count($nte[$i]->getField(3)) > 1 ? ($nte[$i]->getField(3)[1] == "parent" ? true : false) : false);
 
-	$panel_loinc_code = (count($nte) > $i && count($nte[$i]->getField(3)) > 2 ? $nte[$i]->getField(3)[2] : ($parent ? null : $testCode));
+	$panel_loinc_code = (count($nte) > $i && gettype($nte[$i]->getField(3)) == "array" && count($nte[$i]->getField(3)) > 2 ? $nte[$i]->getField(3)[2] : ($parent ? null : $testCode));
 
 	$result = array(
 		"sendingFacility" => $sendingFacility,
