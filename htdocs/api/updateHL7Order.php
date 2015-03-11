@@ -176,8 +176,6 @@ for($i = 0; $i < sizeof($obr); $i++){
 
 	$comments = (count($nte) > $i && gettype($nte[$i]->getField(3)) == "array" ? $nte[$i]->getField(3)[1] : null);
 
-	echo $comments;
-
 	$set = array(
 		"obrSetID" => $obrSetID,
 		"testCode" => $testCode,
