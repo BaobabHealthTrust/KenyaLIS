@@ -7532,7 +7532,10 @@ function get_tests_by_specimen_id($specimen_id)
 	global $con;
 	$specimen_id = mysql_real_escape_string($specimen_id, $con);
 	# Returns list of tests scheduled for this given specimen
-	$query_string = "SELECT * FROM test WHERE specimen_id=$specimen_id";
+	// $query_string = "SELECT * FROM test WHERE specimen_id=$specimen_id";
+	
+	$query_string = "SELECT t.* FROM test t LEFT OUTER JOIN test_type y ON y.test_type_id = t.test_type_id WHERE (COALESCE(t.panel_loinc_code, '') = '' OR t.panel_loinc_code = y.loinc_code) AND t.specimen_id=$specimen_id";
+	
 	$resultset = query_associative_all($query_string, $row_count);
 	$retval = array();
 	foreach($resultset as $record)
@@ -16176,10 +16179,8 @@ class API
 
 			//Add a test result record in test result table;
 
-			$test_id = $test['test_id'];
-			
 			$test_result_insert = "INSERT into test_result (test_id, user_id, result, ts, interpretation)
-									VALUES ($test_id, $user_id, $result, NOW(), '$comments')";
+									VALUES ($test_id, $user_id, '$result', NOW(), '$comments')";
 
 			$new_result_record = query_insert_one($test_result_insert);
 						

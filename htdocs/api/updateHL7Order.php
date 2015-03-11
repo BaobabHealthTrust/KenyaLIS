@@ -98,9 +98,9 @@ $testName = (count($obr) > 0 ? $obr[0]->getField(4)[1] : null);
 
 $result = (count($obx) > 0 ? $obx[0]->getField(5) : null);
 
-$state = (count($nte) > 0 ? $nte[0]->getField(3) : null);		// $obr[0]->getField(25);
+$state = (count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[0] : $nte[0]->getField(3));
 
-$comments = null;
+$comments = (count($nte) > 0 && count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[1] : null);
 
 $record = array(
   "state" => $state,
@@ -170,13 +170,9 @@ for($i = 0; $i < sizeof($obr); $i++){
 
 	$result = (count($obx) > $i ? $obx[$i]->getField(5) : null);
 
-	$comment = (count($nte) > $i ? $nte[$i]->getField(3) : null);		// $obr[0]->getField(25);
+	$state = (count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[0] : $nte[0]->getField(3));
 
-	$tmp = explode("|", $comment);
-
-	$state = $tmp[0];
-
-	$comments = (count($tmp) > 1 ? $tmp[1] : null);
+	$comments = (count($nte) > 0 && count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[1] : null);
 
 	$set = array(
 		"obrSetID" => $obrSetID,
