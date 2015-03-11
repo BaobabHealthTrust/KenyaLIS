@@ -16406,7 +16406,7 @@ class API
 				
 			$str = $parent_test['test_type_id'].'|'.$parent_test['name'].'|'.$parent_test['loinc_code'].'|'.$rst.'|'.$interpretation;
 
-			$result[$str] = API::get_test_type_measure_ranges($parent_test['loinc_code'], $accessionNumber]);
+			$result[$str] = API::get_test_type_measure_ranges($parent_test['loinc_code'], $accessionNumber);
 		}
 
 		return $result;
