@@ -170,9 +170,9 @@ for($i = 0; $i < sizeof($obr); $i++){
 
 	$result = (count($obx) > $i ? $obx[$i]->getField(5) : null);
 
-	$state = (count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[0] : $nte[0]->getField(3));
+	$state = (count($nte[$i]->getField(3)) > $i ? $nte[$i]->getField(3)[$i] : $nte[$i]->getField(3));
 
-	$comments = (count($nte) > 0 && count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[1] : null);
+	$comments = (count($nte) > 0 && count($nte[$i]->getField(3)) > $i ? $nte[$i]->getField(3)[1] : null);
 
 	$set = array(
 		"obrSetID" => $obrSetID,
