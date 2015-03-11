@@ -16352,6 +16352,64 @@ class API
 		}
 		return $result;		
 	}
+
+	public function get_panel_info($loinc_code, $accessionNumber){
+				
+		$parent_test = query_associative_one("SELECT * FROM test_type WHERE loinc_code = '$loinc_code' LIMIT 1");
+			
+		$tests = get_panel_tests($parent_test['test_type_id']);
+
+		$result = array();
+	   
+		foreach ($tests AS $test_name){			
+			
+			$test_data = query_associative_one("SELECT * FROM test_type WHERE name = '$test_name' LIMIT 1");
+
+			$result_query = "
+					SELECT tr.result, tr.interpretation FROM specimen s
+						INNER JOIN test t ON t.specimen_id = s.specimen_id AND s.accession_number = '$accessionNumber' 
+						INNER JOIN test_result tr ON tr.test_id = t.test_id 			
+					WHERE t.test_type_id = ".$test_data['test_type_id']." ORDER BY tr.ts DESC LIMIT 1";
+
+			$result_last = query_associative_one($result_query);
+
+			$rst = '';
+			$interpretation = '';
+
+			if ($result_last)
+				$rst = $result_last['result'];
+				$interpretation = $result_last['interpretation'];
+				
+			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_data['loinc_code'].'|'.$rst.'|'.$interpretation;
+
+			$result[$str] = API::get_test_type_measure_ranges($test_data["loinc_code"], $accessionNumber);
+			
+		}
+
+		if (count($result) == 0){
+
+			$result_query = "
+					SELECT tr.result, tr.interpretation FROM specimen s
+						INNER JOIN test t ON t.specimen_id = s.specimen_id AND s.accession_number = '$accessionNumber' 
+						INNER JOIN test_result tr ON tr.test_id = t.test_id 			
+					WHERE t.test_type_id = ".$parent_test['test_type_id']." ORDER BY tr.ts DESC LIMIT 1";
+
+			$result_last = query_associative_one($result_query);
+
+			$rst = '';
+			$interpretation = '';
+
+			if ($result_last)
+				$rst = $result_last['result'];
+				$interpretation = $result_last['interpretation'];
+				
+			$str = $parent_test['test_type_id'].'|'.$parent_test['name'].'|'.$parent_test['loinc_code'].'|'.$rst.'|'.$interpretation;
+
+			$result[$str] = API::get_test_type_measure_ranges($parent_test['loinc_code'], $accessionNumber]);
+		}
+
+		return $result;
+	}
 	
     public function get_test_catalog()
     {
