@@ -336,7 +336,9 @@ if( (count($patient_list) == 0 || $patient_list == null) && (count($patient_list
 		if($report_config->usePatientAddlId == 1)
 		{
 		?>
-			<td><?php echo $patient->getAddlId(); ?></td>
+			<td><?php
+			
+			echo $patient->surrogateId; ?></td>
 		<?php
 		}
 		if($report_config->useDailyNum == 1)
@@ -450,6 +452,14 @@ if( (count($patient_list) == 0 || $patient_list == null) && (count($patient_list
 			<th><?php echo LangUtil::$generalTerms['DOB']; ?></th>
 		<?php 
 		}
+
+		if($report_config->useTest == 1)
+		{
+		?>
+			<th><?php echo LangUtil::$generalTerms['TESTS']; ?></th>
+		<?php
+		}		
+		
 		# Patient Custom fields here
 		$custom_field_list = $lab_config->getPatientCustomFields();
 		foreach($custom_field_list as $custom_field)
@@ -480,7 +490,7 @@ if( (count($patient_list) == 0 || $patient_list == null) && (count($patient_list
 		if($report_config->usePatientAddlId == 1)
 		{
 		?>
-			<td><?php echo $patient->getAddlId(); ?></td>
+			<td><?php echo $patient->surrogateId ?></td>
 		<?php
 		}
 		if($report_config->useDailyNum == 1)
@@ -513,6 +523,14 @@ if( (count($patient_list) == 0 || $patient_list == null) && (count($patient_list
 			<td><?php echo $patient->getDob(); ?></td>
 		<?php 
 		}
+
+		if($report_config->useTest == 1)
+		{
+		?>
+			<td><?php echo $patient->getAssociatedTestsUnreported(); ?></td>
+		<?php
+		}
+		
 		# Patient Custom fields here
 		$custom_field_list = $lab_config->getPatientCustomFields();
 		foreach($custom_field_list as $custom_field)
