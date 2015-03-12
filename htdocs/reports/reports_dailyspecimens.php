@@ -191,7 +191,7 @@ $(document).ready(function(){
 });
 
 function change_orientation()
-{
+{	
 	var do_landscape = $("input[name='do_landscape']:checked").attr("value");
 	if(do_landscape == "Y" && curr_orientation == 0)
 	{
@@ -629,7 +629,7 @@ if($no_match === true)
 			}
 			if($report_config->useSpecimenAddlId == 1)
 			{
-				echo "<td>"./*$specimen->specimenId;*/$test->getLabSectionByTest();
+				echo "<td>"./*$specimen->specimenId;*/$specimen->accessionNumber;
 				//$specimen->getAuxId();
 				echo "</td>";
 			}
@@ -642,7 +642,7 @@ if($no_match === true)
 			if($report_config->usePatientAddlId == 1)
 			{
 			?>
-				<td><?php echo $patient->getAddlId(); ?></td>
+				<td><?php echo $patient->getSurrogateId(); ?></td>
 			<?php
 			}
 			if($report_config->usePatientName == 1)
@@ -729,7 +729,7 @@ if($no_match === true)
 			if($report_config->useComments == 1)
 			{
 				echo "<td>";
-				echo $specimen->getComments();
+				echo $test->getComments();
 				echo "</td>";
 			}
 			if($report_config->useReferredTo == 1)
@@ -749,8 +749,10 @@ if($no_match === true)
 				}
 				else
 				{
-				
-					echo $test->decodeResult();
+					if ($test->decodeResult() != "")
+						echo $test->decodeResult();
+					else
+						echo $test->result;
 				}
 				echo "</td>";
 			}
@@ -838,7 +840,7 @@ if($no_match === true)
 					echo "-";
 				else
 				{
-					$ts_parts = explode(" ", $test->timestamp);
+					$ts_parts = explode(" ", $test->ts_result_entered);
 					echo DateLib::mysqlToString($ts_parts[0]);
 				}
 				echo "</td>";

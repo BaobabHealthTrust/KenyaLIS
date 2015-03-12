@@ -2341,6 +2341,23 @@ class Patient
 			return $result;
 		}
 	}
+
+	public function getAssociatedTestsUnreported() {
+		if( $this->patientId == "" )
+			return " - ";
+		else {
+			$query_string = "SELECT t.test_type_id FROM test t, specimen sp ".
+							"WHERE t.result = '' ".
+							"AND t.specimen_id=sp.specimen_id ".
+							"AND sp.patient_id=$this->patientId";
+			$recordset = query_associative_all($query_string, $row_count);
+			foreach( $recordset as $record ) {
+				$testName = get_test_name_by_id($record['test_type_id']);
+				$result .= $testName."<br>";
+			}
+			return $result;
+		}
+	}
 	
 	public function getAge()
 	{
