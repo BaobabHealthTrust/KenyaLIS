@@ -16734,7 +16734,8 @@ class API
     	$date = $params['date'];
     	$department = $params['department'];    	
     	$dashboard_type = $params['dashboard_type'];
-    	
+    	$ward = $params['ward'];
+
     	$status;
     	if ($dashboard_type == 'labreception'){
     		$status = "'Drawn'";
@@ -16763,7 +16764,15 @@ class API
     	else {
     		$department_condition = "";
     	}
-    	
+
+		if ($ward)
+		{
+			$ward_condition = " AND sp.specimen_id IN (SELECT specimen_id FROM specimen_activity_log WHERE location = '$ward')";
+		}
+		else{
+			$ward_condition = "";
+		}
+
     	$lifespan = '(SELECT lifespan FROM specimen_test WHERE specimen_type_id = sp.specimen_type_id 
     								AND test_type_id = t.test_type_id) AS lifespan';
     								
@@ -16814,8 +16823,8 @@ class API
 									(SELECT MAX(activity_state_id) FROM specimen_activity_log 
 									WHERE specimen_id = sp.specimen_id OR test_id = t.test_id)	
 						WHERE sl.state_id NOT IN (SELECT state_id FROM specimen_activity 
-								WHERE name = 'Voided') AND DATE(sl.date) <= DATE('$date') $status_condition $department_condition";
-	
+								WHERE name = 'Voided') AND DATE(sl.date) <= DATE('$date') $ward_condition $status_condition $department_condition";
+
 		$sub_query = "";
 		if ($dashboard_type == 'labreception'){
 			$sub_query = "SELECT patient_name, accession_number, collected_datetime AS time_drawn,			
