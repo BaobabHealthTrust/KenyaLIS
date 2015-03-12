@@ -98,9 +98,9 @@ $testName = (count($obr) > 0 ? $obr[0]->getField(4)[1] : null);
 
 $result = (count($obx) > 0 ? $obx[0]->getField(5) : null);
 
-$state = (count($nte) > 0 ? $nte[0]->getField(3) : null);		// $obr[0]->getField(25);
+$state = (count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[0] : $nte[0]->getField(3));
 
-$comments = null;
+$comments = (count($nte) > 0 && gettype($nte[0]->getField(3)) == "array" ? $nte[0]->getField(3)[1] : null);
 
 $record = array(
   "state" => $state,
@@ -148,8 +148,6 @@ for($i = 0; $i < sizeof($obr); $i++){
 
 	$testCode = $obr[$i]->getField(4)[0];           // OBR.04
 
-	$testName = $obr[$i]->getField(4)[1];           // OBR.04
-
 	$timestampForSpecimenCollection = $obr[$i]->getField(7);     // OBR.07
 
 	$reasonTestPerformed = $obr[$i]->getField(13);                // OBR.13
@@ -172,13 +170,11 @@ for($i = 0; $i < sizeof($obr); $i++){
 
 	$result = (count($obx) > $i ? $obx[$i]->getField(5) : null);
 
-	$comment = (count($nte) > $i ? $nte[$i]->getField(3) : null);		// $obr[0]->getField(25);
+	// $state = (count($nte[$i]->getField(3)) > $i ? $nte[$i]->getField(3)[0] : $nte[$i]->getField(3));
 
-	$tmp = explode("|", $comment);
+	$state = (count($nte) > $i && gettype($nte[$i]->getField(3)) == "array" ? $nte[$i]->getField(3)[0] : $nte[$i]->getField(3));
 
-	$state = $tmp[0];
-
-	$comments = (count($tmp) > 1 ? $tmp[1] : null);
+	$comments = (count($nte) > $i && gettype($nte[$i]->getField(3)) == "array" ? $nte[$i]->getField(3)[1] : null);
 
 	$set = array(
 		"obrSetID" => $obrSetID,
@@ -188,7 +184,7 @@ for($i = 0; $i < sizeof($obr); $i++){
 		"reasonTestPerformed" => $reasonTestPerformed,
 		"enteredBy" => $enteredBy,
 		"enterersLocation" => $enterersLocation,
-		"result" => $rst,
+		"result" => $result,
 		"status" => $state,
 		"comments" => $comments
 	);

@@ -93,7 +93,11 @@ $enteredBy = $orc[0]->getField(10)[2] . " " . $orc[0]->getField(10)[1] . " (" . 
 
 $enterersLocation = $orc[0]->getField(13);   // ORC.13
 
-$status = $nte[0]->getField(3);
+$status = (gettype($nte[0]->getField(3)) == "array" && count($nte[0]->getField(3)) > 1 ? $nte[0]->getField(3)[0] : $nte[0]->getField(3));
+
+$parent = (count($nte) > 0 && gettype($nte[0]->getField(3)) == "array" && count($nte[0]->getField(3)) > 1 ? ($nte[0]->getField(3)[1] == "parent" ? true : false) : false);
+
+$panel_loinc_code = (count($nte) > 0 && gettype($nte[0]->getField(3)) == "array" && count($nte[0]->getField(3)) > 2 ? $nte[0]->getField(3)[2] : ($parent ? null : $testCode));
 
 if($debugPrint && false){
 
@@ -183,7 +187,8 @@ $result = array(
   "priority" => $priority,
   "enteredBy" => $enteredBy,
   "enterersLocation" => $enterersLocation,
-  "status" => $status
+  "status" => $status,
+  "panel_loinc_code" => $panel_loinc_code
 );
 
 if (!$debug){
@@ -214,7 +219,8 @@ $finalResult = array(
 				"timestampForSpecimenCollection" => $response["timestampForSpecimenCollection"],
 				"reasonTestPerformed" => $response["reasonTestPerformed"],
 				"enteredBy" => $enteredBy,
-				"enterersLocation" => $enterersLocation
+				"enterersLocation" => $enterersLocation,
+  			"panel_loinc_code" => $panel_loinc_code
 			)
 	),
   "healthFacilitySiteCodeAndName" => $healthFacilitySiteCodeAndName,
@@ -248,6 +254,10 @@ for($i = 1; $i < sizeof($obr); $i++){
 
 	$priority = $tq1[$i]->getField(9);           // TQ1.09
 
+	$parent = (count($nte) > $i && gettype($nte[$i]->getField(3)) == "array" && count($nte[$i]->getField(3)) > 1 ? ($nte[$i]->getField(3)[1] == "parent" ? true : false) : false);
+
+	$panel_loinc_code = (count($nte) > $i && gettype($nte[$i]->getField(3)) == "array" && count($nte[$i]->getField(3)) > 2 ? $nte[$i]->getField(3)[2] : ($parent ? null : $testCode));
+
 	$result = array(
 		"sendingFacility" => $sendingFacility,
 		"receivingFacility" => $receivingFacility,
@@ -274,7 +284,8 @@ for($i = 1; $i < sizeof($obr); $i++){
 		"priority" => $priority,
 		"enteredBy" => $enteredBy,
 		"enterersLocation" => $enterersLocation,
-  	"status" => $status
+  	"status" => $status,
+  	"panel_loinc_code" => $panel_loinc_code
 	);
 
 	if (!$debug){
@@ -294,7 +305,8 @@ for($i = 1; $i < sizeof($obr); $i++){
 		"timestampForSpecimenCollection" => $response["timestampForSpecimenCollection"],
 		"reasonTestPerformed" => $response["reasonTestPerformed"],
 		"enteredBy" => $enteredBy,
-		"enterersLocation" => $enterersLocation
+		"enterersLocation" => $enterersLocation,
+		"panel_loinc_code" => $panel_loinc_code
 	);
 
 	array_push($finalResult["tests"], $set);

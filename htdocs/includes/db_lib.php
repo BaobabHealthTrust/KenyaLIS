@@ -7532,7 +7532,10 @@ function get_tests_by_specimen_id($specimen_id)
 	global $con;
 	$specimen_id = mysql_real_escape_string($specimen_id, $con);
 	# Returns list of tests scheduled for this given specimen
-	$query_string = "SELECT * FROM test WHERE specimen_id=$specimen_id";
+	// $query_string = "SELECT * FROM test WHERE specimen_id=$specimen_id";
+	
+	$query_string = "SELECT t.* FROM test t LEFT OUTER JOIN test_type y ON y.test_type_id = t.test_type_id WHERE (COALESCE(t.panel_loinc_code, '') = '' OR t.panel_loinc_code = y.loinc_code) AND t.specimen_id=$specimen_id";
+	
 	$resultset = query_associative_all($query_string, $row_count);
 	$retval = array();
 	foreach($resultset as $record)
@@ -7713,8 +7716,8 @@ function add_test($test, $testId=null)
 	if( $testId == null)
 		$testId = bcadd(get_max_test_id(),1);
 	$query_string = 
-		"INSERT INTO `test` (priority, test_id, specimen_id, test_type_id, result, comments, verified_by, user_id, external_lab_no, external_parent_lab_no ) ".
-		"VALUES ('$test->priority', $testId, $test->specimenId, $test->testTypeId, '$test->result', '$test->comments', 0, $test->userId, '$test->external_lab_no', '$test->external_parent_lab_no' )";
+		"INSERT INTO `test` (panel_loinc_code, priority, test_id, specimen_id, test_type_id, result, comments, verified_by, user_id, external_lab_no, external_parent_lab_no ) ".
+		"VALUES ('$test->panelLoincCode', '$test->priority', $testId, $test->specimenId, $test->testTypeId, '$test->result', '$test->comments', 0, $test->userId, '$test->external_lab_no', '$test->external_parent_lab_no' )";
 	//die($query_string);
 	$result = query_insert_one($query_string);
 	$last_insert_id = get_last_insert_id();
@@ -15990,7 +15993,8 @@ class API
 		$test->comments = "";
 		$test->priority = $record['priority'];
 		$test->userId = $_SESSION['user_id'];
-		$test->result = "";		
+		$test->result = "";
+		$test->panelLoincCode = $record['panel_loinc_code'];	
 		$ex = API::getExternalParentLabNo($patient->surrogateId,  get_test_name_by_id($test->testTypeId));
 		$test->patientVisitNumber = API::getpatientVisitNumber($patient->surrogateId, 0);
 		$test_id = add_test($test);
@@ -16073,13 +16077,13 @@ class API
 		$test_id = $test['test_id'];
 
 		if (!in_array($state, array('Testing', 'Test Rejected', 'Result Rejected', 'Tested', 'Verified'))){
-			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location)
+			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location, comments)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
-							$specimen_id, $date, $user_id, '$doctor', '$location' )";
+							$specimen_id, $date, $user_id, '$doctor', '$location', '$comments' )";
 		}else{
-			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, test_id, `date`, user_id, doctor, location)
+			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, test_id, `date`, user_id, doctor, location, comments)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
-							$test_id, $date, $user_id, '$doctor', '$location' )";
+							$test_id, $date, $user_id, '$doctor', '$location', '$comments')";
 		}
 
 		$specimen_activity_log = query_insert_one($query_update_activity_log);
@@ -16175,10 +16179,8 @@ class API
 
 			//Add a test result record in test result table;
 
-			$test_id = $test['test_id'];
-			
-			$test_result_insert = "INSERT into test_result (test_id, user_id, result, ts)
-									VALUES ($test_id, $user_id, $result, NOW())";
+			$test_result_insert = "INSERT into test_result (test_id, user_id, result, ts, interpretation)
+									VALUES ($test_id, $user_id, '$result', NOW(), '$comments')";
 
 			$new_result_record = query_insert_one($test_result_insert);
 						
@@ -16351,6 +16353,64 @@ class API
 		}
 		return $result;		
 	}
+
+	public function get_panel_info($loinc_code, $accessionNumber){
+				
+		$parent_test = query_associative_one("SELECT * FROM test_type WHERE loinc_code = '$loinc_code' LIMIT 1");
+			
+		$tests = get_panel_tests($parent_test['test_type_id']);
+
+		$result = array();
+	   
+		foreach ($tests AS $test_name){			
+			
+			$test_data = query_associative_one("SELECT * FROM test_type WHERE name = '$test_name' LIMIT 1");
+
+			$result_query = "
+					SELECT tr.result, tr.interpretation FROM specimen s
+						INNER JOIN test t ON t.specimen_id = s.specimen_id AND s.accession_number = '$accessionNumber' 
+						INNER JOIN test_result tr ON tr.test_id = t.test_id 			
+					WHERE t.test_type_id = ".$test_data['test_type_id']." ORDER BY tr.ts DESC LIMIT 1";
+
+			$result_last = query_associative_one($result_query);
+
+			$rst = '';
+			$interpretation = '';
+
+			if ($result_last)
+				$rst = $result_last['result'];
+				$interpretation = $result_last['interpretation'];
+				
+			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_data['loinc_code'].'|'.$rst.'|'.$interpretation;
+
+			$result[$str] = API::get_test_type_measure_ranges($test_data["loinc_code"], $accessionNumber);
+			
+		}
+
+		if (count($result) == 0){
+
+			$result_query = "
+					SELECT tr.result, tr.interpretation FROM specimen s
+						INNER JOIN test t ON t.specimen_id = s.specimen_id AND s.accession_number = '$accessionNumber' 
+						INNER JOIN test_result tr ON tr.test_id = t.test_id 			
+					WHERE t.test_type_id = ".$parent_test['test_type_id']." ORDER BY tr.ts DESC LIMIT 1";
+
+			$result_last = query_associative_one($result_query);
+
+			$rst = '';
+			$interpretation = '';
+
+			if ($result_last)
+				$rst = $result_last['result'];
+				$interpretation = $result_last['interpretation'];
+				
+			$str = $parent_test['test_type_id'].'|'.$parent_test['name'].'|'.$parent_test['loinc_code'].'|'.$rst.'|'.$interpretation;
+
+			$result[$str] = API::get_test_type_measure_ranges($parent_test['loinc_code'], $accessionNumber);
+		}
+
+		return $result;
+	}
 	
     public function get_test_catalog()
     {
@@ -16435,6 +16495,101 @@ class API
 	return $retval;
     }    
 
+	public function get_panel_tests_by_accession_number($loinc_code) {        
+		global $CATALOG_TRANSLATION;
+		
+		if($_SESSION['level'] < 2 || $_SESSION['level'] > 4) {
+			$user = get_user_by_id($_SESSION['user_id']);
+			$lab_config_id = $user->labConfigId;
+		}
+	
+		if($lab_config_id == null) {
+			$lab_config_id = get_lab_config_id_admin($_SESSION['user_id']);
+    }
+    
+		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
+		
+		$query_ttypes =
+			"SELECT s_type.specimen_type_id AS specimen_id, s_type.name AS specimen_name, 
+					t_type.test_type_id AS test_type_id, t_type.name AS test_type_name,
+					t_type.loinc_code AS loinc_code, t_type.test_code AS test_code
+			FROM specimen_test s_test
+				INNER JOIN specimen_type s_type ON s_test.specimen_type_id = s_type.specimen_type_id
+				INNER JOIN test_type t_type ON s_test.test_type_id = t_type.test_type_id 
+			WHERE s_type.disabled = 0 AND t_type.disabled = 0 AND loinc_code = '$loinc_code'
+			";
+	
+		$specimen_query = "SELECT distinct name AS name, specimen_type_id AS specimen_id FROM specimen_type WHERE disabled = 0";
+		$resultset = query_associative_all($query_ttypes, $row_count);	
+		$specimens = query_associative_all($specimen_query, $row_count);
+		
+		$retval = array();	
+		
+		$name;
+						
+		if($resultset) {
+			foreach($resultset as $record) {		
+				
+				if($CATALOG_TRANSLATION === true){				
+			
+					$name = LangUtil::getTestName($record['test_type_name']);				
+				}else{		
+					$name = $record['test_type_name'];
+				}
+		
+				$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];	
+			
+				$test_type_id = $record['test_type_id'];				
+			
+				$panels_query = "SELECT tp.child_test_type_id AS test_type_id, 
+								(SELECT name FROM test_type WHERE test_type_id = tp.child_test_type_id)  AS test_type_name,
+								(SELECT loinc_code FROM test_type WHERE test_type_id = tp.child_test_type_id)  AS loinc_code,
+								(SELECT test_code FROM test_type WHERE test_type_id = tp.child_test_type_id)  AS test_code
+							FROM test_type tt
+								INNER JOIN test_panel tp ON tt.test_type_id = tp.parent_test_type_id AND tp.disabled = 0
+								WHERE tt.is_panel = 1 AND tp.parent_test_type_id = $test_type_id";
+			
+				$rset = query_associative_all($panels_query);
+				
+			
+				if ($rset && count($rset) > 0){
+				
+					foreach ($rset AS $precord){
+						$pname;
+						
+						if($CATALOG_TRANSLATION === true){			
+							$pname = LangUtil::getTestName($precord['test_type_name']);				
+						} else {						
+							$pname = $precord['test_type_name'];
+						}
+					
+						$pname = $precord['test_type_id'].'|'.$pname.'|'.$precord['loinc_code'].'|'.$precord['test_code'];
+					
+						array_push($retval, $pname);
+					    			
+					}
+				}																	
+			}
+			
+			if(count($retval) == 0){
+			
+				array_push($retval, $name);
+			
+			}
+			
+			return $retval;
+		}	
+	
+		DbUtil::switchRestore($saved_db);
+    $catalog = $retval;
+    if(count($catalog) > 0)
+    	$ret = $catalog;
+		else
+    	$ret = 0;
+            
+    return $ret;
+  }
+    
 	public function get_test_catalog_with_panels()
     {
         global $CATALOG_TRANSLATION;

@@ -4,8 +4,23 @@
 
   if(isset($_REQUEST['action'])) {
   
+  	if($_REQUEST['action'] == 'get_panel_tests_by_loinc_code') {
+  	
+  		if(!isset($_REQUEST['loinc_code'])) {
+          echo -2;
+          return;
+      } else {
+      
+        $result = API::get_panel_tests_by_accession_number($_REQUEST["loinc_code"]);
+
+        echo json_encode($result);
+
+        return;
+      
+      }
+  	
     // Expects calls made as: /api/remote_calls?action=get_test_type_measure_by_patient&loinc_code=LOINC_CODE&accession_num=ACCESSION_NUMBER
-	if($_REQUEST['action'] == 'get_test_type_measure_by_accession_num') {
+		} else if($_REQUEST['action'] == 'get_test_type_measure_by_accession_num') {
     
       if(!isset($_REQUEST['loinc_code']) || !isset($_REQUEST['accession_num'])) {
           echo -2;
@@ -35,63 +50,18 @@
       }
       
     // Expects calls made as: /api/remote_calls?action=get_panel_info&loinc_code=LOINC_CODE&accession_num=ACCESSION_NUMBER
-    }else if ($_REQUEST['action'] == 'get_panel_info'){
+    } else if ($_REQUEST['action'] == 'get_panel_info'){
 
-	  if(!isset($_REQUEST['loinc_code']) || !isset($_REQUEST['accession_num'])) {
+	  	if(!isset($_REQUEST['loinc_code']) || !isset($_REQUEST['accession_num'])) {
           echo -2;
           return;
       } else {
 
-       $loinc_code = $_REQUEST['loinc_code']; 
-		
-	   $parent_test = query_associative_one("SELECT * FROM test_type WHERE loinc_code = '$loinc_code' LIMIT 1");
-			
-       $tests = get_panel_tests($parent_test['test_type_id']);
+		$result = API::get_panel_info($_REQUEST['loinc_code'], $_REQUEST['accession_num']);
 
-	   $result = array();
-	   
-       foreach ($tests AS $test_name){			
-			
-			$test_data = query_associative_one("SELECT * FROM test_type WHERE name = '$test_name' LIMIT 1");
+		echo json_encode($result);
 
-			$result_query = "
-					SELECT tr.result FROM specimen s
-						INNER JOIN test t ON t.specimen_id = s.specimen_id AND s.accession_num = '".$_REQUEST['accession_num']."' 
-						INNER JOIN test_result tr ON tr.test_id = t.test_id 			
-					WHERE t.test_type_id = ".$test_data['test_type_id']." ORDER BY tr.ts DESC LIMIT 1";
-		
-			$result_last = query_associative_one($result_query);
-			$rst = '';
-			if ($result_last)
-				$rst = $result_last['result'];
-			
-			$str = $test_data['test_type_id'].'|'.$test_data['name'].'|'.$test_data['loinc_code'].'|'.$rst;
-
-			$result[$str] = API::get_test_type_measure_ranges($test_data["loinc_code"], $_REQUEST["accession_num"]);
-			
-	   }
-
-	   if (count($result) == 0){
-
-		   	$result_query = "
-					SELECT tr.result FROM specimen s
-						INNER JOIN test t ON t.specimen_id = s.specimen_id AND s.accession_num = '".$_REQUEST['accession_num']."' 
-						INNER JOIN test_result tr ON tr.test_id = t.test_id 			
-					WHERE t.test_type_id = ".$parent_test['test_type_id']." ORDER BY tr.ts DESC LIMIT 1";
-		
-			$result_last = query_associative_one($result_query);
-			$rst = '';
-			if ($result_last)
-				$rst = $result_last['result'];
-				
-			$str = $parent_test['test_type_id'].'|'.$parent_test['name'].'|'.$parent_test['loinc_code'].'|'.$rst;
-
-			$result[$str] = API::get_test_type_measure_ranges($parent_test['loinc_code'], $_REQUEST["accession_num"]);
-	   }
-	   
-	   echo json_encode($result);
-
-       return;
+		return;
       
 	}
       
