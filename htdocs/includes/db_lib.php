@@ -3600,6 +3600,11 @@ class Test
 		}
 		return $retval;
 	}	
+
+	public function resultsTrail(){
+		$query = "SELECT DATE(ts) AS date, result FROM test_result WHERE test_id = ".$this->testId." ORDER BY ts ASC";
+		return query_associative_all($query);
+	}
 	
 	public function decodeResult($show_range=false) {
 		# Converts stored result value(s) for showing on front-end
@@ -16186,11 +16191,16 @@ class API
 			$test_update = query_update($update_test_query);
 		}
 
+		if ($state == 'Verified'){
+			$update_test_query = "UPDATE test SET verified_by = $user_id, date_verified = $date WHERE test_id = ".$test['test_id'];
+			$test_update = query_update($update_test_query);
+		}
+		
 		if ($test_status_code_id == Specimen::$STATUS_TOVERIFY){
 
 			//Update results
 
-			$update_test_query = "UPDATE test SET result = '".$result_with_hash_value."' , ts_result_entered = NOW() WHERE test_id = ".$test['test_id'];
+			$update_test_query = "UPDATE test SET comments = '$comments', result = '".$result_with_hash_value."' , ts_result_entered = NOW() WHERE test_id = ".$test['test_id'];
 
 			$test = query_update($update_test_query);
 

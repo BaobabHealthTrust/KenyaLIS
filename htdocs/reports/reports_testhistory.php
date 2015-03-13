@@ -85,9 +85,18 @@ include("../users/accesslist.php");
 <body>
 <!--date selection begins-->
 <label for"date_from">From</label>
- <input type="text" size="12" id="date_from" name="date_from" />
+ <input type="text" size="12" id="date_from" name="date_from" value="<?php echo $_REQUEST['date_from'];?>" />
 <label for"date_to">To</label>
- <input type="text" size="12" id="date_to" name="date_to" />
+ <input type="text" size="12" id="date_to" name="date_to" value="<?php echo $_REQUEST['date_to'];?>" />
+
+ <!-- <input type='button' onClick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input> -->
+	&nbsp;&nbsp;
+	<input type='button' onclick="javascript:export_as_pdf('report_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTPDF']; ?>'></input>
+	&nbsp;&nbsp;
+	<!--input type='button' onclick="javascript:export_as_txt('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTTXT']; ?>'></input>
+	&nbsp;&nbsp;-->
+	<input type='button' onclick="javascript:export_as_csv('report_content_header', 'report_content_table1', 'report_content_table2');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTCSV']; ?>'></input>
+	&nbsp;&nbsp;
  <!--date selection ends-->
 <?php
 $date_from = "";
@@ -643,7 +652,7 @@ function get_records_to_print($lab_config, $patient_id) {
 
 	$retval = array();
 
-	if(isset($_REQUEST['ip']) && $_REQUEST['ip'] == 1) {
+	if(isset($_REQUEST['ip']) && $_REQUEST['ip'] == 0) {
 
 		# Do not include pending tests
 
@@ -1138,7 +1147,7 @@ p.main {text-align:justify;}
 
 
 <div id='options_header' style="font-family: Arial;" >
-
+	
 <form name='word_format_form' id='word_format_form' action='export_word.php' method='post' target='_blank'>
 
 	<input type='hidden' name='data' value='' id='word_data' />
@@ -1232,13 +1241,15 @@ $monthago_array = explode("-", $monthago_date);
 	
 
 	<td>
+		<div style='padding-top: 7px; margin-left: 50px;'>
+			<input type='checkbox' name='ip' id='ip'></input> 
 
-		<input type='checkbox' name='ip' id='ip'></input> 
+			<?php echo LangUtil::$pageTerms['MSG_INCLUDEPENDING']; ?>
+					
+			<input type='checkbox' name='viz' id='viz'></input> 
 
-		<?php echo LangUtil::$pageTerms['MSG_INCLUDEPENDING']; ?>
-                <br>
-                <input type='checkbox' name='viz' id='viz'></input> 
-		<?php echo "Include Range Visualization"; ?>
+			<?php echo "Include Range Visualization"; ?>
+		</div>
 	</td>
 
 	<td>
@@ -1257,80 +1268,6 @@ $monthago_array = explode("-", $monthago_date);
 
 </tr>
 
-<tr >
-
-	<td>
-
-			
-
-	</td>
-
-	<td>
-
-			
-
-	</td>
-
-	<!--<td>
-
-	&nbsp;&nbsp;
-
-	Font
-
-	</td>-->
-
-	<td>
-
-	<table class='no border'>
-
-	<tr valign='top'><td>
-
-	<input  type='hidden' class="increaseFont" value='Increase' title="Increase Font-size"></input> <br>
-
-	</td>
-
-	<td>
-
-	<input type='hidden' class="decreaseFont" value='Decrease' title="Decrease Font-size"></input> <br>
-
-	<!--<input type='button' class="bold" value='Bold' title="Bold"></input> <br>-->
-
-	
-
-	</td>
-
-	</tr>
-
-	</table>
-
-	</td>
-
-	<td>
-
-	&nbsp;&nbsp;
-
-	<!-- <input type='button' onClick="javascript:export_as_word('report_word_content');" value='Export Word Document' title='<?php echo LangUtil::$generalTerms['CMD_EXPORTWORD']; ?>'></input> -->
-	&nbsp;&nbsp;
-	<input type='button' onclick="javascript:export_as_pdf('report_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTPDF']; ?>'></input>
-	&nbsp;&nbsp;
-	<!--input type='button' onclick="javascript:export_as_txt('export_content');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTTXT']; ?>'></input>
-	&nbsp;&nbsp;-->
-	<input type='button' onclick="javascript:export_as_csv('report_content_header', 'report_content_table1', 'report_content_table2');" value='<?php echo LangUtil::$generalTerms['CMD_EXPORTCSV']; ?>'></input>
-	&nbsp;&nbsp;
-
-	</td>
-
-	<td>
-
-	&nbsp;&nbsp;
-
-	<!-- <input type='button' onClick="javascript:window.close();" value='Close' title='<?php echo LangUtil::$generalTerms['CMD_CLOSEPAGE']; ?>'></input> -->
-
-	</td>
-
-	
-
-	</tr>
 
 </table>
 
@@ -1456,15 +1393,7 @@ else if(file_exists($logo_path))
 {*/
 
 ?>
-<img src='<?php echo "logos/logo_".$lab_config_id.".jpg"; ?>' alt="" height='140px' style='float:left;' width='140px'>
 
-	<img src='<?php echo "logos/logo_".$lab_config_id.".jpg"; ?>' alt="" height='140px' style='float:right; padding-right:10px;' width='140px'>
-
-	<?php
-
-//}
-
-?>
 
 </div>
 
@@ -1713,7 +1642,7 @@ else
                 
 					<td><strong><?php echo "Patient No."; ?></strong></td>
 
-					<td><?php echo $patient->addlId;/*getPatientId()*/ ?></td>
+					<td><?php echo $patient->surrogateId;/*getPatientId()*/ ?></td>
 
 				<?php
 
@@ -1757,6 +1686,10 @@ else
 					<td><strong><?php echo "Registration Date"; ?></strong></td>
 
 					<td><?php echo date("Y-m-d", strtotime($patient->regDate)); ?></td>
+
+					<td><strong><?php echo "Visit Number"; ?></strong></td>
+
+					<td><?php echo $patient->getDailyNum(); ?></td>
 
 				</tr>
 
@@ -1810,21 +1743,7 @@ else
 
 				<?php 
 
-			}
-			?>
-			<tr valign='top'>	
-
-					<td><strong><?php echo "Visit Number"; ?></strong></td>
-
-					<td><?php echo $patient->getDailyNum(); ?></td>
-
-
-					<td><strong><?php echo "Requesting Department/Facility"; ?></strong></td>
-
-					<td><?php $patient_type=$patient->getPatientType(); if($patient_type!=null||$patient_type!=""){ echo $patient->getPatientFacility();} ?></td>
-
-				</tr>
-			<?php
+			}			
 
 			# Patient Custom fields here
 
@@ -2087,7 +2006,7 @@ else
 
 		//		{
 
-					echo "<td>"./*$specimen->specimenId.*/$test->getLabSectionByTest()."</td>";
+					echo "<td>"./*$specimen->specimenId.*/$specimen->accessionNumber."</td>";
 
 		//		}
 
@@ -2252,8 +2171,8 @@ else
 					echo "<th>".LangUtil::$generalTerms['DOCTOR']."</th>";
 					echo "<th>".LangUtil::$generalTerms['SPECIMEN_ID']."</th>";
 					echo "<th>".LangUtil::$generalTerms['RESULTS']."/Value"."</th>";
-					echo "<th>".LangUtil::$generalTerms['RANGE']."</th>";
-					echo "<th>"."Measure"."</th>";
+					echo "<th style='min-width:180px;'>Results Trail/Edits</th>";
+					
 
 // 				if($report_config->useRemarks == 1) {
 
@@ -2351,7 +2270,7 @@ else
 					$doc=$specimen->getDoctor();
 
 					echo "<td>".$doc."</td>";
-echo "<td>".$test->getLabSectionByTest()."</td>";
+					echo "<td>".$specimen->accessionNumber."</td>";
 				if($report_config->useResults == 1) {
 
 					echo "<td>";
@@ -2375,202 +2294,16 @@ echo "<td>".$test->getLabSectionByTest()."</td>";
 
 					echo "<td>";
 
-					if($test->isPending() === true)
-
-						echo "N/A";
-
-					else
-
-					{
-
-						$test_type = TestType::getById($test->testTypeId);
-
-						$measure_list = $test_type->getMeasures();
-
-						
-
-                                                $submeasure_list = array();
-
-                $comb_measure_list = array();
-
-               // print_r($measure_list);
-
-                
-
-                foreach($measure_list as $measure)
-
-                {
-
-                    
-
-                    $submeasure_list = $measure->getSubmeasuresAsObj();
-
-                    //echo "<br>".count($submeasure_list);
-
-                    //print_r($submeasure_list);
-
-                    $submeasure_count = count($submeasure_list);
-
-                    
-
-                    if($measure->checkIfSubmeasure() == 1)
-
-                    {
-
-                        continue;
-
-                    }
-
-                        
-
-                    if($submeasure_count == 0)
-
-                    {
-
-                        array_push($comb_measure_list, $measure);
-
-                    }
-
-                    else
-
-                    {
-
-                        array_push($comb_measure_list, $measure);
-
-                        foreach($submeasure_list as $submeasure)
-
-                           array_push($comb_measure_list, $submeasure); 
-
-                    }
-
-                }
-
-                $measure_list = $comb_measure_list;
-
-                                                
-
-						foreach($measure_list as $measure) {
-
-// 							echo "<br>";
-
-							$type=$measure->getRangeType();
-
-							if($type==Measure::$RANGE_NUMERIC) {
-
-								$range_list_array=$measure->getRangeString($patient);
-
-								$lower=$range_list_array[0];
-
-								$upper=$range_list_array[1];
-
-								$unit=$measure->unit;
-
-								if(stripos($unit,",")!=false) {	
-
-									echo "(";
-
-									$units=explode(",",$unit);
-
-									$lower_parts=explode(".",$lower);
-
-									$upper_parts=explode(".",$upper);
-
-				
-
-									if($lower_parts[0]!=0) {
-
-										echo $lower_parts[0];
-
-										echo $units[0];
-
-									}
-
-									
-
-									if($lower_parts[1]!=0) {
-
-										echo $lower_parts[1];
-
-										echo $units[1];
-
-									}
-
-									echo " - ";
-
-				
-
-									if($upper_parts[0]!=0) {
-
-										echo $upper_parts[0];
-
-										echo $units[0];
-
-									}
-
-									
-
-									if($upper_parts[1]!=0) {
-
-										echo $upper_parts[1];
-
-										echo $units[1];
-
-									}
-
-									echo ")";
-
-								} else if(stripos($unit,":")!=false) {
-
-									$units=explode(":",$unit);
-
-									echo "(";	
-
-									echo $lower;
-
-									?><sup><?php echo $units[0]; ?></sup> - 
-
-									<?php echo $upper;?> <sup> <?php echo $units[0]; ?> </sup>
-
-									<?php
-
-									echo " ".$units[1].")";
-
-								} else {	
-
-									echo "(";		
-
-									echo $lower; ?>-<?php echo $upper.")"; 
-
-									echo " ".$measure->unit;
-
-								}?>
-
-								&nbsp;&nbsp;	
-
-								<?php
-
-							} else {
-
-								if($measure->unit=="")
-
-									$measure->unit="-";
-
-								echo "&nbsp;&nbsp;&nbsp;". $measure->unit;
-
-							}
-
-							echo "<br>";
-
-						}
-
-					}
-
+					$testResults = $test->resultsTrail();
+					echo "<table class='no_border'>";
+					foreach($testResults AS $rs){
+						echo "<tr>";
+						echo "<td>".$rs['date'].": </td> <td>".$rs['result']."</td>";
+						echo "</tr>";
+					}					
+					echo "</table>";
 					echo "</td>";
-					  echo "<td>";
-
-					echo $test->getMeasureList();
-
-					echo "</td>";
+					
 				
 // 				if($report_config->useRemarks == 1) {
 
@@ -3608,60 +3341,6 @@ $lab_config_id=$_SESSION['lab_config_id'];
 
 
 
-<table width=100% border="0" class="no_border" ">
-
-<tr>
-
-<?php for($j=0;$j<count($footerText);$j++) {?>
-
-<td <?php if($lab_config_id==234) {?>style="font-size:14pt;"<?php }?> ><?php echo $new_footer_part; ?></td>
-
-<?php }?>
-
-</tr>
-
-<tr>
-
-<?php for($j=0;$j<count($footerText);$j++) {?>
-
-<td align="center" <?php if($lab_config_id==234) {?>style="font-size:14pt;"<?php }?>><?php echo $footerText[$j]; ?></td>
-
-<?php }?>
-
-</tr>
-
-<tr>
-
-<?php for($j=0;$j<count($designation);$j++) {?>
-
-<td align="center"<?php if($lab_config_id==234) {?>style="font-size:14pt;"<?php }?> ><?php echo $designation[$j]; ?></td>
-
-<?php }
-
-/*
-
-$load_time = microtime(); 
-
-$load_time = explode(' ',$load_time); 
-
-$load_time = $load_time[1] + $load_time[0]; 
-
-$page_end = $load_time; 
-
-$final_time = ($page_end - $page_start); 
-
-$page_load_time = number_format($final_time, 4, '.', ''); 
-
-echo("Page generated in " . $page_load_time . " seconds"); 
-
-*/
-
-?>
-
-</tr>
-
-</table>
-
 </div>
 
 </div>
@@ -3678,7 +3357,6 @@ echo("Page generated in " . $page_load_time . " seconds");
 
 
 
-<?php include('lab_report_footer.php'); ?>
 
 </div>
 
