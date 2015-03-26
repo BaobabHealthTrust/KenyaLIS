@@ -38,7 +38,14 @@ if (is_null($username)) {
       
       die();
     
-    }
+    }else{
+    
+    	$token = session_id();
+    	
+		$update_query = "UPDATE user SET cur_token = '$token' WHERE username = '$username'";
+		
+		query_update($update_query);
+	}
 }
 
 ?>
