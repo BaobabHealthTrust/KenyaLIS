@@ -103,6 +103,19 @@
         return;
       
       }
+    //http://localhost/blis/htdocs/api/remote_calls.php?action=get_user_details&username=username
+    }else if($_REQUEST['action'] == 'get_user_details') {  
+    
+      if(!isset($_REQUEST['username'])) {
+          echo -2;
+          return;
+      } else {
+            
+        getUserDetails($_REQUEST["username"]);
+        
+        return;
+      
+      }
     
     }
     
@@ -175,6 +188,14 @@
   
     echo json_encode($response);
   
+  }
+
+  function getuserDetails($user_id){
+
+	$details = API::get_user_details($user_id);
+
+	echo json_encode($details);
+	
   }
 
 ?>

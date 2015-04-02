@@ -16442,6 +16442,37 @@ class API
 
 		return $result;
 	}
+
+	public function get_user_details($username)
+	{
+
+		$user_query = "SELECT * FROM user WHERE username = '$username' LIMIT 1";
+
+		$user = query_associative_one($user_query);
+
+		$result = Array();
+
+		$result['username'] = $user['username'];
+
+		$result['actualname'] = $user['actualname'];
+
+		$result['canverify'] = $user['verify'] == 0 ? false : true;
+
+		$result['isactive'] = $user['active_status'] == 0 ? false : true;
+
+		$lab_sections_query = "SELECT GROUP_CONCAT(name) AS lab_sections, 1 AS hook  FROM test_category WHERE test_category_id IN (".$user['lab_sec_code'].") GROUP BY hook";
+
+		$lab_sections = query_associative_one($lab_sections_query);
+
+		$result['lab_sections'] = "";
+		
+		if ($lab_sections)
+
+			$result['lab_sections'] = $lab_sections['lab_sections'];
+			
+		return $result;
+		
+	}
 	
     public function get_test_catalog()
     {
