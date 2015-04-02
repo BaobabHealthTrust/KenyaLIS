@@ -16922,7 +16922,7 @@ class API
     	if ($dashboard_type == 'labreception'){
     		$status = "'Drawn'";
     	}else if ($dashboard_type == 'ward'){
-    		$status = "'Ordered', 'Drawn', 'Sample Rejected', 'Test Rejected', 'Result Rejected', 'Tested', 'Verified'";
+    		$status = "'Ordered', 'Drawn', 'Sample Rejected', 'Test Rejected', 'Result Rejected', 'Verified'";
 		}else if ($dashboard_type == 'labdepartment'){
 			$status = "'Received At Reception', 'Received In Department', 'Testing'";
     	}else{
