@@ -17702,7 +17702,7 @@ class API
 			
 									DATE(recent_date) <= DATE('$date')
 								)
-						 ) AND recent_activity IN ('Received In Department', 'Testing', 'Tested', 'Verified', 'Ordered')
+						 ) AND recent_activity IN ('Received In Department', 'Testing', 'Tested', 'Verified')
 					) AS info) GROUP by patient_id";
 
 
