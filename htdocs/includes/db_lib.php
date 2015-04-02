@@ -16370,7 +16370,11 @@ class API
 					$ar['range_upper'] = $range[0]['range_upper'];
 				}else if (strstr($mr['measure_range'], '/')){
 					$ar['type'] = 'list';
-					$ar['options'] = explode('/', $mr['measure_range']); 
+					$ar['options'] = explode('/', $mr['measure_range']);
+					
+					for ($i = 0; $i < sizeof($ar['options']); $i++){
+							$ar['options'][$i] = str_replace(" per ", "/", $ar['options'][$i]);
+					}
 				}else{
 					$ar['type'] = 'freetext';
 				}
