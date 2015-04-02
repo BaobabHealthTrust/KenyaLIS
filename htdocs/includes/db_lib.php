@@ -17674,32 +17674,36 @@ class API
 	{
 
 		$date = $params['date'];
-		$query = "SELECT patient_name, SUM(test_count) AS all_tests, SUM(test_count_with_results) AS all_tests_with_results, recent_activity
-FROM (
-(SELECT
-	s.patient_id,
-    s.specimen_id,
-	(SELECT name FROM patient WHERE patient_id = s.patient_id) AS patient_name,
-	(SELECT COUNT(*) FROM test WHERE specimen_id = s.specimen_id) test_count,
-	(SELECT COUNT(*) FROM test WHERE specimen_id = s.specimen_id AND COALESCE(result, '') != '') test_count_with_results,
-	(SELECT (SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = sal.state_id)
-		FROM specimen_activity_log sal WHERE (sal.specimen_id = s.specimen_id) OR (sal.test_id = t.test_id)
-		ORDER BY `date` DESC LIMIT 1) AS recent_activity,
-	(SELECT sal.date
-		FROM specimen_activity_log sal WHERE (sal.specimen_id = s.specimen_id) OR (sal.test_id = t.test_id)
-		ORDER BY `date` DESC LIMIT 1) AS recent_date
- FROM specimen s
-	INNER JOIN test t
- GROUP BY patient_id, specimen_id
-	 HAVING (
-		IF (recent_activity = 'Verified',
-
-				TIMESTAMPDIFF(MINUTE, recent_date, '$date') <= 15,
-
-				DATE(recent_date) <= DATE('$date')
-			)
-	 ) AND recent_activity IN ('Received In Department', 'Testing', 'Tested', 'Verified')
-) AS info) GROUP by patient_id";
+			$query = "SELECT patient_name, SUM(test_count) AS all_tests,
+					 	SUM(test_count_with_results) AS all_tests_with_results, recent_activity
+					FROM ( 
+					(SELECT
+						s.patient_id,
+						s.specimen_id,
+						(SELECT name FROM patient 
+								WHERE patient_id = s.patient_id) AS patient_name,
+						(SELECT COUNT(*) FROM test 
+								WHERE specimen_id = s.specimen_id) test_count,
+						(SELECT COUNT(*) FROM test 
+								WHERE specimen_id = s.specimen_id AND COALESCE(result, '') != '') test_count_with_results,
+						(SELECT (SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = sal.state_id) 
+							FROM specimen_activity_log sal WHERE (sal.specimen_id = s.specimen_id) OR (sal.test_id = t.test_id)
+							ORDER BY `date` DESC LIMIT 1) AS recent_activity,
+						(SELECT sal.date 
+							FROM specimen_activity_log sal WHERE (sal.specimen_id = s.specimen_id) OR (sal.test_id = t.test_id)
+							ORDER BY `date` DESC LIMIT 1) AS recent_date
+					 FROM specimen s 
+						INNER JOIN test t ON t.specimen_id = s.specimen_id
+					 GROUP BY patient_id, specimen_id
+						 HAVING ( 
+							IF (recent_activity = 'Verified',
+			
+									TIMESTAMPDIFF(MINUTE, recent_date, '2015-03-16 13:13:35') <= 15,
+			
+									DATE(recent_date) <= DATE('2015-03-16 13:13:35')
+								)
+						 ) AND recent_activity IN ('Received In Department', 'Testing', 'Tested', 'Verified', 'Ordered')
+					) AS info) GROUP by patient_id";
 
 
 		$results = query_associative_all($query);
