@@ -17698,9 +17698,9 @@ class API
 						 HAVING ( 
 							IF (recent_activity = 'Verified',
 			
-									TIMESTAMPDIFF(MINUTE, recent_date, '2015-03-16 13:13:35') <= 15,
+									TIMESTAMPDIFF(MINUTE, recent_date, '$date') <= 15,
 			
-									DATE(recent_date) <= DATE('2015-03-16 13:13:35')
+									DATE(recent_date) <= DATE('$date')
 								)
 						 ) AND recent_activity IN ('Received In Department', 'Testing', 'Tested', 'Verified', 'Ordered')
 					) AS info) GROUP by patient_id";
