@@ -16499,6 +16499,7 @@ class API
 			INNER JOIN specimen_type s_type ON s_test.specimen_type_id = s_type.specimen_type_id
 			INNER JOIN test_type t_type ON s_test.test_type_id = t_type.test_type_id 
 		WHERE s_type.disabled = 0 AND t_type.disabled = 0
+		HAVING test_type_name NOT IN ('Sputum Tb microscopy', 'Xpert MTB/RIF')
 		";
 	
 	$specimen_query = "SELECT distinct name AS name, specimen_type_id AS specimen_id FROM specimen_type WHERE disabled = 0";
@@ -16509,7 +16510,8 @@ class API
 	
 	if($resultset) {
 		foreach($resultset as $record)
-		 {		
+		 {
+			
 			$key = $record['specimen_id'].'|'.$record['specimen_name'];
 			$name;
 						
@@ -16519,7 +16521,7 @@ class API
 			}else{		
 				$name = $record['test_type_name'];
 			}
-		
+
 			$name = $record['test_type_id'].'|'.$name.'|'.$record['loinc_code'].'|'.$record['test_code'];	
 			
 			$test_type_id = $record['test_type_id'];
@@ -16553,8 +16555,10 @@ class API
 			
 			array_push($retval[$key], $name);													
 		  }		
-	  }	
-	return $retval;
+	  }
+
+	 return $retval;
+	
     }    
 
 	public function get_panel_tests_by_accession_number($loinc_code) {        
