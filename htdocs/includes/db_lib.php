@@ -6401,8 +6401,8 @@ function add_user($user)
 	$saved_db = DbUtil::switchToGlobal();
 	$password = encrypt_password($user->password);
 	$query_string = 
-		"INSERT INTO user(username, password, actualname, level, created_by, lab_config_id, email, phone, lang_id,lab_sec_code) ".
-		"VALUES ('$user->username', '$password', '$user->actualName', $user->level, $user->createdBy, '$user->labConfigId', '$user->email', '$user->phone', '$user->langId', '$user->labSection')";
+		"INSERT INTO user(username, password, actualname, level, created_by, lab_config_id, email, phone, lang_id,lab_sec_code, verify) ".
+		"VALUES ('$user->username', '$password', '$user->actualName', $user->level, $user->createdBy, '$user->labConfigId', '$user->email', '$user->phone', '$user->langId', '$user->labSection', 0)";
 	query_insert_one($query_string);
 	DbUtil::switchRestore($saved_db);
 }
@@ -15836,7 +15836,7 @@ class API
 	$query_string = 
 		"SELECT * FROM user ".
 		"WHERE username='$username' ".
-		"AND password='$password' LIMIT 1";
+		"AND password='$password' AND active_status = 1 LIMIT 1";
 	$record = query_associative_one($query_string);
 	# Return user profile (null if incorrect username/password)
 	DbUtil::switchRestore($saved_db);
