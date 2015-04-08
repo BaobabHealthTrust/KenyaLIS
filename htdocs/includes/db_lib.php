@@ -17011,6 +17011,8 @@ class API
     	$specimen_type = '(SELECT name FROM specimen_type WHERE specimen_type_id = sp.specimen_type_id) AS specimen_type';
     	
     	$activity_status = '(SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS status';
+
+    	$activity_status_date = 'sl.date AS status_date';
     	
     	$date_collected = "concat(sp.date_collected, ' ' , sp.time_collected) as collected_datetime";
     	
@@ -17034,7 +17036,7 @@ class API
     	if ($dashboard_type == 'ward'){  	
     		
     		$required = array("$patient_name", "$accession_number", "$doctor", "$department", "$priority",
-    							 "$activity_status", "$date_collected", "$lifespan");
+    							 "$activity_status", "$date_collected", "$lifespan", "$activity_status_date");
     	}
     	
 		$query_string = "SELECT ".implode(', ', $required)." FROM specimen sp
@@ -17070,13 +17072,19 @@ class API
 		if ($dashboard_type == 'ward'){
 					
 			$sub_query = "SELECT patient_name, accession_number, ordered_by,
-								collected_datetime AS time_drawn,
+								collected_datetime AS time_drawn, status_date, 
 								GROUP_CONCAT(lifespan SEPARATOR ', ')  AS lifespan,
 								GROUP_CONCAT(department SEPARATOR ', ')  AS department,
 								GROUP_CONCAT(status SEPARATOR ', ')  AS status,
 								GROUP_CONCAT(priority SEPARATOR ', ')  AS priority
 							FROM ($query_string) AS data 
-							GROUP BY accession_number";
+							GROUP BY accession_number
+							HAVING
+								IF (status IN ('Sample Rejected', 'Test Rejected', 'Result Rejected'),								
+									TIMESTAMPDIFF(HOUR, status_date, '$date') <= 8,			
+									DATE(status_date) <= DATE('$date')
+								)
+							";
 		}
 		$resultset = query_associative_all($sub_query);
 		return $resultset;
