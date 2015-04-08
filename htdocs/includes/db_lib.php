@@ -16258,7 +16258,7 @@ class API
 		
 		$query = "SELECT COUNT(*) AS count
 			FROM specimen sp
-				INNER JOIN test t ON t.specimen_id = sp.specimen_id
+				INNER JOIN test t ON t.specimen_id = sp.specimen_id AND ((SELECT is_panel FROM test_type WHERE test_type_id = t.test_type_id) = 0)
 				INNER JOIN specimen_activity_log sl ON (sl.specimen_id = sp.specimen_id OR sl.test_id = t.test_id)
 					AND sl.activity_state_id = 
 						(SELECT sl2.activity_state_id FROM specimen_activity_log sl2
@@ -17040,7 +17040,7 @@ class API
     	}
     	
 		$query_string = "SELECT ".implode(', ', $required)." FROM specimen sp
-							INNER JOIN test t ON t.specimen_id = sp.specimen_id
+							INNER JOIN test t ON t.specimen_id = sp.specimen_id AND ((SELECT is_panel FROM test_type WHERE test_type_id = t.test_type_id) = 0)
 							INNER JOIN specimen_activity_log sl
 								ON sl.activity_state_id = 
 									(SELECT MAX(activity_state_id) FROM specimen_activity_log 
@@ -17740,7 +17740,7 @@ class API
 							FROM specimen_activity_log sal WHERE (sal.specimen_id = s.specimen_id) OR (sal.test_id = t.test_id)
 							ORDER BY `date` DESC LIMIT 1) AS recent_date
 					 FROM specimen s 
-						INNER JOIN test t ON t.specimen_id = s.specimen_id
+						INNER JOIN test t ON t.specimen_id = s.specimen_id AND ((SELECT is_panel FROM test_type WHERE test_type_id = t.test_type_id) = 0)
 					 GROUP BY patient_id, specimen_id
 						 HAVING ( 
 							IF (recent_activity = 'Verified',
