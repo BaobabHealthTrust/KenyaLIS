@@ -16259,11 +16259,9 @@ class API
 		$query = "SELECT COUNT(*) AS count
 			FROM specimen sp
 				INNER JOIN test t ON t.specimen_id = sp.specimen_id AND ((SELECT is_panel FROM test_type WHERE test_type_id = t.test_type_id) = 0)
-				INNER JOIN specimen_activity_log sl ON (sl.specimen_id = sp.specimen_id OR sl.test_id = t.test_id)
-					AND sl.activity_state_id = 
-						(SELECT sl2.activity_state_id FROM specimen_activity_log sl2
-							WHERE sl2.specimen_id = sl.specimen_id 
-								OR sl.test_id = sl2.test_id ORDER BY sl2.activity_state_id DESC LIMIT 1)
+				INNER JOIN specimen_activity_log sl ON sl.activity_state_id = 
+									(SELECT MAX(activity_state_id) FROM specimen_activity_log 
+									WHERE specimen_id = sp.specimen_id OR test_id = t.test_id)	
 		WHERE state_id = (SELECT state_id FROM specimen_activity WHERE name = '$state') AND DATE(sl.date) <= DATE('$date')";
 		
 		$result = query_associative_one($query);
