@@ -17727,10 +17727,12 @@ class API
 						s.specimen_id,
 						(SELECT name FROM patient 
 								WHERE patient_id = s.patient_id) AS patient_name,
-						(SELECT COUNT(*) FROM test 
-								WHERE specimen_id = s.specimen_id) test_count,
-						(SELECT COUNT(*) FROM test 
-								WHERE specimen_id = s.specimen_id AND COALESCE(result, '') != '') test_count_with_results,
+						(SELECT COUNT(*) FROM test tst
+								WHERE specimen_id = s.specimen_id
+								AND ((SELECT is_panel FROM test_type WHERE test_type_id = tst.test_type_id) = 0)) test_count,
+						(SELECT COUNT(*) FROM test trst
+								WHERE specimen_id = s.specimen_id AND COALESCE(result, '') != ''
+								AND ((SELECT is_panel FROM test_type WHERE test_type_id = trst.test_type_id) = 0)) test_count_with_results,
 						(SELECT (SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = sal.state_id) 
 							FROM specimen_activity_log sal WHERE (sal.specimen_id = s.specimen_id) OR (sal.test_id = t.test_id)
 							ORDER BY `date` DESC LIMIT 1) AS recent_activity,
