@@ -17070,7 +17070,8 @@ class API
 		if ($dashboard_type == 'ward'){
 					
 			$sub_query = "SELECT patient_name, accession_number, ordered_by,
-								collected_datetime AS time_drawn, status_date, 
+								collected_datetime AS time_drawn, status_date,
+								status AS single_status,
 								GROUP_CONCAT(lifespan SEPARATOR ', ')  AS lifespan,
 								GROUP_CONCAT(department SEPARATOR ', ')  AS department,
 								GROUP_CONCAT(status SEPARATOR ', ')  AS status,
@@ -17078,12 +17079,17 @@ class API
 							FROM ($query_string) AS data 
 							GROUP BY accession_number
 							HAVING
-								IF (status IN ('Sample Rejected', 'Test Rejected', 'Result Rejected'),								
-									TIMESTAMPDIFF(HOUR, status_date, '$date') <= 8,			
-									DATE(status_date) <= DATE('$date')
+								IF (single_status IN ('Sample Rejected', 'Test Rejected', 'Result Rejected'),								
+									TIMESTAMPDIFF(HOUR, status_date, '$date') <= 8,
+											
+									IF (single_status = 'Verified',								
+										TIMESTAMPDIFF(HOUR, status_date, '$date') <= 36,			
+										DATE(status_date) <= DATE('$date')
+									)
 								)
 							";
 		}
+		
 		$resultset = query_associative_all($sub_query);
 		return $resultset;
     }
