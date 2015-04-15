@@ -16229,13 +16229,17 @@ class API
 		return  $record;
 	}
 	
-	public function get_dashboard_stats($date){
+	public function get_dashboard_stats($params){
 		
+		$date = $params['date'];
+		$location = $params['location'];
+		$type = $params['dashboard_type'];
+
 		$result = array();
 		
 		foreach (query_associative_all("SELECT name FROM specimen_activity") AS $st){
 		
-			$result[$st['name']] = API::get_state_count($st['name'], $date);
+			$result[$st['name']] = API::get_state_count($st['name'], $date, $location, $type);
 		}
 
 		$result['avg_tat_in_min'] = API::get_average_turn_around_time($date);
@@ -16254,18 +16258,45 @@ class API
 	WHERE DATE(sp.ts_collected) <= DATE('$date')")['average'];	
 	}
 	
-	public function get_state_count($state, $date){
+	public function get_state_count($state, $date, $location, $type){
+
+		$ward_condition = " ";
+
+		$department_condition = " ";	
 		
+		if ($type == 'ward'){
+			
+			$ward_condition = " AND '$location' IN (SELECT location FROM specimen_activity_log lg
+							WHERE state_id IN (SELECT state_id FROM specimen_activity WHERE name IN ('Ordered', 'Drawn'))
+									AND (lg.test_id = sl.test_id OR lg.specimen_id = sl.specimen_id)) ";
+
+			$department_condition = " ";	
+				
+		}else if($type == 'lab_department'){
+
+			$ward_condition = " ";
+
+			$department_condition = " AND t.test_type_id in (SELECT test_type_id from test_type 
+										where test_category_id = (select test_category_id 
+										from test_category where name = '$location')) ";
+			
+		}else{
+							
+		}
+	
 		$query = "SELECT COUNT(*) AS count
 			FROM specimen sp
 				INNER JOIN test t ON t.specimen_id = sp.specimen_id AND ((SELECT is_panel FROM test_type WHERE test_type_id = t.test_type_id) = 0)
 				INNER JOIN specimen_activity_log sl ON sl.activity_state_id = 
 									(SELECT MAX(activity_state_id) FROM specimen_activity_log 
 									WHERE specimen_id = sp.specimen_id OR test_id = t.test_id)	
-		WHERE state_id = (SELECT state_id FROM specimen_activity WHERE name = '$state') AND DATE(sl.date) <= DATE('$date')";
+		WHERE state_id = (SELECT state_id FROM specimen_activity WHERE name = '$state') AND DATE(sl.date) <= DATE('$date')
+		$ward_condition $department_condition";
 		
 		$result = query_associative_one($query);
+		
 		return $result['count'];
+		
 	}
 	
 	public function get_patient_specimen_details($patient_id){
@@ -16986,7 +17017,9 @@ class API
 
 		if ($ward)
 		{
-			$ward_condition = " AND sp.specimen_id IN (SELECT specimen_id FROM specimen_activity_log WHERE location = '$ward')";
+			$ward_condition = " AND '$ward' IN (SELECT location FROM specimen_activity_log lg
+							WHERE state_id IN (SELECT state_id FROM specimen_activity WHERE name IN ('Ordered', 'Drawn'))
+									AND (lg.test_id = sl.test_id OR lg.specimen_id = sl.specimen_id)) ";
 		}
 		else{
 			$ward_condition = "";
