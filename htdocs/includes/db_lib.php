@@ -17019,7 +17019,7 @@ class API
 		{
 			$ward_condition = " AND '$ward' IN (SELECT location FROM specimen_activity_log lg
 							WHERE state_id IN (SELECT state_id FROM specimen_activity WHERE name IN ('Ordered', 'Drawn'))
-									AND (lg.test_id = sl.test_id OR lg.specimen_id = sl.specimen_id)) ";
+									AND (lg.test_id = t.test_id OR lg.specimen_id = sp.specimen_id)) ";
 		}
 		else{
 			$ward_condition = "";
