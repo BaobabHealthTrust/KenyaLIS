@@ -1,6 +1,6 @@
 <?php
 
-include "../includes/db_lib.php";
+require_once "authenticate.php";
 
 
 //$specimen_id = $_REQUEST['specimen_id'];

@@ -66,6 +66,7 @@ class User
 		$user->password = $record['password'];
 		$user->actualName = $record['actualname'];
 		$user->level = $record['level'];
+		$user->activeStatus = $record['active_status'];
 		$user->email = $record['email'];
 		$user->phone = $record['phone'];
 		$user->createdBy = $record['created_by'];
@@ -17727,6 +17728,25 @@ class API
     	DbUtil::switchRestore($saved_db);
     }
 
+	public function get_users()
+	{
+		
+		$retval = array();
+		$query_string = 
+			"SELECT * FROM user ORDER BY username";
+		$resultset = query_associative_all($query_string);
+
+		
+		if($resultset != null)
+		{
+			foreach($resultset as $record)
+			{
+				$retval[] = User::getObject($record);
+			}
+		}		
+		return $retval;
+	}
+	
 	public function getStatus($params){
 
 		$query = "";
