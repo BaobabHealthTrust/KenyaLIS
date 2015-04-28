@@ -17796,6 +17796,37 @@ class API
 
 		return $results;
 	}
+
+	public function get_worklist($params)
+	{
+
+		if ($params['location'] == 'ward')
+		{
+			$condition = "HAVING status IN ('Ordered','Drawn','Sample Rejected','Verified','Test Rejected','Result Rejected')";
+		}
+		else if ($params['location'] == 'lab'){
+			$condition = "HAVING status IN ('Received At Reception','Received In Department','Testing','Tested')";
+		}
+		else
+		{
+			$condition = "HAVING status NOT IN ('Voided', 'Reviewed', 'Disposed')";
+		}
+
+		$query = "Select (SELECT name from patient where patient_id = (select patient_id from
+					specimen where specimen_id = t.specimen_id)) AS patient_name ,
+					(SELECT surr_id from patient where patient_id = (select patient_id from
+					specimen where specimen_id = t.specimen_id)) AS national_id,
+					(SELECT name from test_type where test_type_id = t.test_type_id) AS test_type_name,
+					(SELECT (SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = sal.state_id)
+					FROM specimen_activity_log sal WHERE (sal.specimen_id = t.specimen_id) OR (sal.test_id = t.test_id)
+					ORDER BY `date` DESC LIMIT 1) AS status,
+					(SELECT accession_number from specimen where specimen_id = t.specimen_id) AS accession_number
+					 from test as t $condition";
+
+		$results = query_associative_all($query);
+
+		return $results;
+	}
 }
 	
 
