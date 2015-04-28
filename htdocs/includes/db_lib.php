@@ -17172,13 +17172,19 @@ class API
 		$section = $params['labSection'];
 		$canverify = $params['canverify'];
 		$userId = $params['userId'];
+		$activeStatus = $params['activeStatus'];
+		
+		if ((int)$activeStatus >= 0){
 
-		if(((int)$userId) == -1 && $password && $password != ''){
+			$query = "UPDATE user SET active_status = $activeStatus WHERE user_id = $userId";
+			query_update($query);
+		}else if (((int)$userId) == -1 && $password && $password != ''){
 
 			$query = "INSERT INTO user(username, password, email, phone, actualname, level, verify, ts, lab_config_id, active_status, lab_sec_code) 
 						VALUES('$username', '$password', '$email', '$phone', '$actualname', '$level', '$canverify', NOW(), 127, 1, '$section')";
 			query_insert_one($query);
 		}else{
+
 			if ($password && $password != ''){
 				$query = "UPDATE user SET username = '$username', password = '$password', email = '$email', phone = '$phone', actualname = '$actualname', 
 					level=$level, verify = $canverify, ts = NOW(), lab_sec_code='$section' WHERE user_id = $userId";					
