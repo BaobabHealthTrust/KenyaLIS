@@ -17158,7 +17158,39 @@ class API
     	return $result;
     }
     
-    
+	public function user_create_or_edit($params){	
+		
+		$username = $params['username'];
+		$password = $params['password'];
+		if($password && $password != ''){
+			$password = encrypt_password($password);
+		}
+		$email = $params['email'];
+		$phone = $params['phone'];
+		$level = $params['level'];
+		$actualname = $params['actualName'];
+		$section = $params['labSection'];
+		$canverify = $params['canverify'];
+		$userId = $params['userId'];
+
+		if(((int)$userId) == -1 && $password && $password != ''){
+
+			$query = "INSERT INTO user(username, password, email, phone, actualname, level, verify, ts, lab_config_id, active_status, lab_sec_code) 
+						VALUES('$username', '$password', '$email', '$phone', '$actualname', '$level', '$canverify', NOW(), 127, 1, '$section')";
+			query_insert_one($query);
+		}else{
+			if ($password && $password != ''){
+				$query = "UPDATE user SET username = '$username', password = '$password', email = '$email', phone = '$phone', actualname = '$actualname', 
+					level=$level, verify = $canverify, ts = NOW(), lab_sec_code='$section' WHERE user_id = $userId";					
+			}else{
+				$query = "UPDATE user SET username = '$username', email = '$email', phone = '$phone', actualname = '$actualname', 
+					level=$level, verify = $canverify, ts = NOW(), lab_sec_code='$section' WHERE user_id = $userId";
+			}
+			query_update($query);
+		}	
+		return true;		
+	}
+
     public function get_lab_sections()
     {
         /*$chk = check_api_token($tok);
