@@ -66,6 +66,7 @@ class User
 		$user->password = $record['password'];
 		$user->actualName = $record['actualname'];
 		$user->level = $record['level'];
+		$user->activeStatus = $record['active_status'];
 		$user->email = $record['email'];
 		$user->phone = $record['phone'];
 		$user->createdBy = $record['created_by'];
@@ -17157,7 +17158,45 @@ class API
     	return $result;
     }
     
-    
+	public function user_create_or_edit($params){	
+		
+		$username = $params['username'];
+		$password = $params['password'];
+		if($password && $password != ''){
+			$password = encrypt_password($password);
+		}
+		$email = $params['email'];
+		$phone = $params['phone'];
+		$level = $params['level'];
+		$actualname = $params['actualName'];
+		$section = $params['labSection'];
+		$canverify = $params['canverify'];
+		$userId = $params['userId'];
+		$activeStatus = $params['activeStatus'];
+		
+		if ((int)$activeStatus >= 0){
+
+			$query = "UPDATE user SET active_status = $activeStatus WHERE user_id = $userId";
+			query_update($query);
+		}else if (((int)$userId) == -1 && $password && $password != ''){
+
+			$query = "INSERT INTO user(username, password, email, phone, actualname, level, verify, ts, lab_config_id, active_status, lab_sec_code) 
+						VALUES('$username', '$password', '$email', '$phone', '$actualname', '$level', '$canverify', NOW(), 127, 1, '$section')";
+			query_insert_one($query);
+		}else{
+
+			if ($password && $password != ''){
+				$query = "UPDATE user SET username = '$username', password = '$password', email = '$email', phone = '$phone', actualname = '$actualname', 
+					level=$level, verify = $canverify, ts = NOW(), lab_sec_code='$section' WHERE user_id = $userId";					
+			}else{
+				$query = "UPDATE user SET username = '$username', email = '$email', phone = '$phone', actualname = '$actualname', 
+					level=$level, verify = $canverify, ts = NOW(), lab_sec_code='$section' WHERE user_id = $userId";
+			}
+			query_update($query);
+		}	
+		return true;		
+	}
+
     public function get_lab_sections()
     {
         /*$chk = check_api_token($tok);
@@ -17727,6 +17766,25 @@ class API
     	DbUtil::switchRestore($saved_db);
     }
 
+	public function get_users()
+	{
+		
+		$retval = array();
+		$query_string = 
+			"SELECT * FROM user ORDER BY username";
+		$resultset = query_associative_all($query_string);
+
+		
+		if($resultset != null)
+		{
+			foreach($resultset as $record)
+			{
+				$retval[] = User::getObject($record);
+			}
+		}		
+		return $retval;
+	}
+	
 	public function getStatus($params){
 
 		$query = "";
