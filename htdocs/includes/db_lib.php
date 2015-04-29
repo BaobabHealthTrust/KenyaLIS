@@ -17860,7 +17860,7 @@ class API
 
 		if ($params['location'] == 'ward')
 		{
-			$condition = "HAVING status IN ('Ordered','Drawn','Sample Rejected','Verified','Test Rejected','Result Rejected')";
+			$condition = "HAVING status IN ('Ordered','Sample Rejected','Verified','Test Rejected','Result Rejected')";
 		}
 		else if ($params['location'] == 'lab'){
 			$condition = "HAVING status IN ('Received At Reception','Received In Department','Testing','Tested')";
@@ -17877,7 +17877,7 @@ class API
 					(SELECT name from test_type where test_type_id = t.test_type_id) AS test_type_name,
 					(SELECT (SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = sal.state_id)
 					FROM specimen_activity_log sal WHERE (sal.specimen_id = t.specimen_id) OR (sal.test_id = t.test_id)
-					ORDER BY `date` DESC LIMIT 1) AS status,
+					ORDER BY `date` DESC, activity_state_id DESC  LIMIT 1) AS status,
 					(SELECT accession_number from specimen where specimen_id = t.specimen_id) AS accession_number,
 					(select loinc_code from test_type where test_type_id = t.test_type_id LIMIT 1) AS test_code
 					 from test as t $condition";
