@@ -941,7 +941,76 @@ $user=$_SESSION['user_id'];
 			echo "<input type='checkbox' name='".$elem_name."[]' id='$elem_id' value='$key'>$value</input>";
 		}
 	}
-	
+
+	public function getTestTypeInputInfo($test_name, $show_db_name=false)
+	{
+		# Returns HTML for displaying test type information
+		$test_type = get_test_type_by_name($test_name);
+		?>
+		<div class="portlet-title" style="width: 380px">
+			<h4></i>Test Type Information</h4>
+		</div>
+		<table class='table table-bordered table-hover' style="width: 100%">
+			<tbody>
+			<tr>
+				<td><?php echo LangUtil::$generalTerms['NAME']; ?></td>
+				<td>
+					<input id = 't_name'>
+					 <?php
+						if($show_db_name === true)
+							echo $test_type->name;
+						else
+							echo $test_type->getName();
+					 ?>
+					</input>
+				</td>
+			</tr>
+			<tr>
+				<td><?php echo LangUtil::$generalTerms['LAB_SECTION']; ?></td>
+				<td>
+					<select name='cat_code' id='cat_code' class='uniform_width'>
+						<?php $this->getTestCategorySelect(); ?>
+					</select>
+				</td>
+			</tr>
+			<tr valign='top'>
+				<td><?php echo LangUtil::$generalTerms['DESCRIPTION']; ?></td>
+				<td><?php echo $test_type->getDescription(); ?></td>
+			</tr>
+
+			<tr valign='top'>
+				<td>Hide Patient Name in Report</td>
+				<td><?php
+					if(	$test_type->hidePatientName == 0) {
+						echo "No";
+					}
+					else {
+						echo "Yes";
+					}
+					?>
+				</td>
+			</tr>
+			<tr valign='top'>
+				<td>Prevalence Threshold</td>
+				<td><?php echo $test_type->prevalenceThreshold; ?></td>
+			</tr>
+
+			<tr valign='top'>
+				<td>Target TAT</td>
+				<td><?php echo $test_type->targetTat; ?></td>
+			</tr>
+
+			<tr valign='top' <?php is_billing_enabled($_SESSION['lab_config_id']) ? print("") : print("style='display:none;'") ?>>
+				<td>Cost To Patient</td>
+				<td><?php print(format_number_to_money(get_latest_cost_of_test_type($test_type->testTypeId))); ?></td>
+			</tr>
+
+			</tbody>
+		</table>
+	<?php
+
+	}
+
 
 	public function getTestTypeInfo($test_name, $show_db_name=false)
 	{
@@ -1337,15 +1406,16 @@ $user=$_SESSION['user_id'];
 			</td>
 			<?php
 			$user = get_user_by_id($_SESSION['user_id']);
-			if(is_country_dir($user) || is_super_admin($user)|| is_admin($user))
-			{
-			?>
+
+			//if(is_country_dir($user) || is_super_admin($user)|| is_admin($user))
+			//{
+			//?>
 			<td>
 				<a href='test_type_delete.php?id=<?php echo $key; ?>' class="btn mini red-stripe"><i class='icon-remove'></i>  <?php echo LangUtil::$generalTerms['CMD_DELETE']; ?></a>
 			</td>
 			<?php
-			}
-			?>
+			//}
+			//?>
 			</tr>
 			<?php
 			$count++;
