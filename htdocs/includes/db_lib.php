@@ -16099,7 +16099,7 @@ class API
 		$specimen_id = $specimen['specimen_id'];
 		$test_id = $test['test_id'];
 
-		if (!in_array($state, array('Testing', 'Test Rejected', 'Result Rejected', 'Tested', 'Verified'))){
+		if (!in_array($state, array('Testing', 'Test Rejected', 'Result Rejected', 'Tested', 'Verified', 'Reviewed'))){
 			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location, comments)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
 							$specimen_id, $date, $user_id, '$doctor', '$location', '$comments' )";
