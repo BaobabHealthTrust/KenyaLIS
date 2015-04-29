@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.5.40, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.13  Distrib 5.5.41, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: blis_revamp
 -- ------------------------------------------------------
--- Server version	5.5.40-0ubuntu0.14.04.1
+-- Server version	5.5.41-0ubuntu0.14.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,6 +14,31 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `specimen_activity`
+--
+
+DROP TABLE IF EXISTS `specimen_activity`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `specimen_activity` (
+  `state_id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`state_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `specimen_activity`
+--
+
+LOCK TABLES `specimen_activity` WRITE;
+/*!40000 ALTER TABLE `specimen_activity` DISABLE KEYS */;
+INSERT INTO `specimen_activity` VALUES (1,'Ordered','Representing the state selected when a lab order has been placed  at the point of lab test ordering'),(2,'Drawn','Representing the state selected when the actual specimen is drawn from the patient for testing'),(3,'Received At Reception','Representing the state selected when the sample is received at the lab reception'),(4,'Received In Department','Representing the state selected when the sample is received in the lab department'),(5,'Sample Rejected','Representing the state selected when the sample is rejected at the lab'),(6,'Testing','Representing the state selected when the actual testing of the specimen is started in the lab'),(7,'Disposed','Representing the state selected when the sample is disposed at the lab after tests are done on the specimen'),(8,'Tested','Test state when selected test has been done but not verified'),(9,'Verified','Represents the when a state has state been tested and verified by a supervisor'),(10,'Reviewed','Represents the state when the medical worker in charge of the patient has seen the results'),(11,'Voided','Represents a state when a medical worker wants to remove/reverse an order before it reaches the lab department'),(12,'Test Rejected','For rejected actual test'),(13,'Result Rejected','For rejecting test result'),(14,'Seen','Test details seen - initial need on working list');
+/*!40000 ALTER TABLE `specimen_activity` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `test_type`
@@ -335,4 +360,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-04-07 10:10:46
+-- Dump completed on 2015-04-29 11:36:05
