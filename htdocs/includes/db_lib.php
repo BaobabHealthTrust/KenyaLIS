@@ -17878,7 +17878,8 @@ class API
 					(SELECT (SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = sal.state_id)
 					FROM specimen_activity_log sal WHERE (sal.specimen_id = t.specimen_id) OR (sal.test_id = t.test_id)
 					ORDER BY `date` DESC LIMIT 1) AS status,
-					(SELECT accession_number from specimen where specimen_id = t.specimen_id) AS accession_number
+					(SELECT accession_number from specimen where specimen_id = t.specimen_id) AS accession_number,
+					(select loinc_code from test_type where test_type_id = t.test_type_id LIMIT 1) AS test_code
 					 from test as t $condition";
 
 		$results = query_associative_all($query);
