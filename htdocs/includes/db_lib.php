@@ -17858,16 +17858,43 @@ class API
 	public function get_worklist($params)
 	{
 
-		if ($params['location'] == 'ward')
+		if ($params['type'] == 'ward')
 		{
-			$condition = "HAVING status IN ('Ordered','Sample Rejected','Verified','Test Rejected','Result Rejected')";
+			$type_condition = "HAVING status IN ('Ordered','Sample Rejected','Verified','Test Rejected','Result Rejected')";
+
+
+			if($params['location'])
+			{
+				$department = $params['location'];
+
+				$location_condition =" AND '$department' IN (SELECT location FROM specimen_activity_log lg
+							WHERE state_id IN (SELECT state_id FROM specimen_activity WHERE name IN ('Ordered', 'Drawn'))
+									AND (lg.test_id = t.test_id OR lg.specimen_id = t.specimen_id)) ";
+			}
+			else
+			{
+				$location_condition = "";
+			}
 		}
-		else if ($params['location'] == 'lab'){
-			$condition = "HAVING status IN ('Received At Reception','Received In Department','Testing','Tested')";
+		else if ($params['type'] == 'lab'){
+			$type_condition = "HAVING status IN ('Received At Reception','Received In Department','Testing','Tested')";
+
+			if($params['location'])
+			{
+				$department = $params['location'];
+
+				$location_condition = " AND t.test_type_id in (SELECT test_type_id from test_type
+										where test_category_id = (select test_category_id
+										from test_category where name IN ($department)))";
+			}
+			else
+			{
+				$location_condition = "";
+			}
 		}
 		else
 		{
-			$condition = "HAVING status NOT IN ('Voided', 'Reviewed', 'Disposed')";
+			$type_condition = "HAVING status NOT IN ('Voided', 'Reviewed', 'Disposed')";
 		}
 
 		$query = "Select (SELECT name from patient where patient_id = (select patient_id from
@@ -17880,7 +17907,8 @@ class API
 					ORDER BY `date` DESC, activity_state_id DESC  LIMIT 1) AS status,
 					(SELECT accession_number from specimen where specimen_id = t.specimen_id) AS accession_number,
 					(select loinc_code from test_type where test_type_id = t.test_type_id LIMIT 1) AS test_code
-					 from test as t $condition";
+					 from test as t where  ((SELECT is_panel FROM test_type WHERE test_type_id = t.test_type_id) = 0)
+					 $location_condition $type_condition";
 
 		$results = query_associative_all($query);
 
