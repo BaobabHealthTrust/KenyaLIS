@@ -36,6 +36,11 @@ if ($_REQUEST['table_type'] == 'compatible_specimens'){
 	$result = $page_elems->getSpecimenTypeCheckboxes(127, false, $tid);
 }
 
+if ($_REQUEST['table_type'] == 'measures_data'){
+	$tid = $_REQUEST['tid'];
+	$result = API::get_test_type_measures_all($tid);
+}
+
 if($result < 1)
     echo $result;
 else

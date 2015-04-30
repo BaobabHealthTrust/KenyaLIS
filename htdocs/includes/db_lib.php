@@ -16974,7 +16974,108 @@ class API
              
         return $ret;
     }
-    
+
+	public function get_test_type_measures_all($test_id)
+	{
+
+		if (!$test_id) {
+			echo -1;
+			return;
+		}
+
+		$test_type = get_test_type_by_id($test_id);
+		$result = array();
+
+		$measure_list = array();
+		$measure_list_objs = $test_type->getMeasures();
+		$submeasure_list_objs = array();
+		$comb_measure_list = array();
+
+		foreach ($measure_list_objs as $measure) {
+
+			$submeasure_list_objs = $measure->getSubmeasuresAsObj();
+
+			$submeasure_count = count($submeasure_list_objs);
+
+			if ($measure->checkIfSubmeasure() == 1) {
+				continue;
+			}
+
+			if ($submeasure_count == 0) {
+				array_push($comb_measure_list, $measure);
+			} else {
+				array_push($comb_measure_list, $measure);
+				foreach ($submeasure_list_objs as $submeasure)
+					array_push($comb_measure_list, $submeasure);
+			}
+		}
+
+		$measure_list_ids = array();
+
+		foreach ($comb_measure_list as $measure) {
+			array_push($measure_list_ids, $measure->measureId);
+		}
+
+		$measure_list = $measure_list_ids;
+		$max_num_measures = count($measure_list);
+		for ($i = 1; $i <= $max_num_measures; $i += 1) {
+			$result[$measure_list[$i - 1]] = array();
+
+			$curr_measure = Measure::getById($measure_list[$i - 1]);
+			$result[$measure_list[$i - 1]]["measure"] = $curr_measure;
+
+			if ($curr_measure != NULL) {
+				$ref_ranges = $curr_measure->getReferenceRanges($_SESSION['lab_config_id']);
+			}
+
+			$encName = $curr_measure->name;
+			$start_tag = "\$sub*";
+			$end_tag = "/\$";
+			if (strpos($encName, $start_tag) !== false) {
+				$subm_end = strpos($encName, $end_tag);
+				$decName = substr($encName, $subm_end + 2);
+				$parent = substr($encName, 5, $end_tag - 5);
+				$parent_int = intval($parent);
+
+			} else {
+				$decName = $encName;
+				$parent_int = 0;
+			}
+			$result[$measure_list[$i - 1]]["parent"] = $parent_int;
+			$result[$measure_list[$i - 1]]["ref_ranges"] = $ref_ranges;
+
+			$range_string = $curr_measure->range;
+			$range_values = array();
+			$range_type = $curr_measure->getRangeType();
+
+			$range_type_str = "";
+			switch($range_type)
+			{
+				case Measure::$RANGE_NUMERIC:
+					$range_type_str = 'numeric';
+					$range_values = explode(":", $range_string);
+					break;
+				case Measure::$RANGE_OPTIONS:
+					$range_type_str = 'options';
+					$range_values = explode("/", $range_string);
+					break;
+				case Measure::$RANGE_AUTOCOMPLETE:
+					$range_type_str = 'autocomplete';
+					$range_values = explode("_", $range_string);
+					break;
+				case Measure::$RANGE_FREETEXT:
+					$range_type_str = 'freetext';
+					$range_values = array("","");
+					break;
+			}
+
+			$result[$measure_list[$i - 1]]["range_type"] = $range_type_str;
+			$result[$measure_list[$i - 1]]["range_values"] = $range_values;
+		}
+
+		return $result;
+	}
+
     public function get_specimen_details($params){
     	/*
     		This method pulls all specimens filtered by dashboard_type, 

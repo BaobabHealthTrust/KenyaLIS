@@ -941,6 +941,7 @@ $user=$_SESSION['user_id'];
 			echo "<input type='checkbox' name='".$elem_name."[]' id='$elem_id' value='$key'>$value</input>";
 		}
 	}
+	
 
 	public function getTestTypeInputInfo($test_name, $show_db_name=false)
 	{
@@ -955,56 +956,73 @@ $user=$_SESSION['user_id'];
 			<tr>
 				<td><?php echo LangUtil::$generalTerms['NAME']; ?></td>
 				<td>
-					<input id = 't_name'>
-					 <?php
-						if($show_db_name === true)
-							echo $test_type->name;
-						else
-							echo $test_type->getName();
-					 ?>
+					<input class ='no-margin' id = 't_name' value='<?php echo $test_type->getName();?>' >
 					</input>
 				</td>
 			</tr>
 			<tr>
 				<td><?php echo LangUtil::$generalTerms['LAB_SECTION']; ?></td>
 				<td>
-					<select name='cat_code' id='cat_code' class='uniform_width'>
+					<select name='cat_code' id='cat_code' onchange="javascript:check_if_new_category(this);" class='no-margin uniform_width'>
 						<?php $this->getTestCategorySelect(); ?>
+						<option value='-1'>--New Lab Section--</option>
 					</select>
+					&nbsp;&nbsp;&nbsp;
+					<span style='display:none;' id='new_category'>
+						<small><?php echo LangUtil::$generalTerms['NAME']; ?></small>&nbsp;
+						<input type='text' id='new_category_textbox' name='new_category' class='span4 m-wrap' />
+					</span>
 				</td>
 			</tr>
 			<tr valign='top'>
 				<td><?php echo LangUtil::$generalTerms['DESCRIPTION']; ?></td>
-				<td><?php echo $test_type->getDescription(); ?></td>
+				<td><textarea rows="4" cols="80" class="no-margin" id = 'desc'> <?php echo $test_type->getDescription(); ?> </textarea></td>
 			</tr>
 
 			<tr valign='top'>
 				<td>Hide Patient Name in Report</td>
-				<td><?php
-					if(	$test_type->hidePatientName == 0) {
-						echo "No";
+				<td><select class="no-margin">
+					<option <?php
+						if(	$test_type->hidePatientName != 1) {
+							echo "selected";
+						}
+						?> > No
+					</option>
+
+					<option <?php
+					if(	$test_type->hidePatientName == 1) {
+						echo "selected";
 					}
-					else {
-						echo "Yes";
-					}
-					?>
+					?> > Yes
+					</option>
+					</select>
 				</td>
 			</tr>
 			<tr valign='top'>
-				<td>Prevalence Threshold</td>
-				<td><?php echo $test_type->prevalenceThreshold; ?></td>
-			</tr>
 
-			<tr valign='top'>
-				<td>Target TAT</td>
-				<td><?php echo $test_type->targetTat; ?></td>
-			</tr>
+				<td>Clinical Data </td><td>
 
-			<tr valign='top' <?php is_billing_enabled($_SESSION['lab_config_id']) ? print("") : print("style='display:none;'") ?>>
-				<td>Cost To Patient</td>
-				<td><?php print(format_number_to_money(get_latest_cost_of_test_type($test_type->testTypeId))); ?></td>
-			</tr>
+					<?php
+					$data=$test_type->clinical_data;
+					$text="-";
+					$table="";
+					if(stripos($data,"!#!")===0)
+					{
+						$data=substr($data,3);
+						$data_array=explode("%%%",$data);
+						$text=$data_array[0];
+						$table=$data_array[1];
+					}
+					else if(stripos($data,"%%%")===0)
+						$table=substr($data,3);
+					else if($data!="")
+						$text=$data;
+					else
+						$text="";
+					?>
 
+					<textarea class='no-margin' name='clinical_data' id='clinical_data' class='span6 m-wrap'><?php echo $text;?></textarea>
+				</td></tr>
 			</tbody>
 		</table>
 	<?php
