@@ -1,1 +1,0 @@
-mysqldump -u root -ppassword blis_revamp --tables specimen_activity test_type measure test_type_measure test_panel test_type_container_type specimen_type specimen_test measure_mapping specimen_custom_data test_category unit > metadata.sql
