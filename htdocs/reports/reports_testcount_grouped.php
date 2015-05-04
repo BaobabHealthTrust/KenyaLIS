@@ -264,7 +264,7 @@ $query = 'SELECT f.name AS Section, c.name AS Test, Sex, IF(a.status_code_id=9, 
 	SUM(IF((YEAR(CURDATE())-YEAR(dob))-(RIGHT(CURDATE(),5)<RIGHT(dob, 5)) BETWEEN 60 AND 64, 1, 0)) AS `60-64`, 
 	SUM(IF((YEAR(CURDATE())-YEAR(dob))-(RIGHT(CURDATE(),5)<RIGHT(dob, 5)) >64, 1, 0)) AS `>65+`, 
 	COUNT(*) AS `Total Tests`
-	FROM ((((test a INNER JOIN test_type b ON a.test_type_id=b.test_type_id)
+	FROM ((((test a INNER JOIN test_type b ON b.test_type_id NOT IN (272) AND a.test_type_id=b.test_type_id)
 	INNER JOIN test_type c ON a.test_type_id=c.test_type_id)
 	INNER JOIN specimen d ON a.specimen_id=d.specimen_id)
 	INNER JOIN patient e ON d.patient_id=e.patient_id)
@@ -280,7 +280,7 @@ $result = mysql_query($query, $con);
 	<tbody>
 		<tr>
 			<td><?php echo LangUtil::$generalTerms['FACILITY']; ?>:</td>
-			<td><?php echo $lab_config->getSiteName(); ?></td>
+			<td>KCH LAB</td>
 		</tr>
 		<tr>
 			<td><?php echo LangUtil::$pageTerms['REPORT_PERIOD']; ?>:</td>

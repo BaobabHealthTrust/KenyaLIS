@@ -17060,7 +17060,7 @@ class API
 					$range_values = explode("/", $range_string);
 					break;
 				case Measure::$RANGE_AUTOCOMPLETE:
-					$range_type_str = 'autocomplete';
+					$range_type_str = 'freetext';
 					$range_values = explode("_", $range_string);
 					break;
 				case Measure::$RANGE_FREETEXT:
