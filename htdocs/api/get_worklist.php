@@ -4,7 +4,9 @@
 
     $params = array();
 
-    $params['location'] =  $_REQUEST['type'];
+    $params['type'] =  $_REQUEST['type'];
+
+    $params['location'] = $_REQUEST['department'];
 
     $status = API::get_worklist($params);
 
