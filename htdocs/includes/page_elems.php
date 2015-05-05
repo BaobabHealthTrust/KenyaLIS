@@ -981,7 +981,7 @@ $user=$_SESSION['user_id'];
 
 			<tr valign='top'>
 				<td>Hide Patient Name in Report</td>
-				<td><select class="no-margin">
+				<td><select id='name_hide' class="no-margin">
 					<option <?php
 						if(	$test_type->hidePatientName != 1) {
 							echo "selected";
@@ -998,31 +998,7 @@ $user=$_SESSION['user_id'];
 					</select>
 				</td>
 			</tr>
-			<tr valign='top'>
-
-				<td>Clinical Data </td><td>
-
-					<?php
-					$data=$test_type->clinical_data;
-					$text="-";
-					$table="";
-					if(stripos($data,"!#!")===0)
-					{
-						$data=substr($data,3);
-						$data_array=explode("%%%",$data);
-						$text=$data_array[0];
-						$table=$data_array[1];
-					}
-					else if(stripos($data,"%%%")===0)
-						$table=substr($data,3);
-					else if($data!="")
-						$text=$data;
-					else
-						$text="";
-					?>
-
-					<textarea class='no-margin' name='clinical_data' id='clinical_data' class='span6 m-wrap'><?php echo $text;?></textarea>
-				</td></tr>
+			
 			</tbody>
 		</table>
 	<?php
