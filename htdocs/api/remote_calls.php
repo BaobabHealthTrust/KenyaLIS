@@ -158,7 +158,7 @@
 		
 		$status = API::getStatus($params);
         
-        $result["$name|".$tests[$t]->testTypeId."|".$type->name."|".$loincCode."|".$status] = $test;
+        $result["$name|".$tests[$t]->testTypeId."|".$type->name."|".$loincCode."|".$status."|".$tests[$t]->isPanel] = $test;
       
       }
       

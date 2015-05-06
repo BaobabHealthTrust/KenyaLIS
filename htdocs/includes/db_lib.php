@@ -3222,6 +3222,7 @@ class Test
 	public $external_parent_lab_no;
 	public $ts_started;
 	public $ts_result_entered;
+	public $isPanel;
 	
 	public static function getObject($record)
 	{
@@ -3307,6 +3308,11 @@ class Test
 		
 		if(isset($record['ts_result_entered']))
 			$test->ts_result_entered = $record['ts_result_entered'];
+		else
+			$test->ts_result_entered = null;
+		
+		if(isset($record['is_panel']))
+			$test->isPanel = $record['is_panel'];
 		else
 			$test->ts_result_entered = null;
 		
@@ -7557,7 +7563,7 @@ function get_tests_by_specimen_id($specimen_id)
 	# Returns list of tests scheduled for this given specimen
 	// $query_string = "SELECT * FROM test WHERE specimen_id=$specimen_id";
 	
-	$query_string = "SELECT t.* FROM test t LEFT OUTER JOIN test_type y ON y.test_type_id = t.test_type_id WHERE (COALESCE(t.panel_loinc_code, '') = '' OR t.panel_loinc_code = y.loinc_code) AND t.specimen_id=$specimen_id";
+	$query_string = "SELECT t.*, COALESCE(t.panel_loinc_code, '') = '' AS is_panel FROM test t LEFT OUTER JOIN test_type y ON y.test_type_id = t.test_type_id WHERE (COALESCE(t.panel_loinc_code, '') = '' OR t.panel_loinc_code = y.loinc_code) AND t.specimen_id=$specimen_id";
 	
 	$resultset = query_associative_all($query_string, $row_count);
 	$retval = array();
