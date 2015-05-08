@@ -1237,12 +1237,16 @@ class TestType
 	public $description;
 	public $clinical_data;
 	public $testCategoryId;
-
+	public $loinc_code;
+	public $priority;
+	public $shortName;
 	public $isPanel;
 	public $hidePatientName;
 	public $prevalenceThreshold;
 	public $targetTat;
 	public $test_name;
+	public $minQTY;
+	public $specUnit;
 	public $parent_test_type_id;
 	
 	public static function getObject($record)
@@ -1259,6 +1263,9 @@ class TestType
 		$test_type->hidePatientName = $record['hide_patient_name'];
 		$test_type->prevalenceThreshold = $record['prevalence_threshold'];
 		$test_type->targetTat = $record['target_tat'];
+		$test_type->loinc_code = $record['loinc_code'];
+		$test_type->min_specimen_qty = $record['min_specimen_qty'];
+		$test_type->specimen_unit = $record['specimen_unit'];
 		if($record['is_panel'] != null && $record['is_panel'] == 1)
 		{
 			$test_type->isPanel = true;
@@ -9555,7 +9562,7 @@ function get_panel_tests($test_type_id){
 	return $return_arr;
 }
 
-function get_test_types_catalog($lab_config_id=null, $reff=null)
+function get_test_types_catalog($lab_config_id=null, $reff=null, $disabled = null)
 {
 	# Returns a list of all test types available in catalog
 	global $CATALOG_TRANSLATION;
@@ -9571,8 +9578,13 @@ function get_test_types_catalog($lab_config_id=null, $reff=null)
 		return;
 	//else
 		$saved_db = DbUtil::switchToLabConfig($lab_config_id);
-	$query_ttypes =
-		"SELECT test_type_id, name FROM test_type WHERE disabled=0 ORDER BY name";
+	if ($disabled == null) {
+		$query_ttypes =
+			"SELECT test_type_id, name FROM test_type WHERE disabled=0 ORDER BY name";
+	}else{
+		$query_ttypes =
+			"SELECT test_type_id, name FROM test_type ORDER BY name";
+	}
 	$resultset = query_associative_all($query_ttypes, $row_count);
 	$retval = array();
 	if($resultset) {
@@ -15854,7 +15866,6 @@ class API
     }
     
     
-    
     public function start_session($username, $password)
     {
          session_start();
@@ -17258,7 +17269,207 @@ class API
     	
     	return $result;
     }
+
+
+	public function disabledStatus(){
+		$query = "SELECT test_type_id, disabled FROM test_type";
+		$tests = query_associative_all($query);
+		$result = array();
+
+		foreach ($tests AS $test){
+			$result[$test['test_type_id']] = $test['disabled'];
+		}
+		return $result;
+	}
+
+	public function test_type_create_or_edit($params){
+		//ken@05/May/2015
+
+		$tid = (int)$params['tid'];
+		$name = $params['t_name'];
+		$desc = $params['desc'];
+		$loinc_code = $params['loinc_code'];
+		$sUnit = $params['s_unit'];
+		$qty = $params['qty'];
+		$cat_code = $params['cat_code'];
+		$hide_name = $params['hide_name'];
+
+		if ($hide_name == 'No')
+			$hide_name = 0;
+		else
+			$hide_name = 1;
+
+		$specimen_types = $params['specimen_types'];
+		$measures = $params['measures'];
+
+		if ((int)$tid <= 0){
+
+			$test_type_query = "INSERT INTO test_type(name, test_category_id, description, loinc_code, min_specimen_qty, specimen_unit, hide_patient_name) VALUES
+								('$name', $cat_code, '$desc', '$loinc_code', '$qty', '$sUnit', '$hide_name')";
+			$test_type = query_insert_one($test_type_query);
+			$tid = query_associative_one("SELECT test_type_id FROM test_type ORDER BY test_type_id DESC LIMIT 1")['test_type_id'];
+			query_insert_one("INSERT INTO lab_config_test_type(lab_config_id, test_type_id) VALUES (127, $tid)");
+		}else{
+
+			//Update test type attribute
+			$query_string = "UPDATE test_type 
+				SET 
+					name = '$name',	description = '$desc',
+					test_category_id = $cat_code,
+					loinc_code = '$loinc_code',
+					min_specimen_qty = '$qty',
+					hide_patient_name = '$hide_name',
+					specimen_unit = '$sUnit'					
+				 WHERE test_type_id = $tid";
+		 	 query_update($query_string);
+		}
+
+		API::hookSpecimenTypes($specimen_types, $tid);
+
+		foreach($measures["add"] AS $msr){
+			API::addMeasure($msr, $tid);
+		}
+
+		foreach($measures["update"] AS $msr){			
+			API::updateMeasure($msr);
+		}	
+
+		foreach ($measures["delete"] AS $msr){
+			API::deleteMeasure($msr, $tid);
+		}
+
+		return true;
+	}
     
+	public function hookSpecimenTypes($specimen_types, $tid){
+
+		$st_query_delete = "DELETE FROM specimen_test 
+								WHERE test_type_id = $tid AND specimen_type_id NOT IN (".implode(',', $specimen_types).")";			
+		query_delete($st_query_delete);
+
+		foreach($specimen_types AS $st){
+			$st_query = "SELECT * FROM specimen_test WHERE test_type_id = $tid AND specimen_type_id = $st";
+			$st_result = query_associative_one($st_query);	
+			if(!$st_result){
+				$query_add = "INSERT INTO specimen_test(test_type_id, specimen_type_id) VALUES ($tid, $st)";
+				query_insert_one($query_add);
+			}			
+		}
+	}
+
+	public function addMeasure($msr, $tid){
+		$name = $msr['name'];
+		$range_type = $msr['range_type'];
+		$range_values  = $msr['range_values'];
+		$ref_ranges = $msr['ref_ranges'];
+		$unit = $msr['unit'];
+
+		if ($range_type == 'options'){
+			$opts = implode("/", $range_values);
+			$query_insert_msr = "INSERT INTO measure(name, measure_range) VALUES ('$name', '$opts')";
+		}else if ($range_type == 'freetext'){
+			$range = '$freetext$$';
+			$query_insert_msr = "INSERT INTO measure(name, measure_range) VALUES ('$name', '$range')";
+		}else{
+			$query_insert_msr = "INSERT INTO measure(name, unit, measure_range) VALUES ('$name', '$unit', ':')";
+		}
+
+		$result_msr = query_insert_one($query_insert_msr);
+		if($result_msr){
+			$mid = query_associative_one("SELECT measure_id FROM measure ORDER BY measure_id DESC LIMIT 1")["measure_id"];
+			$msr['id'] = $mid;
+
+			$ttype_measure = query_insert_one("INSERT INTO test_type_measure(test_type_id, measure_id) VALUES ($tid, $mid)");
+		}
+
+		if($range_type == 'numeric'){
+			foreach($ref_ranges AS $range)
+				API::addRange($mid, $range);
+		}
+	}
+
+	public function updateMeasure($msr){
+		$name = $msr['name'];
+		$range_type = $msr['range_type'];
+		$range_values  = $msr['range_values'];
+		$ref_ranges = $msr['ref_ranges'];
+		$unit = $msr['unit'];
+		$mid = $msr['id'];
+
+		if ($range_type == 'options'){
+			$opts = implode("/", $range_values);
+			$query_update = "UPDATE measure SET name = '$name', unit = '', measure_range = '$opts'
+							WHERE measure_id = $mid";
+			$query_delete = "DELETE FROM reference_range WHERE measure_id = $mid";
+
+			query_update($query_update);
+			query_delete($query_delete);
+		}else if ($range_type == 'freetext'){
+			$range = '$freetext$$';
+			$query_update = "UPDATE measure SET name = '$name', unit = '', measure_range = '$range'
+							WHERE measure_id = $mid";
+			$query_delete = "DELETE FROM reference_range WHERE measure_id = $mid";
+
+			query_update($query_update);
+			query_delete($query_delete);
+		}else{
+			$query_update = "UPDATE measure SET name = '$name', unit = '$unit', measure_range = ':'
+							WHERE measure_id = $mid";
+			query_update($query_update);
+
+			//UPDATE reference ranges
+			foreach($ref_ranges AS $range){
+				API::updateRange($mid, $range);
+			}
+		}
+
+	}
+
+	public function deleteMeasure($msr, $tid){
+		query_delete("DELETE FROM test_type_measure WHERE measure_id = $msr AND test_type_id = $tid");
+	}
+
+	public function addRange($mid, $range){
+		$min = $range['min'];
+		$max = $range['max'];
+		$sex = $range['gender'];
+		$age_min = $range['age_min'];
+		$age_max = $range['age_max'];
+
+		query_insert_one("INSERT INTO reference_range(measure_id, age_min, age_max,
+			sex, range_lower, range_upper) VALUES ($mid, $age_min, $age_max, '$sex', $min, $max)");
+	}
+
+	public function updateRange($mid, $range){
+		$rid = $range['range_id'];
+		$min = $range['min'];
+		$max = $range['max'];
+		$sex = $range['gender'];
+		$age_min = $range['age_min'];
+		$age_max = $range['age_max'];
+
+		if(!$rid){
+			API::addRange($mid, $range);
+		}else{
+			$query_update = "UPDATE reference_range
+								SET
+								 age_min = '$age_min',
+								 age_max = '$age_max',
+								 sex = '$sex',
+								 range_lower = '$min',
+								 range_upper = '$max'
+							WHERE id = $rid";
+			query_update($query_update);
+		}
+	}
+
+	public function disableTest($tid, $enable){
+
+		$query = "UPDATE test_type SET disabled = $enable WHERE test_type_id = $tid";
+		query_update($query);
+		return array(true);
+	}
+
 	public function user_create_or_edit($params){	
 		
 		$username = $params['username'];
@@ -17274,7 +17485,7 @@ class API
 		$canverify = $params['canverify'];
 		$userId = $params['userId'];
 		$activeStatus = $params['activeStatus'];
-		
+
 		if ((int)$activeStatus >= 0){
 
 			$query = "UPDATE user SET active_status = $activeStatus WHERE user_id = $userId";

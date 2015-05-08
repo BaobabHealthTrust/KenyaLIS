@@ -25,11 +25,16 @@ if ($_REQUEST['table_type'] == 'test_type_input_info'){
 	$name_obj = query_associative_one($name_query);
 	if($name_obj){
 		$result = $page_elems->getTestTypeInputInfo($name_obj['name']);
+	}else{
+		$result = $page_elems->getTestTypeInputInfoGeneric();
 	}
 }
 
 if ($_REQUEST['table_type'] == 'test_categories')
 	$result = $page_elems->getTestCategorySelect();
+
+if ($_REQUEST['table_type'] == 'disabled_status')
+	$result = API::disabledStatus();
 
 if ($_REQUEST['table_type'] == 'compatible_specimens'){
 	$tid = $_REQUEST['tid'];
@@ -37,8 +42,13 @@ if ($_REQUEST['table_type'] == 'compatible_specimens'){
 }
 
 if ($_REQUEST['table_type'] == 'measures_data'){
-	$tid = $_REQUEST['tid'];
-	$result = API::get_test_type_measures_all($tid);
+	$tid = (int)$_REQUEST['tid'];
+
+	if ($tid && $tid > 0){
+		$result = API::get_test_type_measures_all($tid);
+	}else{
+		$result = array();
+	}
 }
 
 if($result < 1)

@@ -831,6 +831,25 @@ $daycount++;
 		else
 			return 0;
 	}
+
+	public function getTestCategorySelectBYTestType($lab_config_id=null, $cat_code)
+	{
+		# Returns a set of drop down options for test categories in catalog
+		$cat_list = get_test_categories($lab_config_id);
+		if($cat_list) {
+			foreach($cat_list as $key => $value)
+
+				if((int)$cat_code == (int)$key)
+					echo "<option value='$key' selected='selected'>$value</option>";
+				else
+					echo "<option value='$key'>$value</option>";
+
+			return 1;
+		}
+		else
+			return 0;
+	}
+
 	public function getTestCategorySelectOption()
 	{
 		# Returns a set of drop down options for test categories in catalog
@@ -963,9 +982,9 @@ $user=$_SESSION['user_id'];
 			<tr>
 				<td><?php echo LangUtil::$generalTerms['LAB_SECTION']; ?></td>
 				<td>
-					<select name='cat_code' id='cat_code' onchange="javascript:check_if_new_category(this);" class='no-margin uniform_width'>
-						<?php $this->getTestCategorySelect(); ?>
-						<option value='-1'>--New Lab Section--</option>
+					<select name='cat_code' id='cat_code'  class='no-margin uniform_width'>
+						<?php $this->getTestCategorySelectByTestType(127, $test_type->testCategoryId); ?>
+						
 					</select>
 					&nbsp;&nbsp;&nbsp;
 					<span style='display:none;' id='new_category'>
@@ -977,6 +996,22 @@ $user=$_SESSION['user_id'];
 			<tr valign='top'>
 				<td><?php echo LangUtil::$generalTerms['DESCRIPTION']; ?></td>
 				<td><textarea rows="4" cols="80" class="no-margin" id = 'desc'> <?php echo $test_type->getDescription(); ?> </textarea></td>
+			</tr>
+
+			<tr valign='top'>
+				<td>Loinc Code</td>
+				<td><textarea rows="4" cols="80" class="no-margin" id = 'loinc'> <?php echo $test_type->loinc_code ?> </textarea></td>
+			</tr>
+
+			<tr valign='top'>
+				<td>Minimum Specimen Qty</td>
+				<td><textarea rows="4" cols="80" class="no-margin" id = 'qty'> <?php echo $test_type->min_specimen_qty ?> </textarea></td>
+			</tr>
+
+
+			<tr valign='top'>
+				<td>Specimen Unit</td>
+				<td><textarea rows="4" cols="80" class="no-margin" id = 's_unit'><?php echo $test_type->specimen_unit ?> </textarea></td>
 			</tr>
 
 			<tr valign='top'>
@@ -1005,6 +1040,72 @@ $user=$_SESSION['user_id'];
 
 	}
 
+
+	public function getTestTypeInputInfoGeneric()
+	{
+		
+		?>
+		<div class="portlet-title" style="width: 380px">
+			<h4></i>Test Type Information</h4>
+		</div>
+		<table class='table table-bordered table-hover' style="width: 100%">
+			<tbody>
+			<tr>
+				<td><?php echo LangUtil::$generalTerms['NAME']; ?></td>
+				<td>
+					<input class ='no-margin' id = 't_name' value='' >
+					</input>
+				</td>
+			</tr>
+			<tr>
+				<td><?php echo LangUtil::$generalTerms['LAB_SECTION']; ?></td>
+				<td>
+					<select name='cat_code' id='cat_code' onchange="javascript:check_if_new_category(this);" class='no-margin uniform_width'>
+						<?php $this->getTestCategorySelect(); ?>
+						<option value='-1'>--New Lab Section--</option>
+					</select>
+					&nbsp;&nbsp;&nbsp;
+					<span style='display:none;' id='new_category'>
+						<small><?php echo LangUtil::$generalTerms['NAME']; ?></small>&nbsp;
+						<input type='text' id='new_category_textbox' name='new_category' class='span4 m-wrap' />
+					</span>
+				</td>
+			</tr>
+			<tr valign='top'>
+				<td><?php echo LangUtil::$generalTerms['DESCRIPTION']; ?></td>
+				<td><textarea rows="4" cols="80" class="no-margin" id = 'desc'> </textarea></td>
+			</tr>
+
+			<tr valign='top'>
+				<td>Loinc Code</td>
+				<td><textarea rows="4" cols="80" class="no-margin" id = 'loinc'>  </textarea></td>
+			</tr>
+
+			<tr valign='top'>
+				<td>Minimum Specimen Qty</td>
+				<td><textarea rows="4" cols="80" class="no-margin" id = 'qty'>  </textarea></td>
+			</tr>
+
+
+			<tr valign='top'>
+				<td>Specimen Unit</td>
+				<td><textarea rows="4" cols="80" class="no-margin" id = 's_unit'> </textarea></td>
+			</tr>
+
+			<tr valign='top'>
+				<td>Hide Patient Name in Report</td>
+				<td><select id='name_hide' class="no-margin">
+					<option> No	</option>
+					<option> Yes </option>
+					</select>
+				</td>
+			</tr>
+			
+			</tbody>
+		</table>
+	<?php
+
+	}
 
 	public function getTestTypeInfo($test_name, $show_db_name=false)
 	{
@@ -1360,7 +1461,7 @@ $user=$_SESSION['user_id'];
 		# Returns HTML table listing all test types in catalog
 		?>
 		<?php
-		$ttype_list = get_test_types_catalog($lab_config_id);
+		$ttype_list = get_test_types_catalog($lab_config_id, null, true);
 		if(count($ttype_list) == 0)
 		{
 			echo "<div class='sidetip_nopos'>".LangUtil::$pageTerms['TIPS_TESTSNOTFOUND']."</div>";
