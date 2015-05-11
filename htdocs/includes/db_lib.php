@@ -16092,6 +16092,7 @@ class API
 		$user_id = $_SESSION['user_id'];
 		$result = $record['result'];
 		$comments = $record['comments'];
+		$rejectionReason = $record['rejectionReason'];
 
 		//Update specimen
 		$query_specimen = "SELECT * FROM specimen WHERE accession_number = '$accession_number'";
@@ -16117,13 +16118,13 @@ class API
 		$test_id = $test['test_id'];
 
 		if (!in_array($state, array('Testing', 'Test Rejected', 'Result Rejected', 'Tested', 'Verified', 'Reviewed'))){
-			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, user_id, doctor, location, comments)
+			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, specimen_id, `date`, reason, location, user_id, doctor, comments)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
-							$specimen_id, $date, $user_id, '$doctor', '$location', '$comments' )";
+							$specimen_id, $date, '$rejectionReason', '$location', $user_id, '$doctor', '$comments' )";
 		}else{
-			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, test_id, `date`, user_id, doctor, location, comments)
+			$query_update_activity_log = "INSERT INTO specimen_activity_log (state_id, test_id, `date`, reason, location, user_id, doctor, comments)
 							VALUES((SELECT state_id FROM specimen_activity WHERE name = '$state'  LIMIT 1),
-							$test_id, $date, $user_id, '$doctor', '$location', '$comments')";
+							$test_id, $date, '$rejectionReason', '$location', $user_id, '$doctor', '$comments')";
 		}
 
 		$specimen_activity_log = query_insert_one($query_update_activity_log);
