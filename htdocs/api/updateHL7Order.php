@@ -76,6 +76,8 @@ $accessionNumber = (count($spm) > 0 ? $spm[0]->getField(2) : null);    // SPM.02
 
 $typeOfSample = (count($spm) > 0 ? $spm[0]->getField(4)[1] : null);       // SPM.04
 
+$rejectionReason = (count($spm) > 0 ? $spm[0]->getField(21)[1] : null);       // SPM.21
+
 $enteredBy = (count($orc) > 0 ? $orc[0]->getField(10)[2] : "") . " " . (count($orc) > 0 ? $orc[0]->getField(10)[1] : "") . " (" . (count($orc) > 0 ? $orc[0]->getField(10)[0] : "") . ")";          // ORC.10
 
 $enterersLocation = (count($orc) > 0 ? $orc[0]->getField(13) : null);   // ORC.13
@@ -110,7 +112,8 @@ $record = array(
   "reason" => $reasonTestPerformed,
   "user_id" => $_SESSION['user_id'],
   "result" => $result,
-  "comments" => $comments
+  "comments" => $comments,
+  "rejectionReason" => $rejectionReason
 );
 
 $spec = get_specimens_by_accession($accessionNumber);
@@ -137,7 +140,7 @@ $finalResult = array(
   "typeOfSample" => $typeOfSample,
   "tq1SetID" => $tq1SetID,
   "priority" => $priority,
-	"whoOrderedTest" => $response["whoOrderedTest"]
+  "whoOrderedTest" => $response["whoOrderedTest"]
 );
   
 // $result = API::update_order($record, $accessionNumber, $testName);
@@ -186,7 +189,8 @@ for($i = 0; $i < sizeof($obr); $i++){
 		"enterersLocation" => $enterersLocation,
 		"result" => $result,
 		"status" => $state,
-		"comments" => $comments
+		"comments" => $comments,
+  		"rejectionReason" => $rejectionReason
 	);
  
 	$record = array(
@@ -197,7 +201,8 @@ for($i = 0; $i < sizeof($obr); $i++){
 		"reason" => $reasonTestPerformed,
 		"user_id" => $_SESSION['user_id'],
 		"result" => $result,
-		"comments" => $comments
+		"comments" => $comments,
+  		"rejectionReason" => $rejectionReason
 	);
 
 	$result = API::update_order($record, $accessionNumber, $testName);
