@@ -51,6 +51,16 @@ if ($_REQUEST['table_type'] == 'measures_data'){
 	}
 }
 
+if ($_REQUEST['table_type'] == 'tb_report'){
+	$tid = $_REQUEST['tid'];
+	$result = API::tb_report($_REQUEST['year']);
+}
+
+if ($_REQUEST['table_type'] == 'tb_report_mq'){
+	$tid = $_REQUEST['tid'];
+	$result = API::tb_report_mq($_REQUEST['start_date'], $_REQUEST['end_date']);
+}
+
 if($result < 1)
     echo $result;
 else

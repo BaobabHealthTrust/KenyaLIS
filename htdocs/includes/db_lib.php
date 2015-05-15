@@ -17247,35 +17247,44 @@ class API
     }
     
     
-    public function get_specimen_details2($params){
-    	/*
-    		This method pulls all specimens filtered by 
-    		department and status. Main target was for dashboard display
-    		By: Kenneth Kapundi, Date: 29 Jan, 2015
-    	*/
-    	
-    	$date = $params['date'];
-    	$department = $params['dept'];
-    	$status = $params['status'];
-    	$query_string = 'SELECT * FROM specimen LIMIT 10';
-    	$resultset = query_associative_all($query_string);
-    	$result = array();
-    	
-    	if ($resultset){
-    		foreach($resultset as $record){
-    			$sub = array();
-    			$sub['accession_number'] = "record['accession_number']";		
-    			$sub['date_collected'] = "record['date_collected']";
-    			$sub['status'] = "Specimen::readable_status(record['status_code_id'])";
-    			$sub['patient_name'] = "record['name']";
-    			$sub['test_name'] = "record['name']";	
-    			array_push($result, $sub);	
-    		}
-    	}
-    	
-    	return $result;
-    }
+   public function tb_report($year, $start_date = '1970-01-01', $end_date='1970-01-01'){
 
+		$query = "
+						SELECT
+								count(*) AS total,
+								result,
+								YEAR(ts) AS yr,
+								MONTH(ts) AS mon,
+								(SELECT name FROM test_type WHERE test_type_id =
+									(SELECT test_type_id FROM test
+										WHERE test_id = tr.test_id)) AS test_name
+							FROM test_result tr
+							WHERE ts = (SELECT MAX(tr2.ts) FROM test_result tr2 WHERE tr2.test_id = tr.test_id)
+							GROUP BY  yr, mon, result HAVING result != '' AND result != 'Not done' AND yr = $year;
+						";
+		$data = query_associative_all($query);
+	   	return $data;
+   }
+
+	public function tb_report_mq($start_date = '1970-01-01', $end_date='1970-01-01'){
+
+		$query = "
+						SELECT
+								count(*) AS total,
+								result,
+								YEAR(ts) AS yr,
+								MONTH(ts) AS mon,
+								(SELECT name FROM test_type WHERE test_type_id =
+									(SELECT test_type_id FROM test
+										WHERE test_id = tr.test_id)) AS test_name
+							FROM test_result tr
+							WHERE ts = (SELECT MAX(tr2.ts) FROM test_result tr2 WHERE tr2.test_id = tr.test_id) AND DATE(ts) BETWEEN '$start_date' AND '$end_date'
+							GROUP BY  yr, mon, result HAVING result != '' AND result != 'Not done';
+						";
+
+		$data = query_associative_all($query);
+		return $data;
+	}
 
 	public function disabledStatus(){
 		$query = "SELECT test_type_id, disabled FROM test_type";
