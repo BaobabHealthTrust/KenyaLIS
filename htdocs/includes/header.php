@@ -40,7 +40,8 @@ $facilityname = get_facility_name($_SESSION['lab_config_id']);
 <!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
 <!-- BEGIN HEAD --><head>
 	<meta charset="utf-8" />
-	<title>BLIS - Malawi<?php echo $facilityname!='' ? ' - '.$facilityname : ''; ?></title>
+	<title>BLIS - Malawi<? echo `git describe`;
+			 php echo $facilityname!='' ? ' - '.$facilityname : ''; ?></title>
 	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 	<meta content="" name="description" />
 	<meta content="" name="author" />
