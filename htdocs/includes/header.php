@@ -85,7 +85,9 @@ if(strpos($_SERVER['PHP_SELF'], 'login.php') === false)
 				<!-- BEGIN LOGO -->
 				<a class="brand" href="index.php">
 				<!--img src="assets/img/logo.png" alt="logo" /-->
-				BLIS - Malawi <?php echo $facilityname!='' ? ' - '.$facilityname : ''; ?>
+				BLIS - Malawi <span style='font-size:0.8em;font-style: italic;'><?php echo `git describe`;?></span>
+					<?php echo $facilityname!='' ? ' - '.$facilityname : ''; ?>
+
 				</a>
 				<!-- END LOGO -->
 				<!-- BEGIN RESPONSIVE MENU TOGGLER -->
