@@ -18235,6 +18235,8 @@ class API
 					(SELECT (SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = sal.state_id)
 					FROM specimen_activity_log sal WHERE (sal.specimen_id = t.specimen_id) OR (sal.test_id = t.test_id)
 					ORDER BY `date` DESC, activity_state_id DESC  LIMIT 1) AS status,
+					(SELECT MAX(`date`) FROM specimen_activity_log sal2 WHERE (sal2.specimen_id = t.specimen_id)
+					OR (sal2.test_id = t.test_id)) AS recent_date,
 					(SELECT accession_number from specimen where specimen_id = t.specimen_id) AS accession_number,
 					(select loinc_code from test_type where test_type_id = t.test_type_id LIMIT 1) AS test_code
 					 from test as t where  ((SELECT is_panel FROM test_type WHERE test_type_id = t.test_type_id) = 0)
