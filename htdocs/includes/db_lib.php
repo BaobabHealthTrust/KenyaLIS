@@ -18225,7 +18225,7 @@ class API
 			$type_condition = "HAVING status NOT IN ('Voided', 'Reviewed', 'Disposed')";
 		}
 
-		$date_filter_condition = " AND TIMESTAMPDIFF(DAY, recent_date, CURDATE()) <= 14";
+		//$date_filter_condition = " AND TIMESTAMPDIFF(DAY, recent_date, CURDATE()) <= 14";
 
 		$query = "Select (SELECT name from patient where patient_id = (select patient_id from
 					specimen where specimen_id = t.specimen_id)) AS patient_name ,
@@ -18234,13 +18234,11 @@ class API
 					(SELECT name from test_type where test_type_id = t.test_type_id) AS test_type_name,
 					(SELECT (SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = sal.state_id)
 					FROM specimen_activity_log sal WHERE (sal.specimen_id = t.specimen_id) OR (sal.test_id = t.test_id)
-					ORDER BY `date` DESC, activity_state_id DESC  LIMIT 1) AS status,
-					(SELECT MAX(`date`) FROM specimen_activity_log sal2 WHERE (sal2.specimen_id = t.specimen_id)
-					OR (sal2.test_id = t.test_id)) AS recent_date,
+					ORDER BY `date` DESC, activity_state_id DESC  LIMIT 1) AS status,					
 					(SELECT accession_number from specimen where specimen_id = t.specimen_id) AS accession_number,
 					(select loinc_code from test_type where test_type_id = t.test_type_id LIMIT 1) AS test_code
 					 from test as t where  ((SELECT is_panel FROM test_type WHERE test_type_id = t.test_type_id) = 0)
-					 $location_condition $type_condition $date_filter_condition";
+					 $location_condition $type_condition";
 
 		$results = query_associative_all($query);
 
