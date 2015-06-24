@@ -18144,39 +18144,34 @@ class API
 	{
 
 		$date = $params['date'];
-			$query = "SELECT patient_name, SUM(test_count) AS all_tests,
-					 	SUM(test_count_with_results) AS all_tests_with_results, recent_activity
-					FROM ( 
-					(SELECT
-						s.patient_id,
-						s.specimen_id,
-						(SELECT name FROM patient 
-								WHERE patient_id = s.patient_id) AS patient_name,
-						(SELECT COUNT(*) FROM test tst
-								WHERE specimen_id = s.specimen_id
-								AND ((SELECT is_panel FROM test_type WHERE test_type_id = tst.test_type_id) = 0)) test_count,
-						(SELECT COUNT(*) FROM test trst
-								WHERE specimen_id = s.specimen_id AND COALESCE(result, '') != ''
-								AND ((SELECT is_panel FROM test_type WHERE test_type_id = trst.test_type_id) = 0)) test_count_with_results,
-						(SELECT (SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = sal.state_id) 
-							FROM specimen_activity_log sal WHERE (sal.specimen_id = s.specimen_id) OR (sal.test_id = t.test_id)
-							ORDER BY `date` DESC LIMIT 1) AS recent_activity,
-						(SELECT sal.date 
-							FROM specimen_activity_log sal WHERE (sal.specimen_id = s.specimen_id) OR (sal.test_id = t.test_id)
-							ORDER BY `date` DESC LIMIT 1) AS recent_date
+	
+		$query = "SELECT
+						(SELECT COUNT(*) FROm test tt WHERE tt.specimen_id = s.specimen_id 
+									AND ((SELECT is_panel FROM test_type WHERE test_type_id = tt.test_type_id) = 0)) AS all_tests,
+					(SELECT COUNT(*) 
+									FROM test trst
+													WHERE specimen_id = s.specimen_id AND COALESCE(result, '') != ''
+													AND ((SELECT is_panel FROM test_type 
+															WHERE test_type_id = trst.test_type_id) = 0)) all_tests_with_results,
+						(SELECT name FROM patient WHERE patient_id = s.patient_id) AS patient_name,	
+						(SELECT sa.name FROM specimen_activity sa WHERE sa.state_id = slg.state_id) AS recent_activity,
+						slg.date AS recent_date
 					 FROM specimen s 
-						INNER JOIN test t ON t.specimen_id = s.specimen_id AND ((SELECT is_panel FROM test_type WHERE test_type_id = t.test_type_id) = 0)
-					 GROUP BY patient_id, specimen_id
-						 HAVING ( 
-							IF (recent_activity = 'Verified',
-			
-									TIMESTAMPDIFF(MINUTE, recent_date, '$date') <= 15,
-			
-									DATE(recent_date) <= DATE('$date')
-								)
-						 ) AND recent_activity IN ('Received In Department', 'Testing', 'Tested', 'Verified')
-					) AS info) GROUP by patient_id";
+						INNER JOIN specimen_activity_log slg ON (slg.activity_state_id = 
+										(SELECT MAX(lg.activity_state_id) FROM specimen_activity_log lg WHERE lg.specimen_id = s.specimen_id 
+											OR lg.test_id IN (SELECT test_id FROM test WHERE specimen_id = s.specimen_id)
+										))
 
+						GROUP BY s.specimen_id
+						HAVING
+								IF (recent_activity IN ('Verified', 'Test Rejected', 'Result Rejected', 'Sample Rejected'),
+
+										TIMESTAMPDIFF(MINUTE, recent_date, '$date') <= 15,
+
+										TIMESTAMPDIFF(DAY, recent_date, DATE('$date')) <= 30
+									)
+							 AND recent_activity IN ('Received In Department', 'Testing', 'Tested', 'Verified', 'Test Rejected', 'Result Rejected', 'Sample Rejected')
+					";
 
 		$results = query_associative_all($query);
 
@@ -18250,6 +18245,53 @@ class API
 
 
 		$results = query_associative_all($query);
+
+		return $results;
+	}
+
+	function orders_search($search_string){
+		
+		$search_string = trim($search_string); 
+
+		$search_string = str_replace("/\s+/","|",$search_string);
+
+		if ($search_string == ''){
+
+			$search_scenario = "LIKE";
+
+			$search_string = "%";
+		}else{
+
+			$search_scenario = "RLIKE";
+		}
+
+		$query_string = "SELECT p.name AS pname, p.surr_id AS pid, s.accession_number AS accession_number, 
+							(SELECT name FROM specimen_type WHERE specimen_type_id = s.specimen_type_id) AS sample_type,
+							GROUP_CONCAT((SELECT name FROM test_type WHERE loinc_code = t.panel_loinc_code)
+											SEPARATOR ', ') As test_types, 
+							(SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS state,
+							sl.doctor AS recent_doc, 
+							(SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS state
+							FROM specimen s 
+							INNER JOIN test t ON s.specimen_id = t.specimen_id
+							INNER JOIN patient p ON p.patient_id = s.patient_id
+							INNER JOIN specimen_activity_log sl
+								ON sl.activity_state_id = 
+									(SELECT MAX(activity_state_id) FROM specimen_activity_log 
+									WHERE specimen_id = s.specimen_id OR test_id = t.test_id)
+							GROUP BY s.accession_number 
+							HAVING 
+								pname $search_scenario '$search_string' 
+								OR pid $search_scenario '$search_string'
+								OR accession_number $search_scenario '$search_string'
+								OR test_types $search_scenario '$search_string' 
+								OR sample_type $search_scenario '$search_string'
+								OR state $search_scenario '$search_string'
+								OR recent_doc $search_scenario '$search_string'
+
+						";
+
+		$results = query_associative_all($query_string);
 
 		return $results;
 	}
