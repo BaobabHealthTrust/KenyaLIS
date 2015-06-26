@@ -18253,23 +18253,29 @@ class API
 		
 		$search_string = trim($search_string); 
 
-		$search_string = str_replace("/\s+/","|",$search_string);
+		$search_string = preg_replace("/\s+/","|", $search_string);
 
-		if ($search_string == ''){
+		$arr = explode('|', $search_string);
 
-			$search_scenario = "LIKE";
+		$search_condition = "true";
 
-			$search_string = "%";
-		}else{
+		foreach ($arr AS $val){
 
-			$search_scenario = "RLIKE";
+			if ($val != '')
+				$search_condition = $search_condition." AND CONCAT(pname, pid, accession_number, test_types, sample_type, state, recent_doc, recent_doc) REGEXP '$val'";
+			
 		}
+	
+		$limit = "";		
 
-		$query_string = "SELECT p.name AS pname, p.surr_id AS pid, s.accession_number AS accession_number, 
+		$query_string = "SELECT s.specimen_id, p.name AS pname, p.surr_id AS pid, s.accession_number AS accession_number, DATE(sl.date) AS recent_date,
 							(SELECT name FROM specimen_type WHERE specimen_type_id = s.specimen_type_id) AS sample_type,
-							GROUP_CONCAT((SELECT name FROM test_type WHERE loinc_code = t.panel_loinc_code)
-											SEPARATOR ', ') As test_types, 
-							(SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS state,
+							GROUP_CONCAT((SELECT tt.name FROM test_type tt WHERE tt.loinc_code = t.panel_loinc_code)
+											SEPARATOR ',, ') As test_types, 
+							GROUP_CONCAT((SELECT name FROM test_category tc 
+								WHERE tc.test_category_id = (SELECT tp.test_category_id FROM test_type tp 
+									WHERE tp.loinc_code = t.panel_loinc_code))
+											SEPARATOR ', ') As lab_department, 							
 							sl.doctor AS recent_doc, 
 							(SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS state
 							FROM specimen s 
@@ -18281,19 +18287,68 @@ class API
 									WHERE specimen_id = s.specimen_id OR test_id = t.test_id)
 							GROUP BY s.accession_number 
 							HAVING 
-								pname $search_scenario '$search_string' 
-								OR pid $search_scenario '$search_string'
-								OR accession_number $search_scenario '$search_string'
-								OR test_types $search_scenario '$search_string' 
-								OR sample_type $search_scenario '$search_string'
-								OR state $search_scenario '$search_string'
-								OR recent_doc $search_scenario '$search_string'
-
+								$search_condition								
+								ORDER BY recent_date DESC
+							LIMIT 100
 						";
 
 		$results = query_associative_all($query_string);
 
 		return $results;
+	}
+
+	function single_orders_search($specimen_id){
+		
+		$result = Array();
+		
+		$result['patient_name'] = query_associative_one("SELECT name FROM patient WHERE patient_id = 
+									(SELECT patient_id FROM specimen WHERE specimen_id = $specimen_id)")['name'];
+
+		$result['specimen_type'] = query_associative_one("SELECT name FROM specimen_type WHERE specimen_type_id = 
+									(SELECT specimen_type_id FROM specimen WHERE specimen_id = $specimen_id)")['name'];
+		
+		$result["date_ordered"] = query_associative_one("SELECT DATE_FORMAT(date,'%e-%b-%Y,  %h:%i %p') date FROM specimen_activity_log WHERE specimen_id = $specimen_id
+									AND state_id = (SELECT state_id FROM specimen_activity WHERE name = 'Ordered')")['date'];
+		
+		$result["accession_number"] = query_associative_one("SELECT accession_number 
+									FROM specimen WHERE specimen_id = $specimen_id")['accession_number'];
+
+		$result["recent_activity"] = query_associative_one("SELECT (SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS state
+										 FROM specimen_activity_log sl WHERE sl.specimen_id = $specimen_id OR sl.test_id 
+											IN (SELECT test_id FROM test WHERE specimen_id = $specimen_id
+												AND COALESCE(panel_loinc_code, '') != '')
+										ORDER by activity_state_id DESC LIMIT 1")['state'];
+
+		$result["recent_date"] = query_associative_one("SELECT DATE_FORMAT(sl.date,'%e-%b-%Y,  %h:%i %p') AS recent_date
+										 FROM specimen_activity_log sl WHERE sl.specimen_id = $specimen_id OR sl.test_id 
+											IN (SELECT test_id FROM test WHERE specimen_id = $specimen_id
+												AND COALESCE(panel_loinc_code, '') != '')
+										ORDER by sl.activity_state_id DESC LIMIT 1")['recent_date'];
+
+		$result["tests_ordered"] = query_associative_one("SELECT GROUP_CONCAT(name)As test_names , 1 AS hook  	
+										FROM test_type WHERE test_type_id IN  
+											(SELECT test_type_id FROM test WHERE specimen_id = $specimen_id 
+											AND COALESCE(panel_loinc_code, '') != '') GROUP BY hook
+										 ")['test_names'];
+
+		$result["order_history"] = query_associative_all("					
+					SELECT (SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS state,
+							(SELECT name FROM test_type WHERE test_type_id = 
+								(SELECT test_type_id FROM test WHERE test_id = sl.test_id) AND is_panel = 0) AS test_ordered,
+							(SELECT result FROM test_result WHERE test_id = sl.test_id 
+								AND sl.state_id IN (SELECT state_id FROM specimen_activity WHERE name 
+										IN ('Tested', 'Verified', 'Result Rejected', 'Seen', 'Reviewed', 'Disposed')) ORDER BY ts DESC limit 1) AS result,
+							(SELECT interpretation FROM test_result WHERE test_id = sl.test_id 
+								AND sl.state_id IN (SELECT state_id FROM specimen_activity WHERE name 
+										IN ('Tested', 'Verified', 'Result Rejected', 'Seen', 'Reviewed', 'Disposed')) ORDER BY ts DESC limit 1) AS interpretation,
+							DATE_FORMAT(sl.date,'%e-%b-%Y,  %h:%i %p') AS fdate, sl.* FROM specimen_activity_log sl WHERE
+						sl.specimen_id = $specimen_id OR sl.test_id IN (SELECT test_id FROM test WHERE specimen_id = $specimen_id AND 
+						(SELECT is_panel FROM test_type WHERE test_type_id = test.test_type_id) = 0) 
+						GROUP BY sl.date, sl.test_id, state, sl.user_id		
+				 ");	
+
+		return $result;
+
 	}
 }
 	
