@@ -17479,6 +17479,39 @@ class API
 		}
 	}
 
+	public function getAveragePointToPointTimes(){
+
+		$query = "SELECT (SELECT name FROM specimen_activity WHERE state_id = sl.state_id) AS name, AVG(TIMESTAMPDIFF(SECOND,
+					(SELECT sl2.date FROM specimen_activity_log sl2 
+						WHERE sl2.activity_state_id = (
+							SELECT MAX(activity_state_id) 
+								FROM specimen_activity_log sl3 
+									WHERE sl3.activity_state_id < sl.activity_state_id 
+									AND (sl3.specimen_id = sl.specimen_id OR sl3.test_id = sl.test_id)
+							)
+						), sl.date
+				))/(60 * 60) AS delay
+	
+				FROM specimen_activity_log sl WHERE DATE(sl.date) >= DATE(NOW() - INTERVAL 1 MONTH) GROUP BY  name;
+
+				";	
+
+		return query_associative_all($query);
+
+	}
+	public function getTestTypeStats(){
+
+		$query = "SELECT 
+				tt.name AS test_name,
+				(SELECT COUNT(*) FROM test WHERE
+						test_type_id = tt.test_type_id) AS count
+				FROM test_type tt WHERE tt.is_panel = 0					
+				order BY count desc
+				LIMIT 18
+		";	
+
+		return query_associative_all($query);
+	}
 	public function disableTest($tid, $enable){
 
 		$query = "UPDATE test_type SET disabled = $enable WHERE test_type_id = $tid";
